@@ -34,7 +34,7 @@
 
     /* ヘッダー */
     .header {
-      padding: 16px 20px;
+      padding: 20px;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -42,7 +42,7 @@
 
     .search-container {
       width: 100%;
-      max-width: 600px;
+      max-width: 500px;
       position: relative;
     }
 
@@ -86,8 +86,8 @@
 
     .theme-toggle {
       position: fixed;
-      top: 16px;
-      right: 16px;
+      top: 20px;
+      right: 20px;
       width: 45px;
       height: 45px;
       border-radius: 50%;
@@ -118,8 +118,8 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 0 20px 20px;
-      max-width: 1400px;
+      padding: 0 20px 40px;
+      max-width: 1200px;
       width: 100%;
       margin: 0 auto;
     }
@@ -127,9 +127,9 @@
     /* タイマーセクション */
     .timer-section {
       width: 100%;
-      max-width: 600px;
+      max-width: 500px;
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 40px;
     }
 
     .timer-tabs {
@@ -142,14 +142,14 @@
     }
 
     .tab-btn {
-      padding: 6px 18px;
+      padding: 8px 20px;
       background: transparent;
       border: none;
       color: white;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      border-radius: 4px;
+      border-radius: 6px;
       transition: all 0.3s ease;
       opacity: 0.6;
     }
@@ -164,12 +164,13 @@
     }
 
     .timer-display {
-      font-size: 90px;
+      font-size: 80px;
       font-weight: 700;
       color: white;
       font-variant-numeric: tabular-nums;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
       text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      letter-spacing: 0.05em;
     }
 
     .timer-controls {
@@ -179,15 +180,16 @@
     }
 
     .control-btn {
-      padding: 14px 35px;
+      padding: 16px 40px;
       background: white;
       border: none;
       border-radius: 8px;
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.3s ease;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+      min-width: 100px;
     }
 
     body:not(.short-break):not(.long-break) .control-btn {
@@ -211,19 +213,20 @@
     .cards-grid {
       width: 100%;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
     }
 
     .card {
       background: rgba(255, 255, 255, 0.2);
       backdrop-filter: blur(10px);
-      border-radius: 10px;
-      padding: 20px;
+      border-radius: 12px;
+      padding: 24px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
       display: flex;
       flex-direction: column;
+      min-height: 200px;
     }
 
     .card:hover {
@@ -232,69 +235,76 @@
     }
 
     .card-title {
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 700;
       color: white;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
       opacity: 0.95;
     }
 
     .card-content {
       color: white;
       flex: 1;
+      display: flex;
+      flex-direction: column;
     }
 
     /* 時計 */
     .clock-time {
-      font-size: 32px;
+      font-size: 36px;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
     .clock-date {
-      font-size: 12px;
+      font-size: 13px;
       opacity: 0.8;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
 
     .world-clock-item {
       display: flex;
       justify-content: space-between;
-      padding: 6px 10px;
+      padding: 8px 12px;
       background: rgba(255, 255, 255, 0.1);
-      border-radius: 5px;
-      margin-bottom: 5px;
-      font-size: 12px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .world-clock-item:last-child {
+      margin-bottom: 0;
     }
 
     /* タイマー・ストップウォッチ */
     .display-medium {
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
       text-align: center;
     }
 
     .input-group {
       display: flex;
-      gap: 4px;
+      gap: 6px;
       justify-content: center;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 14px;
     }
 
     .input-small {
-      width: 45px;
-      padding: 6px;
+      width: 50px;
+      padding: 8px;
       border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 5px;
+      border-radius: 6px;
       text-align: center;
       font-weight: 600;
       background: rgba(255, 255, 255, 0.15);
       color: white;
-      font-size: 13px;
+      font-size: 14px;
     }
 
     .input-small:focus {
@@ -303,19 +313,24 @@
       background: rgba(255, 255, 255, 0.25);
     }
 
+    .input-small::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
     .controls-small {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       flex-wrap: wrap;
+      justify-content: center;
     }
 
     .btn-small {
-      padding: 6px 14px;
+      padding: 8px 16px;
       background: rgba(255, 255, 255, 0.2);
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       color: white;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
@@ -327,41 +342,45 @@
 
     /* ラップリスト */
     .lap-list {
-      max-height: 120px;
+      max-height: 140px;
       overflow-y: auto;
-      margin-top: 10px;
+      margin-top: 12px;
     }
 
     .lap-list::-webkit-scrollbar {
-      width: 4px;
+      width: 5px;
     }
 
     .lap-list::-webkit-scrollbar-thumb {
       background: rgba(255, 255, 255, 0.3);
-      border-radius: 2px;
+      border-radius: 3px;
     }
 
     .lap-item {
       display: flex;
       justify-content: space-between;
-      padding: 6px 8px;
+      padding: 8px 10px;
       background: rgba(255, 255, 255, 0.1);
-      border-radius: 4px;
-      margin-bottom: 4px;
-      font-size: 11px;
+      border-radius: 5px;
+      margin-bottom: 5px;
+      font-size: 12px;
+    }
+
+    .lap-item:last-child {
+      margin-bottom: 0;
     }
 
     /* 音量 */
     .volume-display {
       text-align: center;
-      font-size: 26px;
+      font-size: 32px;
       font-weight: 700;
-      margin-bottom: 10px;
+      margin-bottom: 16px;
     }
 
     .volume-slider {
       width: 100%;
-      height: 5px;
+      height: 6px;
       border-radius: 3px;
       background: rgba(255, 255, 255, 0.3);
       outline: none;
@@ -370,8 +389,8 @@
 
     .volume-slider::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background: white;
       cursor: pointer;
@@ -379,8 +398,8 @@
     }
 
     .volume-slider::-moz-range-thumb {
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background: white;
       cursor: pointer;
@@ -390,15 +409,17 @@
     /* メモ */
     .memo-textarea {
       width: 100%;
-      height: 120px;
+      flex: 1;
+      min-height: 140px;
       border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 6px;
-      padding: 10px;
-      font-size: 12px;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
       font-family: inherit;
       resize: none;
       background: rgba(255, 255, 255, 0.15);
       color: white;
+      line-height: 1.5;
     }
 
     .memo-textarea:focus {
@@ -414,18 +435,18 @@
     /* TODO */
     .todo-input-wrapper {
       display: flex;
-      gap: 6px;
-      margin-bottom: 10px;
+      gap: 8px;
+      margin-bottom: 12px;
     }
 
     .todo-input {
       flex: 1;
-      padding: 6px 10px;
+      padding: 8px 12px;
       border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 5px;
+      border-radius: 6px;
       background: rgba(255, 255, 255, 0.15);
       color: white;
-      font-size: 12px;
+      font-size: 13px;
     }
 
     .todo-input:focus {
@@ -439,38 +460,43 @@
     }
 
     .todo-list {
-      max-height: 150px;
+      max-height: 160px;
       overflow-y: auto;
     }
 
     .todo-list::-webkit-scrollbar {
-      width: 4px;
+      width: 5px;
     }
 
     .todo-list::-webkit-scrollbar-thumb {
       background: rgba(255, 255, 255, 0.3);
-      border-radius: 2px;
+      border-radius: 3px;
     }
 
     .todo-item {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px;
+      gap: 10px;
+      padding: 10px;
       background: rgba(255, 255, 255, 0.1);
-      border-radius: 5px;
-      margin-bottom: 5px;
-      font-size: 12px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .todo-item:last-child {
+      margin-bottom: 0;
     }
 
     .todo-checkbox {
-      width: 14px;
-      height: 14px;
+      width: 16px;
+      height: 16px;
       cursor: pointer;
     }
 
     .todo-text {
       flex: 1;
+      word-break: break-word;
     }
 
     .todo-item.completed .todo-text {
@@ -479,14 +505,15 @@
     }
 
     .btn-delete {
-      padding: 3px 8px;
+      padding: 4px 10px;
       background: rgba(239, 68, 68, 0.4);
       color: white;
       border: none;
       border-radius: 4px;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     .btn-delete:hover {
@@ -570,13 +597,50 @@
       transform: scale(1.05);
     }
 
+    @media (max-width: 900px) {
+      .cards-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+    }
+
     @media (max-width: 768px) {
       .timer-display {
-        font-size: 60px;
+        font-size: 64px;
       }
 
       .cards-grid {
         grid-template-columns: 1fr;
+      }
+
+      .main-content {
+        padding: 0 16px 32px;
+      }
+
+      .card {
+        padding: 20px;
+      }
+
+      .header {
+        padding: 16px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .timer-display {
+        font-size: 56px;
+      }
+
+      .alert-title {
+        font-size: 42px;
+      }
+
+      .alert-message {
+        font-size: 18px;
+      }
+
+      .control-btn {
+        padding: 14px 32px;
+        font-size: 15px;
       }
     }
   </style>
@@ -621,7 +685,7 @@
       <div class="timer-tabs">
         <button class="tab-btn active" data-type="pomodoro">Pomodoro</button>
         <button class="tab-btn" data-type="short">Short Break</button>
-        <button class="tab-btn" data-type="long">Long Bleak</button>
+        <button class="tab-btn" data-type="long">Long Break</button>
       </div>
 
       <div class="timer-display" id="timer-display">25:00</div>
@@ -637,7 +701,7 @@
         <div class="card-title">Clock</div>
         <div class="card-content">
           <div class="clock-time" id="clock-time">00:00:00</div>
-          <div class="clock-date" id="clock-date">2024/1/1/</div>
+          <div class="clock-date" id="clock-date">2024/1/1</div>
           <div class="world-clock-item">
             <span>Tokyo</span>
             <span id="tokyo-time">00:00:00</span>
@@ -677,7 +741,7 @@
           <div class="display-medium" id="stopwatch-display">00:00:00</div>
           <div class="controls-small">
             <button class="btn-small" id="sw-start">Start</button>
-            <button class="btn-small" id="sw-lap">Wrap</button>
+            <button class="btn-small" id="sw-lap">Lap</button>
             <button class="btn-small" id="sw-reset">Reset</button>
           </div>
           <div class="lap-list" id="lap-list"></div>
@@ -704,7 +768,7 @@
         <div class="card-content">
           <div class="todo-input-wrapper">
             <input type="text" class="todo-input" id="todo-input" placeholder="New task...">
-            <button class="btn-small" id="todo-add">add</button>
+            <button class="btn-small" id="todo-add">Add</button>
           </div>
           <div class="todo-list" id="todo-list"></div>
         </div>
@@ -868,21 +932,21 @@
           if (customTime === 0) return alert('Please set the time');
         }
         customRun = true;
-        this.textContent = '停止';
+        this.textContent = 'Stop';
         customInt = setInterval(function() {
           customTime--;
           updateCustom();
           if (customTime <= 0) {
             clearInterval(customInt);
             customRun = false;
-            document.getElementById('ct-start').textContent = '開始';
+            document.getElementById('ct-start').textContent = 'Start';
             showAlert('Time Up！', 'カスタムタイマーが終了しました');
           }
         }, 1000);
       }
     };
 
-    document.getElementById('ct-reset').onclick =document.getElementById('ct-reset').onclick = function() {
+    document.getElementById('ct-reset').onclick = function() {
       clearInterval(customInt);
       customRun = false;
       customTime = 0;
@@ -922,8 +986,7 @@
       }
     };
 
-    document.getElementById('sw-lap').onclick = 
-　　　function() {
+    document.getElementById('sw-lap').onclick = function() {
       if (swRun) {
         lapCount++;
         const h = Math.floor(swTime / 3600);
@@ -932,7 +995,7 @@
         const time = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
         const lap = document.createElement('div');
         lap.className = 'lap-item';
-        lap.innerHTML = '<span>Wrap ' + lapCount + '</span><span>' + time + '</span>';
+        lap.innerHTML = '<span>Lap ' + lapCount + '</span><span>' + time + '</span>';
         document.getElementById('lap-list').insertBefore(lap, document.getElementById('lap-list').firstChild);
       }
     };
@@ -1034,7 +1097,7 @@
       const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const weekday = weekdays[now.getDay()];
       document.getElementById('clock-date').textContent = 
-        year + '/' + month + '/' + day + '/ (' + weekday + ')';
+        year + '/' + month + '/' + day + ' (' + weekday + ')';
       
       // 世界時計
       const tokyo = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
