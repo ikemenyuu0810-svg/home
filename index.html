@@ -777,7 +777,7 @@
       if (isRunning) {
         clearInterval(timerInt);
         isRunning = false;
-        document.getElementById('start-btn').textContent = 'スタート';
+        document.getElementById('start-btn').textContent = 'Start';
       }
 
       currentType = type;
@@ -809,10 +809,10 @@
       if (isRunning) {
         clearInterval(timerInt);
         isRunning = false;
-        this.textContent = 'スタート';
+        this.textContent = 'Stare';
       } else {
         isRunning = true;
-        this.textContent = '一時停止';
+        this.textContent = 'Stop';
         timerInt = setInterval(function() {
           timeLeft--;
           updateTimer();
