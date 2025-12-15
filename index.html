@@ -809,7 +809,7 @@
       if (isRunning) {
         clearInterval(timerInt);
         isRunning = false;
-        this.textContent = 'Stare';
+        this.textContent = 'Start';
       } else {
         isRunning = true;
         this.textContent = 'Stop';
@@ -820,7 +820,7 @@
           if (timeLeft <= 0) {
             clearInterval(timerInt);
             isRunning = false;
-            document.getElementById('start-btn').textContent = 'スタート';
+            document.getElementById('start-btn').textContent = 'Start';
             
             if (currentType === 'pomodoro') {
               showAlert('作業完了！', '休憩時間です');
@@ -836,7 +836,7 @@
       if (isRunning) {
         clearInterval(timerInt);
         isRunning = false;
-        document.getElementById('start-btn').textContent = 'スタート';
+        document.getElementById('start-btn').textContent = 'Start';
       }
       switchType(currentType);
     };
@@ -858,14 +858,14 @@
       if (customRun) {
         clearInterval(customInt);
         customRun = false;
-        this.textContent = '開始';
+        this.textContent = 'Start';
       } else {
         if (customTime === 0) {
           const h = parseInt(document.getElementById('ct-hours').value) || 0;
           const m = parseInt(document.getElementById('ct-minutes').value) || 0;
           const s = parseInt(document.getElementById('ct-seconds').value) || 0;
           customTime = h * 3600 + m * 60 + s;
-          if (customTime === 0) return alert('時間を設定してください');
+          if (customTime === 0) return alert('Please set the time');
         }
         customRun = true;
         this.textContent = '停止';
@@ -876,7 +876,7 @@
             clearInterval(customInt);
             customRun = false;
             document.getElementById('ct-start').textContent = '開始';
-            showAlert('タイマー終了！', 'カスタムタイマーが終了しました');
+            showAlert('Time Up！', 'カスタムタイマーが終了しました');
           }
         }, 1000);
       }
@@ -886,7 +886,7 @@
       clearInterval(customInt);
       customRun = false;
       customTime = 0;
-      document.getElementById('ct-start').textContent = '開始';
+      document.getElementById('ct-start').textContent = 'Start';
       document.getElementById('ct-hours').value = 0;
       document.getElementById('ct-minutes').value = 0;
       document.getElementById('ct-seconds').value = 0;
@@ -911,10 +911,10 @@
       if (swRun) {
         clearInterval(swInt);
         swRun = false;
-        this.textContent = '開始';
+        this.textContent = 'Start';
       } else {
         swRun = true;
-        this.textContent = '停止';
+        this.textContent = 'Stop';
         swInt = setInterval(function() {
           swTime++;
           updateStopwatch();
@@ -932,7 +932,7 @@
         const time = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
         const lap = document.createElement('div');
         lap.className = 'lap-item';
-        lap.innerHTML = '<span>ラップ ' + lapCount + '</span><span>' + time + '</span>';
+        lap.innerHTML = '<span>Wrap ' + lapCount + '</span><span>' + time + '</span>';
         document.getElementById('lap-list').insertBefore(lap, document.getElementById('lap-list').firstChild);
       }
     };
@@ -942,7 +942,7 @@
       swRun = false;
       swTime = 0;
       lapCount = 0;
-      document.getElementById('sw-start').textContent = '開始';
+      document.getElementById('sw-start').textContent = 'Start';
       document.getElementById('lap-list').innerHTML = '';
       updateStopwatch();
     };
@@ -983,7 +983,7 @@
         item.innerHTML = 
           '<input type="checkbox" class="todo-checkbox" ' + (todo.done ? 'checked' : '') + '>' +
           '<span class="todo-text">' + todo.text + '</span>' +
-          '<button class="btn-delete">削除</button>';
+          '<button class="btn-delete">Delete</button>';
         
         item.querySelector('.todo-checkbox').onchange = function() {
           todos[i].done = this.checked;
