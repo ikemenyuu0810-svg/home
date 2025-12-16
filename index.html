@@ -20,19 +20,10 @@
       transition: background 0.3s ease;
     }
 
-    body.short-break {
-      background: #4c9195;
-    }
+    body.short-break { background: #4c9195; }
+    body.long-break { background: #457ca3; }
+    body.dark { filter: brightness(0.8); }
 
-    body.long-break {
-      background: #457ca3;
-    }
-
-    body.dark {
-      filter: brightness(0.8);
-    }
-
-    /* ヘッダー */
     .header {
       padding: 20px;
       display: flex;
@@ -58,10 +49,7 @@
       transition: all 0.3s ease;
     }
 
-    .search-box::placeholder {
-      color: rgba(255, 255, 255, 0.7);
-    }
-
+    .search-box::placeholder { color: rgba(255, 255, 255, 0.7); }
     .search-box:focus {
       outline: none;
       background: rgba(255, 255, 255, 0.3);
@@ -80,9 +68,7 @@
       opacity: 0.8;
     }
 
-    .search-btn:hover {
-      opacity: 1;
-    }
+    .search-btn:hover { opacity: 1; }
 
     .theme-toggle {
       position: fixed;
@@ -102,29 +88,20 @@
       z-index: 100;
     }
 
-    .theme-toggle:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
+    .theme-toggle:hover { background: rgba(255, 255, 255, 0.3); }
+    .theme-icon { width: 22px; height: 22px; color: white; }
 
-    .theme-icon {
-      width: 22px;
-      height: 22px;
-      color: white;
-    }
-
-    /* メインコンテンツ */
     .main-content {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 0 20px 40px;
-      max-width: 1200px;
+      max-width: 1400px;
       width: 100%;
       margin: 0 auto;
     }
 
-    /* タイマーセクション */
     .timer-section {
       width: 100%;
       max-width: 500px;
@@ -154,10 +131,7 @@
       opacity: 0.6;
     }
 
-    .tab-btn:hover {
-      opacity: 0.8;
-    }
-
+    .tab-btn:hover { opacity: 0.8; }
     .tab-btn.active {
       background: rgba(0, 0, 0, 0.15);
       opacity: 1;
@@ -192,28 +166,19 @@
       min-width: 100px;
     }
 
-    body:not(.short-break):not(.long-break) .control-btn {
-      color: #d95550;
-    }
-
-    body.short-break .control-btn {
-      color: #4c9195;
-    }
-
-    body.long-break .control-btn {
-      color: #457ca3;
-    }
+    body:not(.short-break):not(.long-break) .control-btn { color: #d95550; }
+    body.short-break .control-btn { color: #4c9195; }
+    body.long-break .control-btn { color: #457ca3; }
 
     .control-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
     }
 
-    /* カードグリッド */
     .cards-grid {
       width: 100%;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 20px;
     }
 
@@ -226,12 +191,17 @@
       transition: all 0.3s ease;
       display: flex;
       flex-direction: column;
-      min-height: 200px;
+      height: 300px;
     }
 
     .card:hover {
       transform: translateY(-3px);
       box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .card.tall {
+      grid-row: span 2;
+      height: 620px;
     }
 
     .card-title {
@@ -247,9 +217,9 @@
       flex: 1;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
 
-    /* 時計 */
     .clock-time {
       font-size: 36px;
       font-weight: 700;
@@ -274,11 +244,8 @@
       font-weight: 500;
     }
 
-    .world-clock-item:last-child {
-      margin-bottom: 0;
-    }
+    .world-clock-item:last-child { margin-bottom: 0; }
 
-    /* タイマー・ストップウォッチ */
     .display-medium {
       font-size: 32px;
       font-weight: 700;
@@ -313,9 +280,7 @@
       background: rgba(255, 255, 255, 0.25);
     }
 
-    .input-small::placeholder {
-      color: rgba(255, 255, 255, 0.5);
-    }
+    .input-small::placeholder { color: rgba(255, 255, 255, 0.5); }
 
     .controls-small {
       display: flex;
@@ -336,21 +301,15 @@
       transition: all 0.3s ease;
     }
 
-    .btn-small:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
+    .btn-small:hover { background: rgba(255, 255, 255, 0.3); }
 
-    /* ラップリスト */
     .lap-list {
       max-height: 140px;
       overflow-y: auto;
       margin-top: 12px;
     }
 
-    .lap-list::-webkit-scrollbar {
-      width: 5px;
-    }
-
+    .lap-list::-webkit-scrollbar { width: 5px; }
     .lap-list::-webkit-scrollbar-thumb {
       background: rgba(255, 255, 255, 0.3);
       border-radius: 3px;
@@ -366,11 +325,8 @@
       font-size: 12px;
     }
 
-    .lap-item:last-child {
-      margin-bottom: 0;
-    }
+    .lap-item:last-child { margin-bottom: 0; }
 
-    /* 音量 */
     .volume-display {
       text-align: center;
       font-size: 32px;
@@ -406,11 +362,9 @@
       border: none;
     }
 
-    /* メモ */
     .memo-textarea {
       width: 100%;
       flex: 1;
-      min-height: 140px;
       border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 8px;
       padding: 12px;
@@ -428,11 +382,8 @@
       background: rgba(255, 255, 255, 0.2);
     }
 
-    .memo-textarea::placeholder {
-      color: rgba(255, 255, 255, 0.5);
-    }
+    .memo-textarea::placeholder { color: rgba(255, 255, 255, 0.5); }
 
-    /* TODO */
     .todo-input-wrapper {
       display: flex;
       gap: 8px;
@@ -455,19 +406,14 @@
       background: rgba(255, 255, 255, 0.2);
     }
 
-    .todo-input::placeholder {
-      color: rgba(255, 255, 255, 0.5);
-    }
+    .todo-input::placeholder { color: rgba(255, 255, 255, 0.5); }
 
     .todo-list {
-      max-height: 160px;
+      flex: 1;
       overflow-y: auto;
     }
 
-    .todo-list::-webkit-scrollbar {
-      width: 5px;
-    }
-
+    .todo-list::-webkit-scrollbar { width: 5px; }
     .todo-list::-webkit-scrollbar-thumb {
       background: rgba(255, 255, 255, 0.3);
       border-radius: 3px;
@@ -484,14 +430,13 @@
       font-size: 13px;
     }
 
-    .todo-item:last-child {
-      margin-bottom: 0;
-    }
+    .todo-item:last-child { margin-bottom: 0; }
 
     .todo-checkbox {
       width: 16px;
       height: 16px;
       cursor: pointer;
+      flex-shrink: 0;
     }
 
     .todo-text {
@@ -514,13 +459,32 @@
       font-weight: 600;
       cursor: pointer;
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
-    .btn-delete:hover {
-      background: rgba(239, 68, 68, 0.6);
+    .btn-delete:hover { background: rgba(239, 68, 68, 0.6); }
+
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.2s;
     }
 
-    /* アラート */
+    .link-item:hover { background: rgba(255, 255, 255, 0.15); }
+    .link-item:last-child { margin-bottom: 0; }
+
+    .link-name {
+      flex: 1;
+      word-break: break-word;
+    }
+
     .fullscreen-alert {
       position: fixed;
       top: 0;
@@ -585,59 +549,34 @@
       transition: all 0.3s ease;
     }
 
-    body.short-break .alert-close {
-      color: #4c9195;
-    }
+    body.short-break .alert-close { color: #4c9195; }
+    body.long-break .alert-close { color: #457ca3; }
+    .alert-close:hover { transform: scale(1.05); }
 
-    body.long-break .alert-close {
-      color: #457ca3;
-    }
-
-    .alert-close:hover {
-      transform: scale(1.05);
-    }
-
-    @media (max-width: 900px) {
+    @media (max-width: 1200px) {
       .cards-grid {
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: repeat(2, 1fr);
       }
     }
 
     @media (max-width: 768px) {
-      .timer-display {
-        font-size: 64px;
-      }
-
+      .timer-display { font-size: 64px; }
       .cards-grid {
         grid-template-columns: 1fr;
       }
-
-      .main-content {
-        padding: 0 16px 32px;
+      .card.tall {
+        grid-row: span 1;
+        height: 300px;
       }
-
-      .card {
-        padding: 20px;
-      }
-
-      .header {
-        padding: 16px;
-      }
+      .main-content { padding: 0 16px 32px; }
+      .card { padding: 20px; }
+      .header { padding: 16px; }
     }
 
     @media (max-width: 480px) {
-      .timer-display {
-        font-size: 56px;
-      }
-
-      .alert-title {
-        font-size: 42px;
-      }
-
-      .alert-message {
-        font-size: 18px;
-      }
-
+      .timer-display { font-size: 56px; }
+      .alert-title { font-size: 42px; }
+      .alert-message { font-size: 18px; }
       .control-btn {
         padding: 14px 32px;
         font-size: 15px;
@@ -716,7 +655,8 @@
           </div>
         </div>
       </div>
-    <div class="card">
+
+      <div class="card">
         <div class="card-title">Focus Stats</div>
         <div class="card-content">
           <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -736,7 +676,8 @@
           </div>
         </div>
       </div>
-           <div class="card">
+
+      <div class="card">
         <div class="card-title">Weather</div>
         <div class="card-content">
           <div id="weather-content" style="text-align: center;">
@@ -746,6 +687,7 @@
           </div>
         </div>
       </div>
+
       <div class="card">
         <div class="card-title">Custom Timer</div>
         <div class="card-content">
@@ -785,13 +727,14 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card tall">
         <div class="card-title">Memo</div>
         <div class="card-content">
           <textarea class="memo-textarea" id="memo" placeholder="Enter your notes here..."></textarea>
         </div>
       </div>
-    <div class="card">
+
+      <div class="card tall">
         <div class="card-title">Quick Links</div>
         <div class="card-content">
           <div class="todo-input-wrapper">
@@ -799,12 +742,11 @@
             <input type="text" class="todo-input" id="link-url" placeholder="URL...">
             <button class="btn-small" id="link-add">Add</button>
           </div>
-          
           <div class="todo-list" id="link-list"></div>
         </div>
       </div>
 
-      <div class="card">
+      <div class="card tall">
         <div class="card-title">ToDo List</div>
         <div class="card-content">
           <div class="todo-input-wrapper">
@@ -818,7 +760,6 @@
   </div>
 
   <script>
-    // テーマ
     const themeToggle = document.getElementById('theme-toggle');
     const themeIcon = document.getElementById('theme-icon');
     
@@ -838,7 +779,6 @@
       }
     };
 
-    // Google検索
     document.getElementById('search-btn').onclick = function() {
       const q = document.getElementById('search-input').value.trim();
       if (q) {
@@ -851,7 +791,6 @@
       if (e.key === 'Enter') document.getElementById('search-btn').click();
     };
 
-    // アラート
     function showAlert(title, msg) {
       document.getElementById('alert-title').textContent = title;
       document.getElementById('alert-message').textContent = msg;
@@ -862,7 +801,6 @@
       document.getElementById('fullscreen-alert').classList.remove('show');
     };
 
-    // ポモドーロ
     let currentType = 'pomodoro';
     let pomodoroTime = 25;
     let shortTime = 5;
@@ -946,7 +884,6 @@
       switchType(currentType);
     };
 
-    // カスタムタイマー
     let customInt = null;
     let customTime = 0;
     let customRun = false;
@@ -998,7 +935,6 @@
       updateCustom();
     };
 
-    // ストップウォッチ
     let swTime = 0;
     let swInt = null;
     let swRun = false;
@@ -1051,7 +987,6 @@
       updateStopwatch();
     };
 
-    // 音量調整
     const volSlider = document.getElementById('volume-slider');
     const volDisplay = document.getElementById('volume-display');
     
@@ -1065,7 +1000,6 @@
       localStorage.setItem('volume', this.value);
     };
 
-    // メモ
     const memo = document.getElementById('memo');
     if (localStorage.getItem('memo')) {
       memo.value = localStorage.getItem('memo');
@@ -1075,7 +1009,6 @@
       localStorage.setItem('memo', this.value);
     };
 
-    // TODO
     let todos = JSON.parse(localStorage.getItem('todos') || '[]');
 
     function renderTodos() {
@@ -1122,11 +1055,52 @@
 
     renderTodos();
 
-    // 時計
+    let links = JSON.parse(localStorage.getItem('links') || '[]');
+
+    function renderLinks() {
+      const list = document.getElementById('link-list');
+      list.innerHTML = '';
+      links.forEach(function(link, i) {
+        const item = document.createElement('div');
+        item.className = 'link-item';
+        item.innerHTML = 
+          '<span class="link-name">' + link.name + '</span>' +
+          '<button class="btn-delete">Delete</button>';
+        
+        item.onclick = function(e) {
+          if (e.target.tagName !== 'BUTTON') {
+            window.open(link.url, '_blank');
+          }
+        };
+        
+        item.querySelector('.btn-delete').onclick = function(e) {
+          e.stopPropagation();
+          links.splice(i, 1);
+          localStorage.setItem('links', JSON.stringify(links));
+          renderLinks();
+        };
+        
+        list.appendChild(item);
+      });
+    }
+
+    document.getElementById('link-add').onclick = function() {
+      const name = document.getElementById('link-name').value.trim();
+      const url = document.getElementById('link-url').value.trim();
+      if (name && url) {
+        links.push({ name: name, url: url });
+        localStorage.setItem('links', JSON.stringify(links));
+        document.getElementById('link-name').value = '';
+        document.getElementById('link-url').value = '';
+        renderLinks();
+      }
+    };
+
+    renderLinks();
+
     function updateClocks() {
       const now = new Date();
       
-      // ローカル時計
       const h = String(now.getHours()).padStart(2, '0');
       const m = String(now.getMinutes()).padStart(2, '0');
       const s = String(now.getSeconds()).padStart(2, '0');
@@ -1140,7 +1114,6 @@
       document.getElementById('clock-date').textContent = 
         year + '/' + month + '/' + day + ' (' + weekday + ')';
       
-      // 世界時計
       const tokyo = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
       const ny = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
       const london = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/London' }));
