@@ -22,7 +22,6 @@
 
     body.short-break { background: #4c9195; }
     body.long-break { background: #457ca3; }
-    body.dark { filter: brightness(0.8); }
 
     .header {
       padding: 20px;
@@ -69,27 +68,6 @@
     }
 
     .search-btn:hover { opacity: 1; }
-
-    .theme-toggle {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(10px);
-      z-index: 100;
-    }
-
-    .theme-toggle:hover { background: rgba(255, 255, 255, 0.3); }
-    .theme-icon { width: 22px; height: 22px; color: white; }
 
     .main-content {
       flex: 1;
@@ -178,7 +156,7 @@
     .cards-grid {
       width: 100%;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 20px;
       grid-auto-rows: minmax(260px, auto);
     }
@@ -328,41 +306,6 @@
     }
 
     .lap-item:last-child { margin-bottom: 0; }
-
-    .volume-display {
-      text-align: center;
-      font-size: 42px;
-      font-weight: 700;
-      margin-bottom: 20px;
-    }
-
-    .volume-slider {
-      width: 100%;
-      height: 6px;
-      border-radius: 3px;
-      background: rgba(255, 255, 255, 0.3);
-      outline: none;
-      -webkit-appearance: none;
-    }
-
-    .volume-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: white;
-      cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    }
-
-    .volume-slider::-moz-range-thumb {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: white;
-      cursor: pointer;
-      border: none;
-    }
 
     .memo-textarea {
       width: 100%;
@@ -557,7 +500,7 @@
 
     @media (max-width: 1200px) {
       .cards-grid {
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: repeat(2, 1fr);
       }
     }
 
@@ -583,7 +526,6 @@
       
       .clock-time { font-size: 36px; }
       .display-medium { font-size: 32px; }
-      .volume-display { font-size: 36px; }
       .card-title { font-size: 16px; }
       .world-clock-item { font-size: 13px; padding: 8px 12px; }
       .input-small { width: 50px; font-size: 14px; }
@@ -601,25 +543,10 @@
       
       .clock-time { font-size: 32px; }
       .display-medium { font-size: 28px; }
-      .volume-display { font-size: 32px; }
     }
   </style>
 </head>
 <body>
-  <button class="theme-toggle" id="theme-toggle">
-    <svg class="theme-icon" id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="5"/>
-      <line x1="12" y1="1" x2="12" y2="3"/>
-      <line x1="12" y1="21" x2="12" y2="23"/>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-      <line x1="1" y1="12" x2="3" y2="12"/>
-      <line x1="21" y1="12" x2="23" y2="12"/>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-    </svg>
-  </button>
-
   <div class="fullscreen-alert" id="fullscreen-alert">
     <div class="alert-content">
       <div class="alert-title" id="alert-title">Time Up!</div>
@@ -678,6 +605,44 @@
       </div>
 
       <div class="card">
+        <div class="card-title">Custom Timer</div>
+        <div class="card-content">
+          <div class="display-medium" id="custom-display">00:00:00</div>
+          <div class="input-group">
+            <input type="number" class="input-small" id="ct-hours" value="0" min="0" max="23">
+            <span>:</span>
+            <input type="number" class="input-small" id="ct-minutes" value="0" min="0" max="59">
+            <span>:</span>
+            <input type="number" class="input-small" id="ct-seconds" value="0" min="0" max="59">
+          </div>
+          <div class="controls-small">
+            <button class="btn-small" id="ct-start">Start</button>
+            <button class="btn-small" id="ct-reset">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Stopwatch</div>
+        <div class="card-content">
+          <div class="display-medium" id="stopwatch-display">00:00:00</div>
+          <div class="controls-small">
+            <button class="btn-small" id="sw-start">Start</button>
+            <button class="btn-small" id="sw-lap">Lap</button>
+            <button class="btn-small" id="sw-reset">Reset</button>
+          </div>
+          <div class="lap-list" id="lap-list"></div>
+        </div>
+      </div>
+
+      <div class="card tall">
+        <div class="card-title">Memo</div>
+        <div class="card-content">
+          <textarea class="memo-textarea" id="memo" placeholder="Enter your notes here..."></textarea>
+        </div>
+      </div>
+
+      <div class="card">
         <div class="card-title">Focus Stats</div>
         <div class="card-content">
           <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -709,52 +674,6 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-title">Custom Timer</div>
-        <div class="card-content">
-          <div class="display-medium" id="custom-display">00:00:00</div>
-          <div class="input-group">
-            <input type="number" class="input-small" id="ct-hours" value="0" min="0" max="23">
-            <span>:</span>
-            <input type="number" class="input-small" id="ct-minutes" value="0" min="0" max="59">
-            <span>:</span>
-            <input type="number" class="input-small" id="ct-seconds" value="0" min="0" max="59">
-          </div>
-          <div class="controls-small">
-            <button class="btn-small" id="ct-start">Start</button>
-            <button class="btn-small" id="ct-reset">Reset</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Stopwatch</div>
-        <div class="card-content">
-          <div class="display-medium" id="stopwatch-display">00:00:00</div>
-          <div class="controls-small">
-            <button class="btn-small" id="sw-start">Start</button>
-            <button class="btn-small" id="sw-lap">Lap</button>
-            <button class="btn-small" id="sw-reset">Reset</button>
-          </div>
-          <div class="lap-list" id="lap-list"></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Volume</div>
-        <div class="card-content">
-          <div class="volume-display" id="volume-display">50%</div>
-          <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="50">
-        </div>
-      </div>
-
-      <div class="card tall">
-        <div class="card-title">Memo</div>
-        <div class="card-content">
-          <textarea class="memo-textarea" id="memo" placeholder="Enter your notes here..."></textarea>
-        </div>
-      </div>
-
       <div class="card tall">
         <div class="card-title">Quick Links</div>
         <div class="card-content">
@@ -781,25 +700,6 @@
   </div>
 
   <script>
-    const themeToggle = document.getElementById('theme-toggle');
-    const themeIcon = document.getElementById('theme-icon');
-    
-    if (localStorage.getItem('theme') === 'dark') {
-      document.body.classList.add('dark');
-      themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
-    }
-    
-    themeToggle.onclick = function() {
-      document.body.classList.toggle('dark');
-      if (document.body.classList.contains('dark')) {
-        themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
-        localStorage.setItem('theme', 'dark');
-      } else {
-        themeIcon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
-        localStorage.setItem('theme', 'light');
-      }
-    };
-
     document.getElementById('search-btn').onclick = function() {
       const q = document.getElementById('search-input').value.trim();
       if (q) {
@@ -1006,19 +906,6 @@
       document.getElementById('sw-start').textContent = 'Start';
       document.getElementById('lap-list').innerHTML = '';
       updateStopwatch();
-    };
-
-    const volSlider = document.getElementById('volume-slider');
-    const volDisplay = document.getElementById('volume-display');
-    
-    if (localStorage.getItem('volume')) {
-      volSlider.value = localStorage.getItem('volume');
-      volDisplay.textContent = volSlider.value + '%';
-    }
-
-    volSlider.oninput = function() {
-      volDisplay.textContent = this.value + '%';
-      localStorage.setItem('volume', this.value);
     };
 
     const memo = document.getElementById('memo');
