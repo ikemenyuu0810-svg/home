@@ -716,7 +716,38 @@
           </div>
         </div>
       </div>
+    <div class="card">
+        <div class="card-title">Focus Stats</div>
+        <div class="card-content">
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="world-clock-item">
+              <span>Today's Pomodoros</span>
+              <span id="today-pomodoros">0</span>
+            </div>
+            <div class="world-clock-item">
+              <span>This Week</span>
+              <span id="week-pomodoros">0</span>
+            </div>
+            <div class="world-clock-item">
+              <span>Total Focus Time</span>
+              <span id="total-time">0h 0m</span>
+            </div>
+            <div class="card">
+        <div class="card-title">Weather</div>
+        <div class="card-content">
+          <div id="weather-content" style="text-align: center;">
+            <div class="display-medium" id="weather-temp">--°C</div>
+            <div style="font-size: 14px; margin-bottom: 8px;" id="weather-desc">Loading...</div>
+            <div style="font-size: 12px; opacity: 0.8;" id="weather-location">--</div>
+          </div>
+        </div>
+      </div>
 
+            <button class="btn-small" id="reset-stats" style="margin-top: 8px;">Reset Stats</button>
+          </div>
+        </div>
+      </div>
+      
       <div class="card">
         <div class="card-title">Custom Timer</div>
         <div class="card-content">
@@ -760,6 +791,18 @@
         <div class="card-title">Memo</div>
         <div class="card-content">
           <textarea class="memo-textarea" id="memo" placeholder="Enter your notes here..."></textarea>
+        </div>
+      </div>
+    <div class="card">
+        <div class="card-title">Quick Links</div>
+        <div class="card-content">
+          <div class="todo-input-wrapper">
+            <input type="text" class="todo-input" id="link-name" placeholder="Name...">
+            <input type="text" class="todo-input" id="link-url" placeholder="URL...">
+            <button class="btn-small" id="link-add">Add</button>
+          </div>
+          
+          <div class="todo-list" id="link-list"></div>
         </div>
       </div>
 
