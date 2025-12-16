@@ -178,20 +178,21 @@
     .cards-grid {
       width: 100%;
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 20px;
+      grid-auto-rows: minmax(260px, auto);
     }
 
     .card {
       background: rgba(255, 255, 255, 0.2);
       backdrop-filter: blur(10px);
       border-radius: 12px;
-      padding: 24px;
+      padding: 20px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
       display: flex;
       flex-direction: column;
-      height: 300px;
+      min-height: 260px;
     }
 
     .card:hover {
@@ -201,14 +202,13 @@
 
     .card.tall {
       grid-row: span 2;
-      height: 620px;
     }
 
     .card-title {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 700;
       color: white;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       opacity: 0.95;
     }
 
@@ -221,57 +221,59 @@
     }
 
     .clock-time {
-      font-size: 36px;
+      font-size: 42px;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .clock-date {
-      font-size: 13px;
-      opacity: 0.8;
-      margin-bottom: 16px;
+      font-size: 14px;
+      opacity: 0.85;
+      margin-bottom: 14px;
     }
 
     .world-clock-item {
       display: flex;
       justify-content: space-between;
-      padding: 8px 12px;
+      padding: 10px 14px;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 6px;
       margin-bottom: 6px;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 500;
     }
 
     .world-clock-item:last-child { margin-bottom: 0; }
 
     .display-medium {
-      font-size: 32px;
+      font-size: 38px;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       text-align: center;
     }
 
     .input-group {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       justify-content: center;
       align-items: center;
       margin-bottom: 14px;
+      font-size: 18px;
+      font-weight: 500;
     }
 
     .input-small {
-      width: 50px;
-      padding: 8px;
+      width: 55px;
+      padding: 10px;
       border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 6px;
       text-align: center;
       font-weight: 600;
       background: rgba(255, 255, 255, 0.15);
       color: white;
-      font-size: 14px;
+      font-size: 16px;
     }
 
     .input-small:focus {
@@ -290,12 +292,12 @@
     }
 
     .btn-small {
-      padding: 8px 16px;
+      padding: 10px 18px;
       background: rgba(255, 255, 255, 0.2);
       border: none;
       border-radius: 6px;
       color: white;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
@@ -318,20 +320,20 @@
     .lap-item {
       display: flex;
       justify-content: space-between;
-      padding: 8px 10px;
+      padding: 10px 12px;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 5px;
-      margin-bottom: 5px;
-      font-size: 12px;
+      margin-bottom: 6px;
+      font-size: 13px;
     }
 
     .lap-item:last-child { margin-bottom: 0; }
 
     .volume-display {
       text-align: center;
-      font-size: 32px;
+      font-size: 42px;
       font-weight: 700;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
 
     .volume-slider {
@@ -367,13 +369,13 @@
       flex: 1;
       border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 8px;
-      padding: 12px;
-      font-size: 13px;
+      padding: 14px;
+      font-size: 14px;
       font-family: inherit;
       resize: none;
       background: rgba(255, 255, 255, 0.15);
       color: white;
-      line-height: 1.5;
+      line-height: 1.6;
     }
 
     .memo-textarea:focus {
@@ -392,12 +394,12 @@
 
     .todo-input {
       flex: 1;
-      padding: 8px 12px;
+      padding: 10px 14px;
       border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 6px;
       background: rgba(255, 255, 255, 0.15);
       color: white;
-      font-size: 13px;
+      font-size: 14px;
     }
 
     .todo-input:focus {
@@ -423,11 +425,11 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 10px;
+      padding: 12px;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 6px;
       margin-bottom: 6px;
-      font-size: 13px;
+      font-size: 14px;
     }
 
     .todo-item:last-child { margin-bottom: 0; }
@@ -468,11 +470,11 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 10px;
+      padding: 12px;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 6px;
       margin-bottom: 6px;
-      font-size: 13px;
+      font-size: 14px;
       cursor: pointer;
       transition: background 0.2s;
     }
@@ -555,22 +557,37 @@
 
     @media (max-width: 1200px) {
       .cards-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       }
     }
 
     @media (max-width: 768px) {
       .timer-display { font-size: 64px; }
+      
       .cards-grid {
         grid-template-columns: 1fr;
+        grid-auto-rows: auto;
       }
+      
+      .card {
+        min-height: auto;
+      }
+      
       .card.tall {
         grid-row: span 1;
-        height: 300px;
       }
+      
       .main-content { padding: 0 16px 32px; }
-      .card { padding: 20px; }
+      .card { padding: 18px; }
       .header { padding: 16px; }
+      
+      .clock-time { font-size: 36px; }
+      .display-medium { font-size: 32px; }
+      .volume-display { font-size: 36px; }
+      .card-title { font-size: 16px; }
+      .world-clock-item { font-size: 13px; padding: 8px 12px; }
+      .input-small { width: 50px; font-size: 14px; }
+      .btn-small { padding: 8px 16px; font-size: 13px; }
     }
 
     @media (max-width: 480px) {
@@ -581,6 +598,10 @@
         padding: 14px 32px;
         font-size: 15px;
       }
+      
+      .clock-time { font-size: 32px; }
+      .display-medium { font-size: 28px; }
+      .volume-display { font-size: 32px; }
     }
   </style>
 </head>
