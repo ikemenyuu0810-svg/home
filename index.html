@@ -667,8 +667,15 @@
         <div class="card-title">Weather</div>
         <div class="card-content">
           <div id="weather-content" style="text-align: center;">
-            <div class="display-medium" id="weather-temp">--°C</div>
-            <div style="font-size: 14px; margin-bottom: 8px;" id="weather-desc">Loading...</div>
+            <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <img id="weather-icon" src="" alt="" style="width: 40px; height: 40px; display: none;">
+              <span id="weather-desc">Loading...</span>
+            </div>
+            <div class="display-medium" id="weather-temp" style="margin-bottom: 8px;">--°</div>
+            <div style="display: flex; justify-content: center; gap: 16px; font-size: 14px; color: rgba(255,255,255,0.9); margin-bottom: 8px;">
+              <span>▲ <span id="weather-max">--</span>°</span>
+              <span>▼ <span id="weather-min">--</span>°</span>
+            </div>
             <div style="font-size: 12px; opacity: 0.8;" id="weather-location">--</div>
           </div>
         </div>
@@ -1044,6 +1051,52 @@
 
     updateClocks();
     setInterval(updateClocks, 1000);
+    
+    // 天気情報の取得
+    function loadWeather() {
+      const apiKey = "8eb6dc5492a964ea79dd0ef92f1ae01c";
+      const lat = 35.85272206403399;
+      const lon = 136.28673448772105;
+
+      const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ja`;
+
+      fetch(weatherUrl, {
+        method: 'GET',
+        mode: 'cors'
+      })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then(data => {
+          console.log('Weather data:', data);
+          const weather = data.weather[0].description;
+          const icon = data.weather[0].icon;
+          const temp = Math.round(data.main.temp);
+          const tempMax = Math.round(data.main.temp_max);
+          const tempMin = Math.round(data.main.temp_min);
+          const place = data.name || "指定地点";
+
+          document.getElementById('weather-icon').src = `https://openweathermap.org/img/wn/${icon}@2x.png`;
+          document.getElementById('weather-icon').style.display = 'block';
+          document.getElementById('weather-desc').textContent = weather;
+          document.getElementById('weather-temp').textContent = temp + '°';
+          document.getElementById('weather-max').textContent = tempMax;
+          document.getElementById('weather-min').textContent = tempMin;
+          document.getElementById('weather-location').textContent = place;
+        })
+        .catch(err => {
+          console.error('Weather fetch error:', err);
+          document.getElementById('weather-desc').textContent = 'エラー: ' + err.message;
+        });
+    }
+
+    // 天気情報を読み込む
+    loadWeather();
+    // 30分ごとに更新
+    setInterval(loadWeather, 1800000);
     
     updateTimer();
     updateCustom();
