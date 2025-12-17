@@ -498,6 +498,110 @@
     body.long-break .alert-close { color: #457ca3; }
     .alert-close:hover { transform: scale(1.05); }
 
+    /* アクションリング */
+    .action-ring {
+      position: fixed;
+      display: none;
+      z-index: 9999;
+      pointer-events: none;
+    }
+
+    .action-ring.show {
+      display: block;
+      animation: ringFadeIn 0.2s ease;
+    }
+
+    @keyframes ringFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .ring-center {
+      position: absolute;
+      width: 70px;
+      height: 70px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 50%;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+      backdrop-filter: blur(10px);
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      left: -35px;
+      top: -35px;
+    }
+
+    .ring-center svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    .ring-item {
+      position: absolute;
+      width: 56px;
+      height: 56px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.15);
+      pointer-events: auto;
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+    }
+
+    body:not(.short-break):not(.long-break) .ring-item {
+      color: #d95550;
+    }
+
+    body.short-break .ring-item {
+      color: #4c9195;
+    }
+
+    body.long-break .ring-item {
+      color: #457ca3;
+    }
+
+    .ring-item:hover {
+      transform: scale(1.15);
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.25);
+      background: white;
+    }
+
+    .ring-item svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .ring-label {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .ring-item:hover .ring-label {
+      opacity: 1;
+    }
+
     @media (max-width: 1200px) {
       .cards-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -552,6 +656,16 @@
       <div class="alert-title" id="alert-title">Time Up!</div>
       <div class="alert-message" id="alert-message">Finished your task</div>
       <button class="alert-close" id="alert-close">OK</button>
+    </div>
+  </div>
+
+  <div class="action-ring" id="action-ring">
+    <div class="ring-center">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 1v6m0 6v6M1 12h6m6 0h6"/>
+        <path d="m4.22 4.22 4.24 4.24m7.08 0 4.24-4.24M4.22 19.78l4.24-4.24m7.08 0 4.24 4.24"/>
+      </svg>
     </div>
   </div>
 
@@ -695,18 +809,145 @@
 
       <div class="card tall">
         <div class="card-title">ToDo List</div>
-        <div class="card-content">
-          <div class="todo-input-wrapper">
-            <input type="text" class="todo-input" id="todo-input" placeholder="New task...">
-            <button class="btn-small" id="todo-add">Add</button>
-          </div>
-          <div class="todo-list" id="todo-list"></div>
+        <div class="card-content" style="padding: 0;">
+          <iframe 
+            src="https://leather-kilogram-044.notion.site/2c9ee93cc3e4800aba3ef91a7b2b0a31?v=2c9ee93cc3e480868d75000c8bfe4b7d&pvs=4" 
+            style="width: 100%; height: 100%; border: none; border-radius: 8px;"
+            title="ToDo List">
+          </iframe>
         </div>
       </div>
     </div>
   </div>
 
   <script>
+    // アクションリングの設定
+    let ringVisible = false;
+
+    document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      showActionRing(e.pageX, e.pageY);
+    });
+
+    document.addEventListener('click', function(e) {
+      if (ringVisible && !e.target.closest('.ring-item')) {
+        hideActionRing();
+      }
+    });
+
+    function showActionRing(x, y) {
+      const ring = document.getElementById('action-ring');
+      ring.style.left = x + 'px';
+      ring.style.top = y + 'px';
+      ring.classList.add('show');
+      ringVisible = true;
+
+      // 既存のボタンをクリア
+      const existingItems = ring.querySelectorAll('.ring-item');
+      existingItems.forEach(item => item.remove());
+
+      const actions = [
+        {
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+          label: 'New Memo',
+          action: () => {
+            document.getElementById('memo').focus();
+            hideActionRing();
+          },
+          angle: 0
+        },
+        {
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
+          label: 'New Todo',
+          action: () => {
+            window.open('https://leather-kilogram-044.notion.site/2c9ee93cc3e4800aba3ef91a7b2b0a31?v=2c9ee93cc3e480868d75000c8bfe4b7d', '_blank');
+            hideActionRing();
+          },
+          angle: 45
+        },
+        {
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+          label: 'Start Timer',
+          action: () => {
+            document.getElementById('start-btn').click();
+            hideActionRing();
+          },
+          angle: 90
+        },
+        {
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+          label: 'Reset All',
+          action: () => {
+            if (confirm('すべてのデータをリセットしますか？')) {
+              localStorage.clear();
+              location.reload();
+            }
+            hideActionRing();
+          },
+          angle: 135
+        },
+        {
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>',
+          label: 'Search',
+          action: () => {
+            document.getElementById('search-input').focus();
+            hideActionRing();
+          },
+          angle: 180
+        },
+        {
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+          label: 'Reset Stats',
+          action: () => {
+            document.getElementById('reset-stats').click();
+            hideActionRing();
+          },
+          angle: 225
+        },
+        {
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
+          label: 'Add Link',
+          action: () => {
+            document.getElementById('link-name').focus();
+            hideActionRing();
+          },
+          angle: 270
+        },
+        {
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+          label: 'Quick Action',
+          action: () => {
+            document.getElementById('ct-start').click();
+            hideActionRing();
+          },
+          angle: 315
+        }
+      ];
+
+      const radius = 100;
+      actions.forEach(action => {
+        const item = document.createElement('div');
+        item.className = 'ring-item';
+        
+        const radian = (action.angle - 90) * (Math.PI / 180);
+        const itemX = Math.cos(radian) * radius - 28;
+        const itemY = Math.sin(radian) * radius - 28;
+        
+        item.style.left = itemX + 'px';
+        item.style.top = itemY + 'px';
+        item.innerHTML = action.icon + `<div class="ring-label">${action.label}</div>`;
+        
+        item.onclick = action.action;
+        
+        ring.appendChild(item);
+      });
+    }
+
+    function hideActionRing() {
+      document.getElementById('action-ring').classList.remove('show');
+      ringVisible = false;
+    }
+
     document.getElementById('search-btn').onclick = function() {
       const q = document.getElementById('search-input').value.trim();
       if (q) {
@@ -923,52 +1164,6 @@
     memo.oninput = function() {
       localStorage.setItem('memo', this.value);
     };
-
-    let todos = JSON.parse(localStorage.getItem('todos') || '[]');
-
-    function renderTodos() {
-      const list = document.getElementById('todo-list');
-      list.innerHTML = '';
-      todos.forEach(function(todo, i) {
-        const item = document.createElement('div');
-        item.className = 'todo-item' + (todo.done ? ' completed' : '');
-        item.innerHTML = 
-          '<input type="checkbox" class="todo-checkbox" ' + (todo.done ? 'checked' : '') + '>' +
-          '<span class="todo-text">' + todo.text + '</span>' +
-          '<button class="btn-delete">Delete</button>';
-        
-        item.querySelector('.todo-checkbox').onchange = function() {
-          todos[i].done = this.checked;
-          localStorage.setItem('todos', JSON.stringify(todos));
-          renderTodos();
-        };
-        
-        item.querySelector('.btn-delete').onclick = function() {
-          todos.splice(i, 1);
-          localStorage.setItem('todos', JSON.stringify(todos));
-          renderTodos();
-        };
-        
-        list.appendChild(item);
-      });
-    }
-
-    document.getElementById('todo-add').onclick = function() {
-      const input = document.getElementById('todo-input');
-      const text = input.value.trim();
-      if (text) {
-        todos.push({ text: text, done: false });
-        localStorage.setItem('todos', JSON.stringify(todos));
-        input.value = '';
-        renderTodos();
-      }
-    };
-
-    document.getElementById('todo-input').onkeypress = function(e) {
-      if (e.key === 'Enter') document.getElementById('todo-add').click();
-    };
-
-    renderTodos();
 
     let links = JSON.parse(localStorage.getItem('links') || '[]');
 
