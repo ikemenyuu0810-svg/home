@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Work Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -12,7 +15,7 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #d95550;
       min-height: 100vh;
       display: flex;
@@ -498,7 +501,6 @@
     body.long-break .alert-close { color: #457ca3; }
     .alert-close:hover { transform: scale(1.05); }
 
-    /* アクションリング */
     .action-ring {
       position: fixed;
       display: none;
@@ -629,6 +631,366 @@
       opacity: 1;
     }
 
+    /* Pomodoro Settings Modal */
+    .settings-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+
+    .settings-modal.show {
+      display: flex;
+    }
+
+    .settings-content {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .settings-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      color: #333;
+    }
+
+    .setting-item {
+      margin-bottom: 20px;
+    }
+
+    .setting-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 8px;
+    }
+
+    .setting-input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      background: white;
+    }
+
+    .setting-input:focus {
+      outline: none;
+      border-color: #d95550;
+    }
+
+    .settings-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .settings-btn {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .settings-btn-save {
+      background: #d95550;
+      color: white;
+    }
+
+    .settings-btn-save:hover {
+      background: #c44a45;
+    }
+
+    .settings-btn-cancel {
+      background: #ddd;
+      color: #555;
+    }
+
+    .settings-btn-cancel:hover {
+      background: #ccc;
+    }
+
+    /* Floating Timer */
+    .floating-timer {
+      position: fixed;
+      right: 20px;
+      top: 100px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 12px 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      z-index: 1000;
+      display: none;
+      transition: all 0.3s ease;
+    }
+
+    .floating-timer:hover {
+      transform: scale(1.05);
+    }
+
+    .floating-timer-time {
+      font-size: 20px;
+      font-weight: 700;
+      color: #d95550;
+      font-variant-numeric: tabular-nums;
+    }
+
+    body.short-break .floating-timer-time {
+      color: #4c9195;
+    }
+
+    body.long-break .floating-timer-time {
+      color: #457ca3;
+    }
+
+    /* Floating Clock */
+    .floating-clock {
+      position: fixed;
+      left: 20px;
+      top: 100px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 12px 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      z-index: 1000;
+      display: none;
+      transition: all 0.3s ease;
+    }
+
+    .floating-clock:hover {
+      transform: scale(1.05);
+    }
+
+    .floating-clock-time {
+      font-size: 20px;
+      font-weight: 700;
+      color: #d95550;
+      font-variant-numeric: tabular-nums;
+    }
+
+    body.short-break .floating-clock-time {
+      color: #4c9195;
+    }
+
+    body.long-break .floating-clock-time {
+      color: #457ca3;
+    }
+
+    /* Text Toolbar */
+    .text-toolbar {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 8px;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+    }
+
+    .toolbar-btn {
+      width: 32px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .toolbar-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .toolbar-btn.active {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Gemini Chat */
+    .gemini-input-area {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .gemini-input {
+      width: 100%;
+      min-height: 60px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 14px;
+      font-family: inherit;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      line-height: 1.6;
+      overflow-y: auto;
+    }
+
+    .gemini-input:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .gemini-input:empty:before {
+      content: attr(data-placeholder);
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .gemini-send-btn {
+      padding: 12px 24px;
+      background: rgba(255, 255, 255, 0.3);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      align-self: flex-end;
+    }
+
+    .gemini-send-btn:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .gemini-send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .gemini-response {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.8;
+      position: relative;
+    }
+
+    .gemini-response::-webkit-scrollbar { width: 5px; }
+    .gemini-response::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+    }
+
+    .gemini-message {
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gemini-message:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .gemini-message-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .gemini-message-role {
+      font-weight: 600;
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .gemini-copy-btn {
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .gemini-copy-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .gemini-message-content {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .gemini-message-content p {
+      margin-bottom: 12px;
+    }
+
+    .gemini-message-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    .gemini-message-content code {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .gemini-message-content pre {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 8px 0;
+    }
+
+    .gemini-message-content pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .gemini-loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      font-size: 14px;
+      opacity: 0.7;
+    }
+
+    .gemini-loading.show {
+      display: block;
+    }
+
     @media (max-width: 1200px) {
       .cards-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -686,6 +1048,36 @@
     </div>
   </div>
 
+  <div class="settings-modal" id="settings-modal">
+    <div class="settings-content">
+      <div class="settings-title">Pomodoro Settings</div>
+      <div class="setting-item">
+        <label class="setting-label">Work Time (minutes)</label>
+        <input type="number" class="setting-input" id="setting-work" min="1" max="60" value="25">
+      </div>
+      <div class="setting-item">
+        <label class="setting-label">Break Time (minutes)</label>
+        <input type="number" class="setting-input" id="setting-break" min="1" max="30" value="5">
+      </div>
+      <div class="setting-item">
+        <label class="setting-label">Repeat Count (0 = infinite)</label>
+        <input type="number" class="setting-input" id="setting-repeat" min="0" max="20" value="0">
+      </div>
+      <div class="settings-buttons">
+        <button class="settings-btn settings-btn-cancel" id="settings-cancel">Cancel</button>
+        <button class="settings-btn settings-btn-save" id="settings-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="floating-timer" id="floating-timer">
+    <div class="floating-timer-time" id="floating-timer-time">25:00</div>
+  </div>
+
+  <div class="floating-clock" id="floating-clock">
+    <div class="floating-clock-time" id="floating-clock-time">00:00:00</div>
+  </div>
+
   <div class="action-ring" id="action-ring">
     <div class="ring-center">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -709,7 +1101,7 @@
   </div>
 
   <div class="main-content">
-    <div class="timer-section">
+    <div class="timer-section" id="timer-section">
       <div class="timer-tabs">
         <button class="tab-btn active" data-type="pomodoro">Pomodoro</button>
         <button class="tab-btn" data-type="short">Short Break</button>
@@ -725,7 +1117,7 @@
     </div>
 
     <div class="cards-grid">
-      <div class="card">
+      <div class="card" id="clock-card">
         <div class="card-title">Clock</div>
         <div class="card-content">
           <div class="clock-time" id="clock-time">00:00:00</div>
@@ -779,28 +1171,13 @@
       <div class="card tall">
         <div class="card-title">Memo</div>
         <div class="card-content">
-          <textarea class="memo-textarea" id="memo" placeholder="Enter your notes here..."></textarea>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Focus Stats</div>
-        <div class="card-content">
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            <div class="world-clock-item">
-              <span>Today's Pomodoros</span>
-              <span id="today-pomodoros">0</span>
-            </div>
-            <div class="world-clock-item">
-              <span>This Week</span>
-              <span id="week-pomodoros">0</span>
-            </div>
-            <div class="world-clock-item">
-              <span>Total Focus Time</span>
-              <span id="total-time">0h 0m</span>
-            </div>
-            <button class="btn-small" id="reset-stats" style="margin-top: 8px;">Reset Stats</button>
+          <div class="text-toolbar" id="memo-toolbar">
+            <button class="toolbar-btn" data-action="bold" title="Bold (Ctrl+B)">B</button>
+            <button class="toolbar-btn" data-action="underline" title="Underline (Ctrl+U)">U</button>
+            <button class="toolbar-btn" data-action="larger" title="Larger (Ctrl+Shift+>)">A+</button>
+            <button class="toolbar-btn" data-action="smaller" title="Smaller (Ctrl+Shift+<)">A-</button>
           </div>
+          <div class="memo-textarea" id="memo" contenteditable="true" data-placeholder="Enter your notes here..."></div>
         </div>
       </div>
 
@@ -822,7 +1199,7 @@
         </div>
       </div>
 
-      <div class="card tall">
+      <div class="card">
         <div class="card-title">Quick Links</div>
         <div class="card-content">
           <div class="todo-input-wrapper">
@@ -838,6 +1215,7 @@
         <div class="card-title">ToDo List</div>
         <div class="card-content" style="padding: 0; overflow: hidden;">
           <iframe 
+            id="notion-iframe"
             src="https://leather-kilogram-044.notion.site/ebd//2c9ee93cc3e4800aba3ef91a7b2b0a31?v=2c9ee93cc3e480868d75000c8bfe4b7d" 
             width="100%" 
             height="600" 
@@ -847,11 +1225,98 @@
           </iframe>
         </div>
       </div>
+
+      <div class="card">
+        <div class="card-title">Gemini Chat</div>
+        <div class="card-content">
+          <div class="gemini-input-area">
+            <div class="text-toolbar" id="gemini-toolbar">
+              <button class="toolbar-btn" data-action="bold" title="Bold (Ctrl+B)">B</button>
+              <button class="toolbar-btn" data-action="underline" title="Underline (Ctrl+U)">U</button>
+              <button class="toolbar-btn" data-action="larger" title="Larger (Ctrl+Shift+>)">A+</button>
+              <button class="toolbar-btn" data-action="smaller" title="Smaller (Ctrl+Shift+<)">A-</button>
+            </div>
+            <div class="gemini-input" id="gemini-input" contenteditable="true" data-placeholder="Ask Gemini..."></div>
+            <button class="gemini-send-btn" id="gemini-send">Send</button>
+          </div>
+          <div class="gemini-loading" id="gemini-loading">Thinking...</div>
+          <div class="gemini-response" id="gemini-response"></div>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
-    // アクションリングの設定
+    let currentFocusedEditable = null;
+
+    document.getElementById('memo').addEventListener('focus', function() {
+      currentFocusedEditable = this;
+    });
+
+    document.getElementById('gemini-input').addEventListener('focus', function() {
+      currentFocusedEditable = this;
+    });
+
+    function applyFormat(action) {
+      const target = currentFocusedEditable;
+      if (!target) return;
+
+      const selection = window.getSelection();
+      
+      if (action === 'bold') {
+        document.execCommand('bold', false, null);
+      } else if (action === 'underline') {
+        document.execCommand('underline', false, null);
+      } else if (action === 'larger' || action === 'smaller') {
+        if (selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          if (!range.collapsed) {
+            const span = document.createElement('span');
+            span.style.fontSize = 'inherit';
+            range.surroundContents(span);
+            const currentSize = parseFloat(window.getComputedStyle(span).fontSize);
+            span.style.fontSize = (currentSize + (action === 'larger' ? 2 : -2)) + 'px';
+          } else {
+            const span = document.createElement('span');
+            const currentSize = parseFloat(window.getComputedStyle(target).fontSize);
+            span.style.fontSize = (currentSize + (action === 'larger' ? 2 : -2)) + 'px';
+            range.insertNode(span);
+            range.selectNodeContents(span);
+            selection.removeAllRanges();
+            selection.addRange(range);
+          }
+        }
+      }
+    }
+
+    document.querySelectorAll('.text-toolbar').forEach(toolbar => {
+      toolbar.querySelectorAll('.toolbar-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          const action = this.getAttribute('data-action');
+          applyFormat(action);
+        });
+      });
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (!currentFocusedEditable) return;
+
+      if (e.ctrlKey && !e.shiftKey && e.key === 'b') {
+        e.preventDefault();
+        applyFormat('bold');
+      } else if (e.ctrlKey && !e.shiftKey && e.key === 'u') {
+        e.preventDefault();
+        applyFormat('underline');
+      } else if (e.ctrlKey && e.shiftKey && e.key === '>') {
+        e.preventDefault();
+        applyFormat('larger');
+      } else if (e.ctrlKey && e.shiftKey && e.key === '<') {
+        e.preventDefault();
+        applyFormat('smaller');
+      }
+    });
+
     let ringVisible = false;
 
     document.addEventListener('contextmenu', function(e) {
@@ -875,7 +1340,6 @@
     function showActionRing(x, y) {
       const ring = document.getElementById('action-ring');
       
-      // ビューポートの端を考慮
       const margin = 150;
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
@@ -888,7 +1352,6 @@
       ring.classList.add('show');
       ringVisible = true;
 
-      // 既存のボタンをクリア
       const existingItems = ring.querySelectorAll('.ring-item');
       existingItems.forEach(item => item.remove());
 
@@ -909,7 +1372,7 @@
             window.open('https://leather-kilogram-044.notion.site/ebd//2c9ee93cc3e4800aba3ef91a7b2b0a31?v=2c9ee93cc3e480868d75000c8bfe4b7d', '_blank');
             hideActionRing();
           },
-          angle: 45
+          angle: 40
         },
         {
           icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
@@ -918,7 +1381,34 @@
             document.getElementById('start-btn').click();
             hideActionRing();
           },
-          angle: 90
+          angle: 80
+        },
+        {
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+          label: 'Reset Timer',
+          action: () => {
+            document.getElementById('reset-btn').click();
+            hideActionRing();
+          },
+          angle: 120
+        },
+        {
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6M1 12h6m6 0h6"/></svg>',
+          label: 'Settings',
+          action: () => {
+            document.getElementById('settings-modal').classList.add('show');
+            hideActionRing();
+          },
+          angle: 160
+        },
+        {
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>',
+          label: 'Search',
+          action: () => {
+            document.getElementById('search-input').focus();
+            hideActionRing();
+          },
+          angle: 200
         },
         {
           icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
@@ -930,25 +1420,7 @@
             }
             hideActionRing();
           },
-          angle: 135
-        },
-        {
-          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>',
-          label: 'Search',
-          action: () => {
-            document.getElementById('search-input').focus();
-            hideActionRing();
-          },
-          angle: 180
-        },
-        {
-          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-          label: 'Reset Stats',
-          action: () => {
-            document.getElementById('reset-stats').click();
-            hideActionRing();
-          },
-          angle: 225
+          angle: 240
         },
         {
           icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
@@ -957,16 +1429,16 @@
             document.getElementById('link-name').focus();
             hideActionRing();
           },
-          angle: 270
+          angle: 280
         },
         {
           icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
-          label: 'Quick Action',
+          label: 'Custom Timer',
           action: () => {
             document.getElementById('ct-start').click();
             hideActionRing();
           },
-          angle: 315
+          angle: 320
         }
       ];
 
@@ -1016,19 +1488,51 @@
       document.getElementById('fullscreen-alert').classList.remove('show');
     };
 
+    let pomodoroSettings = JSON.parse(localStorage.getItem('pomodoroSettings') || '{"work":25,"break":5,"repeat":0}');
     let currentType = 'pomodoro';
-    let pomodoroTime = 25;
-    let shortTime = 5;
+    let pomodoroTime = pomodoroSettings.work;
+    let shortTime = pomodoroSettings.break;
     let longTime = 15;
     let timeLeft = pomodoroTime * 60;
     let timerInt = null;
     let isRunning = false;
+    let completedCycles = 0;
+    let isWorkSession = true;
+
+    document.getElementById('setting-work').value = pomodoroSettings.work;
+    document.getElementById('setting-break').value = pomodoroSettings.break;
+    document.getElementById('setting-repeat').value = pomodoroSettings.repeat;
+
+    document.getElementById('settings-save').onclick = function() {
+      pomodoroSettings.work = parseInt(document.getElementById('setting-work').value) || 25;
+      pomodoroSettings.break = parseInt(document.getElementById('setting-break').value) || 5;
+      pomodoroSettings.repeat = parseInt(document.getElementById('setting-repeat').value) || 0;
+      
+      localStorage.setItem('pomodoroSettings', JSON.stringify(pomodoroSettings));
+      
+      pomodoroTime = pomodoroSettings.work;
+      shortTime = pomodoroSettings.break;
+      
+      if (currentType === 'pomodoro') {
+        timeLeft = pomodoroTime * 60;
+      } else if (currentType === 'short') {
+        timeLeft = shortTime * 60;
+      }
+      
+      updateTimer();
+      document.getElementById('settings-modal').classList.remove('show');
+    };
+
+    document.getElementById('settings-cancel').onclick = function() {
+      document.getElementById('settings-modal').classList.remove('show');
+    };
 
     function updateTimer() {
       const m = Math.floor(timeLeft / 60);
       const s = timeLeft % 60;
-      document.getElementById('timer-display').textContent = 
-        String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+      const timeStr = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+      document.getElementById('timer-display').textContent = timeStr;
+      document.getElementById('floating-timer-time').textContent = timeStr;
     }
 
     function switchType(type) {
@@ -1046,12 +1550,15 @@
 
       if (type === 'pomodoro') {
         timeLeft = pomodoroTime * 60;
+        isWorkSession = true;
       } else if (type === 'short') {
         timeLeft = shortTime * 60;
         document.body.classList.add('short-break');
+        isWorkSession = false;
       } else {
         timeLeft = longTime * 60;
         document.body.classList.add('long-break');
+        isWorkSession = false;
       }
       
       updateTimer();
@@ -1080,10 +1587,25 @@
             isRunning = false;
             document.getElementById('start-btn').textContent = 'Start';
             
-            if (currentType === 'pomodoro') {
+            if (isWorkSession) {
+              completedCycles++;
               showAlert('作業完了！', '休憩時間です');
+              
+              if (pomodoroSettings.repeat === 0 || completedCycles < pomodoroSettings.repeat) {
+                setTimeout(() => {
+                  switchType('short');
+                  document.getElementById('start-btn').click();
+                }, 3000);
+              }
             } else {
               showAlert('休憩終了！', '次の作業を始めましょう');
+              
+              if (pomodoroSettings.repeat === 0 || completedCycles < pomodoroSettings.repeat) {
+                setTimeout(() => {
+                  switchType('pomodoro');
+                  document.getElementById('start-btn').click();
+                }, 3000);
+              }
             }
           }
         }, 1000);
@@ -1096,8 +1618,51 @@
         isRunning = false;
         document.getElementById('start-btn').textContent = 'Start';
       }
+      completedCycles = 0;
       switchType(currentType);
     };
+
+    document.getElementById('floating-timer').onclick = function() {
+      document.getElementById('timer-section').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    document.getElementById('floating-clock').onclick = function() {
+      document.getElementById('clock-card').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    function checkTimerVisibility() {
+      const timerSection = document.getElementById('timer-section');
+      const rect = timerSection.getBoundingClientRect();
+      const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+      
+      if (isVisible) {
+        document.getElementById('floating-timer').style.display = 'none';
+      } else {
+        document.getElementById('floating-timer').style.display = 'block';
+      }
+    }
+
+    function checkClockVisibility() {
+      const clockCard = document.getElementById('clock-card');
+      const rect = clockCard.getBoundingClientRect();
+      const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+      
+      if (isVisible) {
+        document.getElementById('floating-clock').style.display = 'none';
+      } else {
+        document.getElementById('floating-clock').style.display = 'block';
+      }
+    }
+
+    window.addEventListener('scroll', function() {
+      checkTimerVisibility();
+      checkClockVisibility();
+    });
+
+    window.addEventListener('resize', function() {
+      checkTimerVisibility();
+      checkClockVisibility();
+    });
 
     let customInt = null;
     let customTime = 0;
@@ -1204,12 +1769,12 @@
 
     const memo = document.getElementById('memo');
     if (localStorage.getItem('memo')) {
-      memo.value = localStorage.getItem('memo');
+      memo.innerHTML = localStorage.getItem('memo');
     }
 
-    memo.oninput = function() {
-      localStorage.setItem('memo', this.value);
-    };
+    memo.addEventListener('input', function() {
+      localStorage.setItem('memo', this.innerHTML);
+    });
 
     let links = JSON.parse(localStorage.getItem('links') || '[]');
 
@@ -1260,7 +1825,9 @@
       const h = String(now.getHours()).padStart(2, '0');
       const m = String(now.getMinutes()).padStart(2, '0');
       const s = String(now.getSeconds()).padStart(2, '0');
-      document.getElementById('clock-time').textContent = h + ':' + m + ':' + s;
+      const timeStr = h + ':' + m + ':' + s;
+      document.getElementById('clock-time').textContent = timeStr;
+      document.getElementById('floating-clock-time').textContent = timeStr;
       
       const year = now.getFullYear();
       const month = now.getMonth() + 1;
@@ -1293,7 +1860,6 @@
     updateClocks();
     setInterval(updateClocks, 1000);
     
-    // 天気情報の取得
     function loadWeather() {
       const apiKey = "8eb6dc5492a964ea79dd0ef92f1ae01c";
       const lat = 35.85272206403399;
@@ -1312,7 +1878,6 @@
           return res.json();
         })
         .then(data => {
-          console.log('Weather data:', data);
           const weather = data.weather[0].description;
           const icon = data.weather[0].icon;
           const temp = Math.round(data.main.temp);
@@ -1334,14 +1899,150 @@
         });
     }
 
-    // 天気情報を読み込む
     loadWeather();
-    // 30分ごとに更新
     setInterval(loadWeather, 1800000);
+
+    setInterval(function() {
+      const iframe = document.getElementById('notion-iframe');
+      iframe.src = iframe.src;
+    }, 300000);
+
+    let geminiMessages = [];
+
+    async function sendToGemini(message) {
+      const apiKey = "AIzaSyBTZp5qWMXNckW2Ok3e3sHXEDkhAjjOp38";
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+
+      geminiMessages.push({
+        role: 'user',
+        content: message
+      });
+
+      const requestBody = {
+        contents: [{
+          parts: [{
+            text: message
+          }]
+        }]
+      };
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const reply = data.candidates[0].content.parts[0].text;
+
+        geminiMessages.push({
+          role: 'assistant',
+          content: reply
+        });
+
+        return reply;
+      } catch (error) {
+        console.error('Gemini API error:', error);
+        return 'エラーが発生しました: ' + error.message;
+      }
+    }
+
+    function renderGeminiMessages() {
+      const responseDiv = document.getElementById('gemini-response');
+      responseDiv.innerHTML = '';
+
+      geminiMessages.forEach((msg, index) => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'gemini-message';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'gemini-message-header';
+
+        const roleSpan = document.createElement('span');
+        roleSpan.className = 'gemini-message-role';
+        roleSpan.textContent = msg.role === 'user' ? 'You' : 'Gemini';
+
+        headerDiv.appendChild(roleSpan);
+
+        if (msg.role === 'assistant') {
+          const copyBtn = document.createElement('button');
+          copyBtn.className = 'gemini-copy-btn';
+          copyBtn.textContent = 'Copy';
+          copyBtn.onclick = function() {
+            navigator.clipboard.writeText(msg.content).then(() => {
+              copyBtn.textContent = 'Copied!';
+              setTimeout(() => {
+                copyBtn.textContent = 'Copy';
+              }, 2000);
+            });
+          };
+          headerDiv.appendChild(copyBtn);
+        }
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'gemini-message-content';
+        
+        const formattedContent = msg.content
+          .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+          .replace(/`([^`]+)`/g, '<code>$1</code>')
+          .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+          .replace(/\n\n/g, '</p><p>')
+          .replace(/\n/g, '<br>');
+        
+        contentDiv.innerHTML = '<p>' + formattedContent + '</p>';
+
+        messageDiv.appendChild(headerDiv);
+        messageDiv.appendChild(contentDiv);
+        responseDiv.appendChild(messageDiv);
+      });
+
+      responseDiv.scrollTop = responseDiv.scrollHeight;
+    }
+
+    document.getElementById('gemini-send').onclick = async function() {
+      const input = document.getElementById('gemini-input');
+      const message = input.textContent.trim();
+
+      if (!message) return;
+
+      input.textContent = '';
+      
+      renderGeminiMessages();
+
+      const loadingDiv = document.getElementById('gemini-loading');
+      loadingDiv.classList.add('show');
+
+      const sendBtn = document.getElementById('gemini-send');
+      sendBtn.disabled = true;
+
+      const reply = await sendToGemini(message);
+      
+      loadingDiv.classList.remove('show');
+      sendBtn.disabled = false;
+
+      renderGeminiMessages();
+    };
+
+    document.getElementById('gemini-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById('gemini-send').click();
+      }
+    });
     
     updateTimer();
     updateCustom();
     updateStopwatch();
+    checkTimerVisibility();
+    checkClockVisibility();
   </script>
 </body>
 </html>
