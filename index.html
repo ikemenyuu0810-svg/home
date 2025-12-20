@@ -1124,6 +1124,9 @@
 <audio id="lap-sound" preload="auto">
   <source src="./lap.mp3" type="audio/mp3">
 </audio>
+  <audio id="pomodoro-complete" preload="auto">
+    <source src="./pomodoro.mp3" type="audio/mp3">
+  </audio>
 </body>
   <script>
      function playSound(soundId) {
@@ -1228,12 +1231,14 @@
     }
 
     document.getElementById('notion-next').onclick = function() {
+       playSound('button-click'); // ← 追加
       currentNotionPage = 1;
       document.getElementById('notion-iframe').src = notionUrls[1];
       updateNotionButtons();
     };
 
     document.getElementById('notion-prev').onclick = function() {
+       playSound('button-click'); // ← 追加
       currentNotionPage = 0;
       document.getElementById('notion-iframe').src = notionUrls[0];
       updateNotionButtons();
@@ -1259,114 +1264,126 @@
       }
     });
 
-    function showActionRing(x, y) {
-      const ring = document.getElementById('action-ring');
-      
-      const margin = 150;
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      
-      x = Math.max(margin, Math.min(x, viewportWidth - margin));
-      y = Math.max(margin, Math.min(y, viewportHeight - margin));
-      
-      ring.style.left = x + 'px';
-      ring.style.top = y + 'px';
-      ring.classList.add('show');
-      ringVisible = true;
+    // showActionRing関数内のactionsの各actionに効果音を追加
+function showActionRing(x, y) {
+  const ring = document.getElementById('action-ring');
+  
+  const margin = 150;
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  
+  x = Math.max(margin, Math.min(x, viewportWidth - margin));
+  y = Math.max(margin, Math.min(y, viewportHeight - margin));
+  
+  ring.style.left = x + 'px';
+  ring.style.top = y + 'px';
+  ring.classList.add('show');
+  ringVisible = true;
 
-      const existingItems = ring.querySelectorAll('.ring-item');
-      existingItems.forEach(item => item.remove());
+  const existingItems = ring.querySelectorAll('.ring-item');
+  existingItems.forEach(item => item.remove());
 
-      const actions = [
-        {
-          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
-          label: 'New Memo',
-          action: () => {
-            document.getElementById('memo').focus();
-            hideActionRing();
-          },
-          angle: 0
-        },
-        {
-          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
-          label: 'Notion Page',
-          action: () => {
-            if (currentNotionPage === 0) {
-              document.getElementById('notion-next').click();
-            } else {
-              document.getElementById('notion-prev').click();
-            }
-            hideActionRing();
-          },
-          angle: 40
-        },
-        {
-          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
-          label: 'Start Timer',
-          action: () => {
-            document.getElementById('start-btn').click();
-            hideActionRing();
-          },
-          angle: 80
-        },
-        {
-          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
-          label: 'Reset Timer',
-          action: () => {
-            document.getElementById('reset-btn').click();
-            hideActionRing();
-          },
-          angle: 120
-        },
-        {
-          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6M1 12h6m6 0h6"/></svg>',
-          label: 'Settings',
-          action: () => {
-            document.getElementById('settings-modal').classList.add('show');
-            hideActionRing();
-          },
-          angle: 160
-        },
-        {
-          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>',
-          label: 'Search',
-          action: () => {
-            document.getElementById('search-input').focus();
-            hideActionRing();
-          },
-          angle: 200
-        },
-        {
-          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
-          label: 'Reset All',
-          action: () => {
-            if (confirm('すべてのデータをリセットしますか？')) {
-              localStorage.clear();
-              location.reload();
-            }
-            hideActionRing();
-          },
-          angle: 240
-        },
-        {
-          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>',
-          label: 'Stopwatch',
-          action: () => {
-            document.getElementById('sw-start').click();
-            hideActionRing();
-          },
-          angle: 280
-        },
-        {
-          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
-          label: 'Custom Timer',
-          action: () => {
-            document.getElementById('ct-start').click();
-            hideActionRing();
-          },
-          angle: 320
+  const actions = [
+    {
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+      label: 'New Memo',
+      action: () => {
+        playSound('button-click'); // ← 追加
+        document.getElementById('memo').focus();
+        hideActionRing();
+      },
+      angle: 0
+    },
+    {
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
+      label: 'Notion Page',
+      action: () => {
+        playSound('button-click'); // ← 追加
+        if (currentNotionPage === 0) {
+          document.getElementById('notion-next').click();
+        } else {
+          document.getElementById('notion-prev').click();
         }
-      ];
+        hideActionRing();
+      },
+      angle: 40
+    },
+    {
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+      label: 'Start Timer',
+      action: () => {
+        playSound('button-click'); // ← 追加
+        document.getElementById('start-btn').click();
+        hideActionRing();
+      },
+      angle: 80
+    },
+    {
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+      label: 'Reset Timer',
+      action: () => {
+        playSound('button-click'); // ← 追加
+        document.getElementById('reset-btn').click();
+        hideActionRing();
+      },
+      angle: 120
+    },
+    {
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6M1 12h6m6 0h6"/></svg>',
+      label: 'Settings',
+      action: () => {
+        playSound('button-click'); // ← 追加
+        document.getElementById('settings-modal').classList.add('show');
+        hideActionRing();
+      },
+      angle: 160
+    },
+    {
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>',
+      label: 'Search',
+      action: () => {
+        playSound('button-click'); // ← 追加
+        document.getElementById('search-input').focus();
+        hideActionRing();
+      },
+      angle: 200
+    },
+    {
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+      label: 'Reset All',
+      action: () => {
+        playSound('button-click'); // ← 追加
+        if (confirm('すべてのデータをリセットしますか？')) {
+          localStorage.clear();
+          location.reload();
+        }
+        hideActionRing();
+      },
+      angle: 240
+    },
+    {
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>',
+      label: 'Stopwatch',
+      action: () => {
+        playSound('button-click'); // ← 追加
+        document.getElementById('sw-start').click();
+        hideActionRing();
+      },
+      angle: 280
+    },
+    {
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+      label: 'Custom Timer',
+      action: () => {
+        playSound('button-click'); // ← 追加
+        document.getElementById('ct-start').click();
+        hideActionRing();
+      },
+      angle: 320
+    }
+  ];
+
+  // ... 残りのコード
 
       const radius = 100;
       actions.forEach(action => {
@@ -1431,6 +1448,7 @@ function showAlert(title, msg) {
     document.getElementById('setting-repeat').value = pomodoroSettings.repeat;
 
     document.getElementById('settings-save').onclick = function() {
+       playSound('button-click'); // ← 追加
       pomodoroSettings.work = parseInt(document.getElementById('setting-work').value) || 25;
       pomodoroSettings.break = parseInt(document.getElementById('setting-break').value) || 5;
       pomodoroSettings.repeat = parseInt(document.getElementById('setting-repeat').value) || 0;
@@ -1499,47 +1517,49 @@ function showAlert(title, msg) {
     });
 
     document.getElementById('start-btn').onclick = function() {
-    playSound('button-click'); 
-      if (isRunning) {
+  playSound('button-click');
+  if (isRunning) {
+    clearInterval(timerInt);
+    isRunning = false;
+    this.textContent = 'Start';
+  } else {
+    isRunning = true;
+    this.textContent = 'Stop';
+    timerInt = setInterval(function() {
+      timeLeft--;
+      updateTimer();
+      
+      if (timeLeft <= 0) {
         clearInterval(timerInt);
         isRunning = false;
-        this.textContent = 'Start';
-      } else {
-        isRunning = true;
-        this.textContent = 'Stop';
-        timerInt = setInterval(function() {
-          timeLeft--;
-          updateTimer();
+        document.getElementById('start-btn').textContent = 'Start';
+        
+        if (isWorkSession) {
+          completedCycles++;
+          playSound('pomodoro-complete'); // ← ポモドーロ完了音を追加
+          showAlert('作業完了！', '休憩時間です');
           
-          if (timeLeft <= 0) {
-            clearInterval(timerInt);
-            isRunning = false;
-            document.getElementById('start-btn').textContent = 'Start';
-            
-            if (isWorkSession) {
-              completedCycles++;
-              showAlert('作業完了！', '休憩時間です');
-              
-              if (pomodoroSettings.repeat === 0 || completedCycles < pomodoroSettings.repeat) {
-                setTimeout(() => {
-                  switchType('short');
-                  document.getElementById('start-btn').click();
-                }, 3000);
-              }
-            } else {
-              showAlert('休憩終了！', '次の作業を始めましょう');
-              
-              if (pomodoroSettings.repeat === 0 || completedCycles < pomodoroSettings.repeat) {
-                setTimeout(() => {
-                  switchType('pomodoro');
-                  document.getElementById('start-btn').click();
-                }, 3000);
-              }
-            }
+          if (pomodoroSettings.repeat === 0 || completedCycles < pomodoroSettings.repeat) {
+            setTimeout(() => {
+              switchType('short');
+              document.getElementById('start-btn').click();
+            }, 3000);
           }
-        }, 1000);
+        } else {
+          playSound('timer-complete'); // ← 休憩終了は通常の音
+          showAlert('休憩終了！', '次の作業を始めましょう');
+          
+          if (pomodoroSettings.repeat === 0 || completedCycles < pomodoroSettings.repeat) {
+            setTimeout(() => {
+              switchType('pomodoro');
+              document.getElementById('start-btn').click();
+            }, 3000);
+          }
+        }
       }
-    };
+    }, 1000);
+  }
+};
 
     document.getElementById('reset-btn').onclick = function() {
       playSound('button-click'); 
