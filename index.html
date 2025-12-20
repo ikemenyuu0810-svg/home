@@ -1469,8 +1469,9 @@ function showAlert(title, msg) {
     };
 
     document.getElementById('settings-cancel').onclick = function() {
-      document.getElementById('settings-modal').classList.remove('show');
-    };
+  playSound('button-click'); // ← この行を追加
+  document.getElementById('settings-modal').classList.remove('show');
+};
 
     function updateTimer() {
       const m = Math.floor(timeLeft / 60);
