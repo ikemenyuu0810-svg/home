@@ -910,6 +910,7 @@
   </style>
 </head>
 <body>
+  
   <div class="fullscreen-alert" id="fullscreen-alert">
     <div class="alert-content">
       <div class="alert-title" id="alert-title">Time Up!</div>
@@ -1111,8 +1112,27 @@
       </div>
     </div>
   </div>
+  <!-- 効果音用のオーディオ要素を</body>の直前に追加 -->
+<audio id="timer-complete" preload="auto">
+  <source src="./timer-sound.mp3" type="audio/mp3">
+</audio>
 
+<audio id="button-click" preload="auto">
+  <source src="./click.mp3" type="audio/mp3">
+</audio>
+
+<audio id="lap-sound" preload="auto">
+  <source src="./lap.mp3" type="audio/mp3">
+</audio>
+</body>
   <script>
+     function playSound(soundId) {
+    const audio = document.getElementById(soundId);
+    if (audio) {
+      audio.currentTime = 0;
+      audio.play().catch(e => console.log('Audio play failed:', e));
+    }
+  }
     let currentFocusedEditable = null;
 
     document.getElementById('memo').addEventListener('focus', function() {
@@ -1384,11 +1404,12 @@
       if (e.key === 'Enter') document.getElementById('search-btn').click();
     };
 
-    function showAlert(title, msg) {
-      document.getElementById('alert-title').textContent = title;
-      document.getElementById('alert-message').textContent = msg;
-      document.getElementById('fullscreen-alert').classList.add('show');
-    }
+    // 元のコード
+function showAlert(title, msg) {
+  document.getElementById('alert-title').textContent = title;
+  document.getElementById('alert-message').textContent = msg;
+  document.getElementById('fullscreen-alert').classList.add('show');
+}
 
     document.getElementById('alert-close').onclick = function() {
       document.getElementById('fullscreen-alert').classList.remove('show');
@@ -1473,10 +1494,12 @@
     document.querySelectorAll('.tab-btn').forEach(function(btn) {
       btn.onclick = function() {
         switchType(this.getAttribute('data-type'));
+        
       };
     });
 
     document.getElementById('start-btn').onclick = function() {
+    playSound('button-click'); 
       if (isRunning) {
         clearInterval(timerInt);
         isRunning = false;
@@ -1519,6 +1542,7 @@
     };
 
     document.getElementById('reset-btn').onclick = function() {
+      playSound('button-click'); 
       if (isRunning) {
         clearInterval(timerInt);
         isRunning = false;
@@ -1585,6 +1609,7 @@
     }
 
     document.getElementById('ct-start').onclick = function() {
+      playSound('button-click');
       if (customRun) {
         clearInterval(customInt);
         customRun = false;
@@ -1613,6 +1638,7 @@
     };
 
     document.getElementById('ct-reset').onclick = function() {
+      playSound('button-click');
       clearInterval(customInt);
       customRun = false;
       customTime = 0;
@@ -1637,6 +1663,7 @@
     }
 
     document.getElementById('sw-start').onclick = function() {
+      playSound('button-click');
       if (swRun) {
         clearInterval(swInt);
         swRun = false;
@@ -1653,6 +1680,7 @@
 
     document.getElementById('sw-lap').onclick = function() {
       if (swRun) {
+        playSound('lap-sound');
         lapCount++;
         const h = Math.floor(swTime / 3600);
         const m = Math.floor((swTime % 3600) / 60);
@@ -1666,6 +1694,7 @@
     };
 
     document.getElementById('sw-reset').onclick = function() {
+      playSound('button-click');
       clearInterval(swInt);
       swRun = false;
       swTime = 0;
