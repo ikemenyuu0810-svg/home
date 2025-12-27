@@ -1858,14 +1858,13 @@
           const tempMin = Math.round(data.main.temp_min);
           const place = data.name || "指定地点";
 
-          document.getElementById('weather-icon').src = `./ikemenyuu0810-svg/home/weather-svg/${icon}.svg`;
+          document.getElementById('weather-icon').src = `/ikemenyuu0810-svg/home/weather-svg/${icon}.svg`;
           document.getElementById('weather-icon').style.display = 'block';
           document.getElementById('weather-desc').textContent = weather;
           document.getElementById('weather-temp').textContent = temp + '°';
           document.getElementById('weather-max').textContent = tempMax;
           document.getElementById('weather-min').textContent = tempMin;
           document.getElementById('weather-location').textContent = place;
-          console.log(icon);
 
         })
         .catch(err => {
