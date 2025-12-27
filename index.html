@@ -1865,6 +1865,8 @@
           document.getElementById('weather-max').textContent = tempMax;
           document.getElementById('weather-min').textContent = tempMin;
           document.getElementById('weather-location').textContent = place;
+          console.log(icon);
+
         })
         .catch(err => {
           console.error('Weather fetch error:', err);
