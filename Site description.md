@@ -13,4 +13,5 @@ ikemenyuu0810@ikemenyuu0810-svgによって作成されたサイトです。
 このサイトの利用をもって、利用規約に同意したものとみなされます。
 このサイトに関するお問い合わせは、ikemenyuu0810@ikemenyuu-svgまでお願いします。
 このサイトは日本語で提供されています。
-  
+以上。
+作成者: ikemenyuu0810@ikemenyuu0810-svg
