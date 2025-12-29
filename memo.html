@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="./icon-ver.black.svg">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; min-height: 100%; }
+
+    #bg-container { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
+    .bg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 2.5s ease-in-out; pointer-events: none; }
+    .bg-img.active { opacity: 1; }
+    #bg-overlay { position: fixed; inset: 0; z-index: 0; background: rgba(0,0,0,0.3); pointer-events: none; }
+
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; min-height: 100vh; display: flex; flex-direction: column; position: relative; }
+    body.short-break #bg-overlay { background: rgba(76,145,149,0.3); }
+    body.long-break #bg-overlay { background: rgba(69,124,163,0.3); }
+
+    .header { padding: 20px; display: flex; justify-content: center; align-items: center; position: relative; z-index: 1; }
+    .search-container { width: 100%; max-width: 500px; position: relative; }
+    .search-box { width: 100%; padding: 12px 45px 12px 16px; border: none; border-radius: 8px; font-size: 14px; background: rgba(255,255,255,0.25); color: white; backdrop-filter: blur(10px); transition: all 0.3s ease; }
+    .search-box::placeholder { color: rgba(255,255,255,0.8); }
+    .search-box:focus { outline: none; background: rgba(255,255,255,0.35); }
+    .search-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 6px; color: white; opacity: 0.8; }
+    .search-btn:hover { opacity: 1; }
+
+    .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 20px 40px; max-width: 1400px; width: 100%; margin: 0 auto; position: relative; z-index: 1; }
+    .timer-section { width: 100%; max-width: 500px; text-align: center; margin-bottom: 40px; }
+    .timer-tabs { display: inline-flex; gap: 8px; margin-bottom: 30px; background: rgba(0,0,0,0.15); padding: 6px; border-radius: 8px; backdrop-filter: blur(10px); }
+    .tab-btn { padding: 8px 20px; background: transparent; border: none; color: white; font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.3s ease; opacity: 0.6; }
+    .tab-btn:hover { opacity: 0.8; }
+    .tab-btn.active { background: rgba(0,0,0,0.2); opacity: 1; }
+    .timer-display { font-size: 80px; font-weight: 700; color: white; font-variant-numeric: tabular-nums; margin-bottom: 25px; text-shadow: 0 4px 20px rgba(0,0,0,0.3); letter-spacing: 0.05em; }
+    .timer-controls { display: flex; gap: 12px; justify-content: center; }
+    .control-btn { padding: 16px 40px; background: rgba(255,255,255,0.95); border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); min-width: 100px; color: #333; }
+    .control-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); background: white; }
+
+    .cards-grid { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; grid-template-rows: repeat(3, 260px) 200px; }
+    .card { background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: all 0.3s ease; display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(255,255,255,0.2); }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 6px 25px rgba(0,0,0,0.2); background: rgba(255,255,255,0.3); }
+    .card.memo-card { grid-row: 1 / 3; }
+    .card.todo-card { grid-column: 2 / 4; grid-row: 2 / 4; }
+    .card.gemini-card { grid-column: 1 / 4; grid-row: 4; }
+    .card-title { font-size: 18px; font-weight: 700; color: white; margin-bottom: 14px; opacity: 0.95; flex-shrink: 0; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    .card-content { color: white; flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+
+    .clock-time { font-size: 42px; font-weight: 700; font-variant-numeric: tabular-nums; margin-bottom: 6px; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    .clock-date { font-size: 14px; opacity: 0.9; margin-bottom: 14px; }
+    .world-clock-item { display: flex; justify-content: space-between; padding: 10px 14px; background: rgba(255,255,255,0.15); border-radius: 6px; margin-bottom: 6px; font-size: 14px; font-weight: 500; backdrop-filter: blur(10px); }
+    .world-clock-item:last-child { margin-bottom: 0; }
+
+    .display-medium { font-size: 38px; font-weight: 700; font-variant-numeric: tabular-nums; margin-bottom: 14px; text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    .input-group { display: flex; gap: 8px; justify-content: center; align-items: center; margin-bottom: 14px; font-size: 18px; font-weight: 500; }
+    .input-small { width: 55px; padding: 10px; border: 1px solid rgba(255,255,255,0.4); border-radius: 6px; text-align: center; font-weight: 600; background: rgba(255,255,255,0.2); color: white; font-size: 16px; backdrop-filter: blur(10px); }
+    .input-small:focus { outline: none; border-color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.3); }
+    .input-small::placeholder { color: rgba(255,255,255,0.6); }
+
+    .controls-small { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .btn-small { padding: 10px 18px; background: rgba(255,255,255,0.25); border: none; border-radius: 6px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(10px); }
+    .btn-small:hover { background: rgba(255,255,255,0.35); transform: translateY(-1px); }
+
+    .lap-list { max-height: 140px; overflow-y: auto; margin-top: 12px; }
+    .lap-list::-webkit-scrollbar { width: 5px; }
+    .lap-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.4); border-radius: 3px; }
+    .lap-item { display: flex; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.15); border-radius: 5px; margin-bottom: 6px; font-size: 13px; backdrop-filter: blur(10px); }
+    .lap-item:last-child { margin-bottom: 0; }
+
+    .memo-textarea { width: 100%; flex: 1; border: 1px solid rgba(255,255,255,0.4); border-radius: 8px; padding: 14px; font-size: 14px; font-family: inherit; background: rgba(255,255,255,0.2); color: white; line-height: 1.6; overflow-y: auto; overflow-wrap: break-word; word-wrap: break-word; max-height: 100%; backdrop-filter: blur(10px); }
+    .memo-textarea:focus { outline: none; border-color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.25); }
+    .memo-textarea:empty:before { content: attr(data-placeholder); color: rgba(255,255,255,0.6); }
+
+    .fullscreen-alert { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 10000; }
+    .fullscreen-alert.show { display: flex; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .alert-content { text-align: center; color: white; animation: slideUp 0.4s ease; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
+    .alert-title { font-size: 56px; font-weight: 700; margin-bottom: 16px; }
+    .alert-message { font-size: 24px; margin-bottom: 32px; opacity: 0.8; }
+    .alert-close { padding: 14px 36px; background: white; color: #333; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; }
+    .alert-close:hover { transform: scale(1.05); }
+
+    .action-ring { position: fixed; display: none; z-index: 9999; pointer-events: none; }
+    .action-ring.show { display: block; }
+    .action-ring.show .ring-center { animation: ringCenterIn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+    .action-ring.show .ring-item { animation: ringItemIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+    .action-ring.show .ring-item:nth-child(2) { animation-delay: 0.05s; }
+    .action-ring.show .ring-item:nth-child(3) { animation-delay: 0.1s; }
+    .action-ring.show .ring-item:nth-child(4) { animation-delay: 0.15s; }
+    .action-ring.show .ring-item:nth-child(5) { animation-delay: 0.2s; }
+    .action-ring.show .ring-item:nth-child(6) { animation-delay: 0.25s; }
+    .action-ring.show .ring-item:nth-child(7) { animation-delay: 0.3s; }
+    .action-ring.show .ring-item:nth-child(8) { animation-delay: 0.35s; }
+    .action-ring.show .ring-item:nth-child(9) { animation-delay: 0.4s; }
+    @keyframes ringCenterIn { 0% { opacity: 0; transform: scale(0); } 100% { opacity: 1; transform: scale(1); } }
+    @keyframes ringItemIn { 0% { opacity: 0; transform: scale(0); } 100% { opacity: 1; transform: scale(1); } }
+
+    .ring-center { position: absolute; width: 70px; height: 70px; background: rgba(255,255,255,0.95); border-radius: 50%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; color: #333; backdrop-filter: blur(10px); border: 3px solid rgba(255,255,255,0.3); left: -35px; top: -35px; }
+    .ring-center svg { width: 28px; height: 28px; }
+    .ring-item { position: absolute; width: 56px; height: 56px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 3px 15px rgba(0,0,0,0.15); pointer-events: auto; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.4); color: #333; }
+    .ring-item:hover { transform: scale(1.15); box-shadow: 0 5px 25px rgba(0,0,0,0.25); background: white; }
+    .ring-item svg { width: 24px; height: 24px; }
+    .ring-label { position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s ease; }
+    .ring-item:hover .ring-label { opacity: 1; }
+
+    .settings-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 10000; }
+    .settings-modal.show { display: flex; }
+    .settings-content { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 16px; padding: 32px; max-width: 400px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+    .settings-title { font-size: 24px; font-weight: 700; margin-bottom: 24px; color: #333; }
+    .setting-item { margin-bottom: 20px; }
+    .setting-label { display: block; font-size: 14px; font-weight: 600; color: #555; margin-bottom: 8px; }
+    .setting-input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; font-weight: 600; color: #333; background: white; }
+    .setting-input:focus { outline: none; border-color: #666; }
+    .settings-buttons { display: flex; gap: 12px; margin-top: 24px; }
+    .settings-btn { flex: 1; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; }
+    .settings-btn-save { background: #333; color: white; }
+    .settings-btn-save:hover { background: #555; }
+    .settings-btn-cancel { background: #ddd; color: #555; }
+    .settings-btn-cancel:hover { background: #ccc; }
+
+    .floating-timer, .floating-clock { position: fixed; top: 20px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 12px; padding: 12px 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); cursor: pointer; z-index: 1000; opacity: 0; transform: translateY(-20px); pointer-events: none; transition: all 0.4s ease; }
+    .floating-timer { right: 20px; }
+    .floating-clock { left: 20px; }
+    .floating-timer.show, .floating-clock.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .floating-timer:hover, .floating-clock:hover { transform: translateY(0) scale(1.05); }
+    .floating-timer-time, .floating-clock-time { font-size: 20px; font-weight: 700; color: #333; font-variant-numeric: tabular-nums; }
+
+    .text-toolbar { display: flex; gap: 4px; margin-bottom: 8px; padding: 6px; background: rgba(255,255,255,0.15); border-radius: 6px; flex-shrink: 0; backdrop-filter: blur(10px); }
+    .toolbar-btn { width: 32px; height: 32px; background: rgba(255,255,255,0.15); border: none; border-radius: 4px; color: white; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
+    .toolbar-btn:hover { background: rgba(255,255,255,0.25); }
+    .toolbar-btn.active { background: rgba(255,255,255,0.35); }
+
+    .gemini-input-area { display: flex; align-items: center; gap: 8px; }
+    .gemini-input-wrapper { flex: 1; display: flex; flex-direction: column; }
+    .gemini-input { width: 100%; min-height: 40px; max-height: 80px; border: 1px solid rgba(255,255,255,0.4); border-radius: 8px; padding: 10px 14px; font-size: 14px; font-family: inherit; background: rgba(255,255,255,0.2); color: white; line-height: 1.6; overflow-y: auto; backdrop-filter: blur(10px); }
+    .gemini-input:focus { outline: none; border-color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.25); }
+    .gemini-input:empty:before { content: attr(data-placeholder); color: rgba(255,255,255,0.6); }
+    .gemini-send-btn { padding: 10px 20px; background: rgba(255,255,255,0.3); border: none; border-radius: 6px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; height: 40px; backdrop-filter: blur(10px); }
+    .gemini-send-btn:hover { background: rgba(255,255,255,0.4); }
+    .gemini-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .notion-controls { display: flex; justify-content: flex-end; margin-bottom: 8px; gap: 8px; }
+    .notion-nav-btn { padding: 8px 16px; background: rgba(255,255,255,0.25); border: none; border-radius: 6px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(10px); }
+    .notion-nav-btn:hover { background: rgba(255,255,255,0.35); }
+
+    @media (max-width: 1200px) {
+      .cards-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto; }
+      .card.memo-card, .card.todo-card { grid-row: auto; grid-column: auto; }
+      .card.gemini-card { grid-column: 1 / 3; }
+    }
+    @media (max-width: 768px) {
+      .timer-display { font-size: 64px; }
+      .cards-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
+      .card.gemini-card { grid-column: auto; }
+      .main-content { padding: 0 16px 32px; }
+      .card { padding: 18px; }
+      .header { padding: 16px; }
+      .clock-time { font-size: 36px; }
+      .display-medium { font-size: 32px; }
+      .card-title { font-size: 16px; }
+      .world-clock-item { font-size: 13px; padding: 8px 12px; }
+      .input-small { width: 50px; font-size: 14px; }
+      .btn-small { padding: 8px 16px; font-size: 13px; }
+    }
+    @media (max-width: 480px) {
+      .timer-display { font-size: 56px; }
+      .alert-title { font-size: 42px; }
+      .alert-message { font-size: 18px; }
+      .control-btn { padding: 14px 32px; font-size: 15px; }
+      .clock-time { font-size: 32px; }
+      .display-medium { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="bg-container">
+    <img class="bg-img active" src="background-image/bgimg-1.jpg" alt="">
+    <img class="bg-img" src="" alt="">
+  </div>
+  <div id="bg-overlay"></div>
+
+  <div class="fullscreen-alert" id="alert">
+    <div class="alert-content">
+      <div class="alert-title" id="alert-title">Time Up!</div>
+      <div class="alert-message" id="alert-message">Finished your task</div>
+      <button class="alert-close" onclick="hideAlert()">OK</button>
+    </div>
+  </div>
+
+  <div class="settings-modal" id="settings">
+    <div class="settings-content">
+      <div class="settings-title">Pomodoro Settings</div>
+      <div class="setting-item">
+        <label class="setting-label">Work Time (minutes)</label>
+        <input type="number" class="setting-input" id="set-work" min="1" max="60" value="25">
+      </div>
+      <div class="setting-item">
+        <label class="setting-label">Break Time (minutes)</label>
+        <input type="number" class="setting-input" id="set-break" min="1" max="30" value="5">
+      </div>
+      <div class="setting-item">
+        <label class="setting-label">Repeat Count (0 = infinite)</label>
+        <input type="number" class="setting-input" id="set-repeat" min="0" max="20" value="0">
+      </div>
+      <div class="settings-buttons">
+        <button class="settings-btn settings-btn-cancel" onclick="hideSettings()">Cancel</button>
+        <button class="settings-btn settings-btn-save" onclick="saveSettings()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="floating-timer" id="float-timer" onclick="scrollToTimer()">
+    <div class="floating-timer-time" id="float-timer-time">25:00</div>
+  </div>
+
+  <div class="floating-clock" id="float-clock" onclick="scrollToClock()">
+    <div class="floating-clock-time" id="float-clock-time">00:00:00</div>
+  </div>
+
+  <div class="action-ring" id="ring">
+    <div class="ring-center">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 1v6m0 6v6M1 12h6m6 0h6m-12.78-7.78 4.24 4.24m7.08 0 4.24-4.24M4.22 19.78l4.24-4.24m7.08 0 4.24 4.24"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="header">
+    <div class="search-container">
+      <input type="text" class="search-box" id="search" placeholder="Google Search..." onkeypress="if(event.key==='Enter')doSearch()">
+      <button class="search-btn" onclick="doSearch()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.35-4.35"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="timer-section" id="timer-section">
+      <div class="timer-tabs">
+        <button class="tab-btn active" onclick="switchTimer('pomodoro')">Pomodoro</button>
+        <button class="tab-btn" onclick="switchTimer('short')">Short Break</button>
+        <button class="tab-btn" onclick="switchTimer('long')">Long Break</button>
+      </div>
+      <div class="timer-display" id="timer">25:00</div>
+      <div class="timer-controls">
+        <button class="control-btn" id="start" onclick="toggleTimer()">Start</button>
+        <button class="control-btn" onclick="resetTimer()">Reset</button>
+      </div>
+    </div>
+
+    <div class="cards-grid">
+      <div class="card" id="clock-card">
+        <div class="card-title">Clock</div>
+        <div class="card-content">
+          <div class="clock-time" id="time">00:00:00</div>
+          <div class="clock-date" id="date">2024/1/1</div>
+          <div class="world-clock-item"><span>Tokyo</span><span id="tokyo">00:00:00</span></div>
+          <div class="world-clock-item"><span>New York</span><span id="ny">00:00:00</span></div>
+          <div class="world-clock-item"><span>London</span><span id="london">00:00:00</span></div>
+        </div>
+      </div>
+
+      <div class="card memo-card">
+        <div class="card-title">Memo</div>
+        <div class="card-content">
+          <div class="text-toolbar">
+            <button class="toolbar-btn" onclick="fmt('bold')" title="Bold (Ctrl+B)">B</button>
+            <button class="toolbar-btn" onclick="fmt('underline')" title="Underline (Ctrl+U)">U</button>
+            <button class="toolbar-btn" onclick="fmt('larger')" title="Larger (Ctrl+Shift+>)">A+</button>
+            <button class="toolbar-btn" onclick="fmt('smaller')" title="Smaller (Ctrl+Shift+<)">A-</button>
+          </div>
+          <div class="memo-textarea" id="memo" contenteditable="true" data-placeholder="Enter your notes here..." onfocus="focused=this" oninput="saveMemo()"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Weather</div>
+        <div class="card-content">
+          <div id="weather" style="text-align: center;">
+            <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <img id="w-icon" src="" alt="" style="width: 40px; height: 40px; display: none;">
+              <span id="w-desc" style="font-size: 20px;">Loading...</span>
+            </div>
+            <div class="display-medium" id="w-temp" style="margin-bottom: 8px;">--°</div>
+            <div style="display: flex; justify-content: center; gap: 16px; font-size: 14px; color: rgba(255,255,255,0.9); margin-bottom: 8px;">
+              <span>▲ <span id="w-max">--</span>°</span>
+              <span>▼ <span id="w-min">--</span>°</span>
+            </div>
+            <div style="font-size: 12px; opacity: 0.8;" id="w-loc">--</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Stopwatch</div>
+        <div class="card-content">
+          <div class="display-medium" id="sw">00:00:00</div>
+          <div class="controls-small">
+            <button class="btn-small" id="sw-btn" onclick="toggleSW()">Start</button>
+            <button class="btn-small" onclick="lapSW()">Lap</button>
+            <button class="btn-small" onclick="resetSW()">Reset</button>
+          </div>
+          <div class="lap-list" id="laps"></div>
+        </div>
+      </div>
+
+      <div class="card todo-card">
+        <div class="card-title">Notion</div>
+        <div class="card-content">
+          <div class="notion-controls">
+            <button class="notion-nav-btn" id="n-prev" style="display: none;" onclick="notionNav(-1)"><span>&lt;</span></button>
+            <button class="notion-nav-btn" id="n-next" onclick="notionNav(1)"><span>&gt;</span></button>
+          </div>
+          <iframe allowtransparency="true" id="notion" src="https://todolist-home.notion.site/ebd//2c9ee93cc3e4800aba3ef91a7b2b0a31?v=2c9ee93cc3e480868d75000c8bfe4b7d" width="100%" height="100%" frameborder="0" allowfullscreen style="border: none; border-radius: 8px; display: block; flex: 1; opacity: 0.75;"></iframe>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Custom Timer</div>
+        <div class="card-content">
+          <div class="display-medium" id="ct">00:00:00</div>
+          <div class="input-group">
+            <input type="number" class="input-small" id="ct-h" value="0" min="0" max="23">
+            <span>:</span>
+            <input type="number" class="input-small" id="ct-m" value="0" min="0" max="59">
+            <span>:</span>
+            <input type="number" class="input-small" id="ct-s" value="0" min="0" max="59">
+          </div>
+          <div class="controls-small">
+            <button class="btn-small" id="ct-btn" onclick="toggleCT()">Start</button>
+            <button class="btn-small" onclick="resetCT()">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card gemini-card">
+        <div class="card-title">Gemini Chat</div>
+        <div class="card-content" style="flex-direction: row; gap: 8px;">
+          <div class="gemini-input-area">
+            <div class="gemini-input-wrapper">
+              <div class="text-toolbar">
+                <button class="toolbar-btn" onclick="fmt('bold')" title="Bold (Ctrl+B)">B</button>
+                <button class="toolbar-btn" onclick="fmt('underline')" title="Underline (Ctrl+U)">U</button>
+                <button class="toolbar-btn" onclick="fmt('larger')" title="Larger (Ctrl+Shift+>)">A+</button>
+                <button class="toolbar-btn" onclick="fmt('smaller')" title="Smaller (Ctrl+Shift+<)">A-</button>
+              </div>
+              <div class="gemini-input" id="gemini" contenteditable="true" data-placeholder="Ask Gemini..." onfocus="focused=this" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendGemini();}"></div>
+            </div>
+            <button class="gemini-send-btn" onclick="sendGemini()">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="snd-timer" preload="auto"><source src="./timer-sound.mp3" type="audio/mp3"></audio>
+  <audio id="snd-click" preload="auto"><source src="./click.mp3" type="audio/mp3"></audio>
+  <audio id="snd-lap" preload="auto"><source src="./lap.mp3" type="audio/mp3"></audio>
+  <audio id="snd-pomo" preload="auto"><source src="./pomodoro.mp3" type="audio/mp3"></audio>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const play = (id) => { const a = $(id); if(a) { a.currentTime = 0; a.play().catch(()=>{}); }};
+    const pad = (n) => String(n).padStart(2, '0');
+    const fmtTime = (s) => `${pad(Math.floor(s/60))}:${pad(s%60)}`;
+    const fmtTime3 = (s) => `${pad(Math.floor(s/3600))}:${pad(Math.floor((s%3600)/60))}:${pad(s%60)}`;
+
+    let focused = null;
+    let ringOn = false;
+    let nPage = 0;
+
+    // 背景スライドショー
+    const bgImgs = Array.from({length: 16}, (_, i) => `background-image/bgimg-${i+1}.jpg`);
+    const bg = document.querySelectorAll('.bg-img');
+    let bgIdx = 0, bgVis = 0;
+    setInterval(() => {
+      const next = (bgVis + 1) % 2;
+      bgIdx = (bgIdx + 1) % bgImgs.length;
+      bg[next].src = bgImgs[bgIdx];
+      bg[bgVis].classList.remove('active');
+      bg[next].classList.add('active');
+      bgVis = next;
+    }, 10000);
+
+    // フォーマット
+    function fmt(a) {
+      if(!focused) return;
+      focused.focus();
+      if(a === 'bold') document.execCommand('bold');
+      else if(a === 'underline') document.execCommand('underline');
+      else if(a === 'larger' || a === 'smaller') {
+        const sel = window.getSelection();
+        if(sel.rangeCount > 0 && !sel.isCollapsed) {
+          const delta = a === 'larger' ? 2 : -2;
+          const range = sel.getRangeAt(0);
+          const span = document.createElement('span');
+          try {
+            range.surroundContents(span);
+            span.style.fontSize = (parseFloat(getComputedStyle(span).fontSize) + delta) + 'px';
+          } catch(e) {
+            const frag = range.extractContents();
+            span.appendChild(frag);
+            span.style.fontSize = (parseFloat(getComputedStyle(focused).fontSize) + delta) + 'px';
+            range.insertNode(span);
+          }
+        }
+      }
+    }
+
+    document.addEventListener('keydown', e => {
+      if(!focused) return;
+      if(e.ctrlKey && !e.shiftKey && e.key === 'b') { e.preventDefault(); fmt('bold'); }
+      else if(e.ctrlKey && !e.shiftKey && e.key === 'u') { e.preventDefault(); fmt('underline'); }
+      else if(e.ctrlKey && e.shiftKey && e.key === '>') { e.preventDefault(); fmt('larger'); }
+      else if(e.ctrlKey && e.shiftKey && e.key === '<') { e.preventDefault(); fmt('smaller'); }
+    });
+
+    // Notion
+    const nUrls = ['https://todolist-home.notion.site/ebd//2c9ee93cc3e4800aba3ef91a7b2b0a31?v=2c9ee93cc3e480868d75000c8bfe4b7d', 'https://todolist-home.notion.site/ebd//2c9ee93cc3e480d0a9feecd8ab2bc460'];
+    function notionNav(d) {
+      play('snd-click');
+      nPage = d > 0 ? 1 : 0;
+      $('notion').src = nUrls[nPage];
+      $('n-prev').style.display = nPage ? 'flex' : 'none';
+      $('n-next').style.display = nPage ? 'none' : 'flex';
+    }
+    setInterval(() => { $('notion').src = $('notion').src; }, 300000);
+
+    // アクションリング
+    document.addEventListener('contextmenu', e => { e.preventDefault(); showRing(e.clientX, e.clientY); });
+    document.addEventListener('click', e => { if(ringOn && !e.target.closest('.ring-item, .ring-center')) hideRing(); });
+    document.addEventListener('keydown', e => { if(e.key === 'Escape' && ringOn) hideRing(); });
+
+    function showRing(x, y) {
+      const r = $('ring');
+      const m = 150, vw = innerWidth, vh = innerHeight;
+      x = Math.max(m, Math.min(x, vw - m));
+      y = Math.max(m, Math.min(y, vh - m));
+      r.style.left = x + 'px';
+      r.style.top = y + 'px';
+      r.classList.add('show');
+      ringOn = true;
+      r.querySelectorAll('.ring-item').forEach(i => i.remove());
+
+      const acts = [
+        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>', label: 'New Memo', action: () => { play('snd-click'); $('memo').focus(); hideRing(); }, angle: 0},
+        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>', label: 'Notion Page', action: () => { play('snd-click'); notionNav(nPage ? -1 : 1); hideRing(); }, angle: 40},
+        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>', label: 'Start Timer', action: () => { play('snd-click'); toggleTimer(); hideRing(); }, angle: 80},
+        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>', label: 'Reset Timer', action: () => { play('snd-click'); resetTimer(); hideRing(); }, angle: 120},
+        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6M1 12h6m6 0h6"/></svg>', label: 'Settings', action: () => { play('snd-click'); $('settings').classList.add('show'); hideRing(); }, angle: 160},
+        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>', label: 'Search', action: () => { play('snd-click'); $('search').focus(); hideRing(); }, angle: 200},
+        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>', label: 'Reset All', action: () => { play('snd-click'); if(confirm('すべてのデータをリセットしますか？')) { localStorage.clear(); location.reload(); } hideRing(); }, angle: 240},
+        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>', label: 'Stopwatch', action: () => { play('snd-click'); toggleSW(); hideRing(); }, angle: 280},
+        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>', label: 'Custom Timer', action: () => { play('snd-click'); toggleCT(); hideRing(); }, angle: 320}
+      ];
+
+      const rad = 100;
+      acts.forEach(a => {
+        const item = document.createElement('div');
+        item.className = 'ring-item';
+        const radian = (a.angle - 90) * (Math.PI / 180);
+        item.style.left = (Math.cos(radian) * rad - 28) + 'px';
+        item.style.top = (Math.sin(radian) * rad - 28) + 'px';
+        item.innerHTML = a.icon + `<div class="ring-label">${a.label}</div>`;
+        item.onclick = a.action;
+        r.appendChild(item);
+      });
+    }
+
+    function hideRing() { $('ring').classList.remove('show'); ringOn = false; }
+
+    // 検索
+    function doSearch() {
+      const q = $('search').value.trim();
+      if(q) { window.open('https://www.google.com/search?q=' + encodeURIComponent(q), '_blank'); $('search').value = ''; }
+    }
+
+    // アラート
+    function showAlert(title, msg) {
+      $('alert-title').textContent = title;
+      $('alert-message').textContent = msg;
+      $('alert').classList.add('show');
+    }
+    function hideAlert() { $('alert').classList.remove('show'); }
+
+    // 設定
+    let sets = JSON.parse(localStorage.getItem('sets') || '{"work":25,"break":5,"repeat":0}');
+    $('set-work').value = sets.work;
+    $('set-break').value = sets.break;
+    $('set-repeat').value = sets.repeat;
+
+    function saveSettings() {
+      play('snd-click');
+      sets.work = parseInt($('set-work').value) || 25;
+      sets.break = parseInt($('set-break').value) || 5;
+      sets.repeat = parseInt($('set-repeat').value) || 0;
+      localStorage.setItem('sets', JSON.stringify(sets));
+      pomoT = sets.work;
+      shortT = sets.break;
+      if(timerType === 'pomodoro') timeLeft = pomoT * 60;
+      else if(timerType === 'short') timeLeft = shortT * 60;
+      updateTimer();
+      hideSettings();
+    }
+    function hideSettings() { play('snd-click'); $('settings').classList.remove('show'); }
+
+    // Pomodoro Timer
+    let pomoT = sets.work, shortT = sets.break, longT = 15;
+    let timerType = 'pomodoro', timeLeft = pomoT * 60, timerInt = null, timerRun = false;
+    let cycles = 0, isWork = true;
+
+    function updateTimer() {
+      const str = fmtTime(timeLeft);
+      $('timer').textContent = str;
+      $('float-timer-time').textContent = str;
+    }
+
+    function switchTimer(type) {
+      if(timerRun) { clearInterval(timerInt); timerRun = false; $('start').textContent = 'Start'; }
+      timerType = type;
+      document.body.className = type === 'short' ? 'short-break' : type === 'long' ? 'long-break' : '';
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-btn')[type === 'pomodoro' ? 0 : type === 'short' ? 1 : 2].classList.add('active');
+      timeLeft = type === 'pomodoro' ? (isWork = true, pomoT * 60) : type === 'short' ? (isWork = false, shortT * 60) : (isWork = false, longT * 60);
+      updateTimer();
+    }
+
+    function toggleTimer() {
+      play('snd-click');
+      if(timerRun) {
+        clearInterval(timerInt);
+        timerRun = false;
+        $('start').textContent = 'Start';
+      } else {
+        timerRun = true;
+        $('start').textContent = 'Stop';
+        timerInt = setInterval(() => {
+          if(--timeLeft <= 0) {
+            clearInterval(timerInt);
+            timerRun = false;
+            $('start').textContent = 'Start';
+            if(isWork) {
+              cycles++;
+              play('snd-pomo');
+              showAlert('作業完了！', '休憩時間です');
+              if(sets.repeat === 0 || cycles < sets.repeat) setTimeout(() => { switchTimer('short'); toggleTimer(); }, 3000);
+            } else {
+              play('snd-timer');
+              showAlert('休憩終了！', '次の作業を始めましょう');
+              if(sets.repeat === 0 || cycles < sets.repeat) setTimeout(() => { switchTimer('pomodoro'); toggleTimer(); }, 3000);
+            }
+          }
+          updateTimer();
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      play('snd-click');
+      if(timerRun) { clearInterval(timerInt); timerRun = false; $('start').textContent = 'Start'; }
+      cycles = 0;
+      switchTimer(timerType);
+    }
+
+    function scrollToTimer() { $('timer-section').scrollIntoView({ behavior: 'smooth' }); }
+    function scrollToClock() { $('clock-card').scrollIntoView({ behavior: 'smooth' }); }
+
+    function checkVis() {
+      const tr = $('timer-section').getBoundingClientRect();
+      $('float-timer').classList.toggle('show', tr.top < 0 || tr.bottom > innerHeight);
+      const cr = $('clock-card').getBoundingClientRect();
+      $('float-clock').classList.toggle('show', cr.top < 0 || cr.bottom > innerHeight);
+    }
+    addEventListener('scroll', checkVis);
+    addEventListener('resize', checkVis);
+
+    // Custom Timer
+    let ctTime = 0, ctInt = null, ctRun = false;
+    function updateCT() { $('ct').textContent = fmtTime3(ctTime); }
+    function toggleCT() {
+      play('snd-click');
+      if(ctRun) {
+        clearInterval(ctInt);
+        ctRun = false;
+        $('ct-btn').textContent = 'Start';
+      } else {
+        if(ctTime === 0) {
+          ctTime = (parseInt($('ct-h').value) || 0) * 3600 + (parseInt($('ct-m').value) || 0) * 60 + (parseInt($('ct-s').value) || 0);
+          if(ctTime === 0) return alert('Please set the time');
+        }
+        ctRun = true;
+        $('ct-btn').textContent = 'Stop';
+        ctInt = setInterval(() => {
+          if(--ctTime <= 0) {
+            clearInterval(ctInt);
+            ctRun = false;
+            $('ct-btn').textContent = 'Start';
+            play('snd-timer');
+            showAlert('Time Up！', 'カスタムタイマーが終了しました');
+          }
+          updateCT();
+        }, 1000);
+      }
+    }
+    function resetCT() {
+      play('snd-click');
+      clearInterval(ctInt);
+      ctRun = false;
+      ctTime = 0;
+      $('ct-btn').textContent = 'Start';
+      $('ct-h').value = $('ct-m').value = $('ct-s').value = 0;
+      updateCT();
+    }
+
+    // Stopwatch
+    let swTime = 0, swInt = null, swRun = false, lapCnt = 0;
+    function updateSW() { $('sw').textContent = fmtTime3(swTime); }
+    function toggleSW() {
+      play('snd-click');
+      if(swRun) {
+        clearInterval(swInt);
+        swRun = false;
+        $('sw-btn').textContent = 'Start';
+      } else {
+        swRun = true;
+        $('sw-btn').textContent = 'Stop';
+        swInt = setInterval(() => { swTime++; updateSW(); }, 1000);
+      }
+    }
+    function lapSW() {
+      if(swRun) {
+        play('snd-lap');
+        const lap = document.createElement('div');
+        lap.className = 'lap-item';
+        lap.innerHTML = `<span>Lap ${++lapCnt}</span><span>${fmtTime3(swTime)}</span>`;
+        $('laps').insertBefore(lap, $('laps').firstChild);
+      }
+    }
+    function resetSW() {
+      play('snd-click');
+      clearInterval(swInt);
+      swRun = false;
+      swTime = lapCnt = 0;
+      $('sw-btn').textContent = 'Start';
+      $('laps').innerHTML = '';
+      updateSW();
+    }
+
+    // Memo
+    const memo = $('memo');
+    if(localStorage.memo) memo.innerHTML = localStorage.memo;
+    function saveMemo() { localStorage.memo = memo.innerHTML; }
+
+    // Clock
+    function updateClocks() {
+      const now = new Date();
+      const t = fmtTime3(now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds());
+      $('time').textContent = t;
+      $('float-clock-time').textContent = t;
+      const wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][now.getDay()];
+      $('date').textContent = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} (${wd})`;
+      const getTZ = (tz) => { const d = new Date(now.toLocaleString('en-US', {timeZone: tz})); return fmtTime3(d.getHours()*3600+d.getMinutes()*60+d.getSeconds()); };
+      $('tokyo').textContent = getTZ('Asia/Tokyo');
+      $('ny').textContent = getTZ('America/New_York');
+      $('london').textContent = getTZ('Europe/London');
+    }
+    updateClocks();
+    setInterval(updateClocks, 1000);
+
+    // Weather
+    function loadWeather() {
+      fetch(`https://api.openweathermap.org/data/2.5/weather?lat=35.85272206403399&lon=136.28673448772105&appid=8eb6dc5492a964ea79dd0ef92f1ae01c&units=metric&lang=ja`)
+        .then(r => r.json())
+        .then(d => {
+          $('w-icon').src = `./weather-svg/${d.weather[0].icon}.svg`;
+          $('w-icon').style.display = 'block';
+          $('w-desc').textContent = d.weather[0].description;
+          $('w-temp').textContent = Math.round(d.main.temp) + '°';
+          $('w-max').textContent = Math.round(d.main.temp_max);
+          $('w-min').textContent = Math.round(d.main.temp_min);
+          $('w-loc').textContent = d.name || '指定地点';
+        })
+        .catch(e => { $('w-desc').textContent = 'エラー: ' + e.message; });
+    }
+    loadWeather();
+    setInterval(loadWeather, 1800000);
+
+    // Gemini
+    function sendGemini() {
+      const msg = $('gemini').textContent.trim();
+      if(!msg) return;
+      $('gemini').textContent = '';
+      console.log('Message sent to Gemini:', msg);
+    }
+
+    updateTimer();
+    updateCT();
+    updateSW();
+    checkVis();
+  </script>
+</body>
+</html>
