@@ -6,174 +6,234 @@
   <title>Work Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="./icon-ver.black.svg">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; min-height: 100%; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
 
-    #bg-container { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
-    .bg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 2.5s ease-in-out; pointer-events: none; }
-    .bg-img.active { opacity: 1; }
-    #bg-overlay { position: fixed; inset: 0; z-index: 0; background: rgba(0,0,0,0.3); pointer-events: none; }
+:root {
+  --sidebar: 300px;
+  --sidebar-collapsed: 60px;
+  --header: 56px;
+  --bg-overlay: rgba(0,0,0,0.4);
+  --card-bg: rgba(255,255,255,0.12);
+  --card-hover: rgba(255,255,255,0.18);
+  --sidebar-bg: rgba(57, 57, 55,0.95);
+  --text: #ffffff;
+  --text-dim: rgba(255,255,255,0.7);
+  --border: rgba(255,255,255,0.1);
+}
 
-    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; min-height: 100vh; display: flex; flex-direction: column; position: relative; }
-    body.short-break #bg-overlay { background: rgba(76,145,149,0.3); }
-    body.long-break #bg-overlay { background: rgba(69,124,163,0.3); }
+body { font-family: 'Inter', sans-serif; color: var(--text); display: flex; }
+body.short-break { --bg-overlay: rgba(43,172,118,0.2); }
+body.long-break { --bg-overlay: rgba(18,100,163,0.2); }
 
-    .header { padding: 20px; display: flex; justify-content: center; align-items: center; position: relative; z-index: 1; }
-    .search-container { width: 100%; max-width: 500px; position: relative; }
-    .search-box { width: 100%; padding: 12px 45px 12px 16px; border: none; border-radius: 8px; font-size: 14px; background: rgba(255,255,255,0.25); color: white; backdrop-filter: blur(10px); transition: all 0.3s ease; }
-    .search-box::placeholder { color: rgba(255,255,255,0.8); }
-    .search-box:focus { outline: none; background: rgba(255,255,255,0.35); }
-    .search-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 6px; color: white; opacity: 0.8; }
-    .search-btn:hover { opacity: 1; }
+#bg-container { position: fixed; inset: 0; z-index: -1; }
+.bg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 2.5s; pointer-events: none; }
+.bg-img.active { opacity: 1; }
+#bg-overlay { position: fixed; inset: 0; background: var(--bg-overlay); pointer-events: none; transition: background 0.6s; }
 
-    .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 20px 40px; max-width: 1400px; width: 100%; margin: 0 auto; position: relative; z-index: 1; }
-    .timer-section { width: 100%; max-width: 500px; text-align: center; margin-bottom: 40px; }
-    .timer-tabs { display: inline-flex; gap: 8px; margin-bottom: 30px; background: rgba(0,0,0,0.15); padding: 6px; border-radius: 8px; backdrop-filter: blur(10px); }
-    .tab-btn { padding: 8px 20px; background: transparent; border: none; color: white; font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.3s ease; opacity: 0.6; }
-    .tab-btn:hover { opacity: 0.8; }
-    .tab-btn.active { background: rgba(0,0,0,0.2); opacity: 1; }
-    .timer-display { font-size: 80px; font-weight: 700; color: white; font-variant-numeric: tabular-nums; margin-bottom: 25px; text-shadow: 0 4px 20px rgba(0,0,0,0.3); letter-spacing: 0.05em; }
-    .timer-controls { display: flex; gap: 12px; justify-content: center; }
-    .control-btn { padding: 16px 40px; background: rgba(255,255,255,0.95); border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); min-width: 100px; color: #333; }
-    .control-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); background: white; }
+.site-links { position: fixed; top: 16px; left: 16px; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 10px; z-index: 200; }
+.site-link { width: 50px; height: 50px; background: rgba(255,255,255,0.15); backdrop-filter: blur(20px); border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: all 0.3s; border: 1px solid var(--border); text-decoration: none; }
+.site-link:hover { background: rgba(255,255,255,0.25); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+.site-link svg { width: 28px; height: 28px; }
 
-    .cards-grid { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; grid-template-rows: repeat(3, 260px) 200px; }
-    .card { background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: all 0.3s ease; display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(255,255,255,0.2); }
-    .card:hover { transform: translateY(-3px); box-shadow: 0 6px 25px rgba(0,0,0,0.2); background: rgba(255,255,255,0.3); }
-    .card.memo-card { grid-row: 1 / 3; }
-    .card.todo-card { grid-column: 2 / 4; grid-row: 2 / 4; }
-    .card.gemini-card { grid-column: 1 / 4; grid-row: 4; }
-    .card-title { font-size: 18px; font-weight: 700; color: white; margin-bottom: 14px; opacity: 0.95; flex-shrink: 0; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-    .card-content { color: white; flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+.sidebar { width: var(--sidebar); height: 100vh; background: var(--sidebar-bg); backdrop-filter: blur(20px); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: width 0.3s; z-index: 100; margin-left: 180px; }
+.sidebar.collapsed { width: var(--sidebar-collapsed); }
+.sidebar-header { height: var(--header); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+.sidebar-logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 800; white-space: nowrap; overflow: hidden; }
+.sidebar-logo-icon { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sidebar-logo-icon svg { width: 100%; height: 100%; }
+.sidebar-toggle { width: 28px; height: 28px; background: rgba(255,255,255,0.1); border: none; border-radius: 5px; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.sidebar-toggle:hover { background: rgba(255,255,255,0.2); }
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 10px; }
+.sidebar-nav::-webkit-scrollbar { width: 5px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+.nav-section { margin-bottom: 20px; }
+.nav-section-title { font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; padding: 0 10px; margin-bottom: 6px; white-space: nowrap; overflow: hidden; }
+.sidebar.collapsed .nav-section-title { opacity: 0; height: 0; margin: 0; padding: 0; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s; margin-bottom: 2px; position: relative; }
+.nav-item:hover { background: rgba(255,255,255,0.1); }
+.nav-item.active { background: #1264a3; font-weight: 600; }
+.nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
+.nav-icon svg { width: 100%; height: 100%; }
+.nav-label { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar.collapsed .nav-label { opacity: 0; width: 0; }
+.shortcut-hint { font-size: 10px; opacity: 0.5; margin-left: auto; }
+.sidebar.collapsed .shortcut-hint { display: none; }
 
-    .clock-time { font-size: 42px; font-weight: 700; font-variant-numeric: tabular-nums; margin-bottom: 6px; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-    .clock-date { font-size: 14px; opacity: 0.9; margin-bottom: 14px; }
-    .world-clock-item { display: flex; justify-content: space-between; padding: 10px 14px; background: rgba(255,255,255,0.15); border-radius: 6px; margin-bottom: 6px; font-size: 14px; font-weight: 500; backdrop-filter: blur(10px); }
-    .world-clock-item:last-child { margin-bottom: 0; }
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.header { height: var(--header); padding: 0 24px; display: flex; align-items: center; gap: 16px; backdrop-filter: blur(10px); background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); }
+.search-wrap { flex: 1; max-width: 600px; position: relative; margin: 0 auto; }
+.search-box { width: 100%; padding: 10px 40px 10px 36px; border: 1px solid var(--border); border-radius: 20px; font-size: 13px; background: rgba(255,255,255,0.15); color: var(--text); backdrop-filter: blur(10px); transition: all 0.3s; }
+.search-box::placeholder { color: var(--text-dim); }
+.search-box:focus { outline: none; background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.4); box-shadow: 0 0 0 3px rgba(255,255,255,0.1); }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-dim); pointer-events: none; }
+.search-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; cursor: pointer; padding: 6px; color: var(--text); border-radius: 4px; transition: all 0.2s; }
+.search-btn:hover { background: rgba(255,255,255,0.3); }
+.header-actions { display: flex; gap: 10px; align-items: center; margin-left: auto; }
+.header-btn { width: 36px; height: 36px; background: rgba(255,255,255,0.15); border: none; border-radius: 6px; color: var(--text); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+.header-btn:hover { background: rgba(255,255,255,0.25); }
 
-    .display-medium { font-size: 38px; font-weight: 700; font-variant-numeric: tabular-nums; margin-bottom: 14px; text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-    .input-group { display: flex; gap: 8px; justify-content: center; align-items: center; margin-bottom: 14px; font-size: 18px; font-weight: 500; }
-    .input-small { width: 55px; padding: 10px; border: 1px solid rgba(255,255,255,0.4); border-radius: 6px; text-align: center; font-weight: 600; background: rgba(255,255,255,0.2); color: white; font-size: 16px; backdrop-filter: blur(10px); }
-    .input-small:focus { outline: none; border-color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.3); }
-    .input-small::placeholder { color: rgba(255,255,255,0.6); }
+.content { flex: 1; overflow-y: auto; padding: 24px; }
+.content::-webkit-scrollbar { width: 8px; }
+.content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
+.section { display: none; animation: fadeIn 0.3s; }
+.section.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+.section-title { font-size: 24px; font-weight: 700; margin-bottom: 20px; text-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 
-    .controls-small { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-    .btn-small { padding: 10px 18px; background: rgba(255,255,255,0.25); border: none; border-radius: 6px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(10px); }
-    .btn-small:hover { background: rgba(255,255,255,0.35); transform: translateY(-1px); }
+.timer-hero { background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); border-radius: 12px; padding: 40px; text-align: center; margin-bottom: 24px; border: 1px solid var(--border); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+.timer-tabs { display: inline-flex; gap: 6px; margin-bottom: 32px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 10px; }
+.tab-btn { padding: 10px 24px; background: transparent; border: none; color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 7px; transition: all 0.2s; opacity: 0.6; }
+.tab-btn:hover { opacity: 0.8; background: rgba(255,255,255,0.05); }
+.tab-btn.active { background: rgba(255,255,255,0.2); opacity: 1; }
+.timer-display { font-size: 80px; font-weight: 800; font-variant-numeric: tabular-nums; margin-bottom: 28px; text-shadow: 0 4px 20px rgba(0,0,0,0.4); letter-spacing: 0.02em; }
+.timer-controls { display: flex; gap: 12px; justify-content: center; }
+.ctrl-btn { padding: 16px 40px; background: var(--text); border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 16px rgba(0,0,0,0.2); min-width: 110px; color: rgba(57, 57, 55,0.95); }
+.ctrl-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
 
-    .lap-list { max-height: 140px; overflow-y: auto; margin-top: 12px; }
-    .lap-list::-webkit-scrollbar { width: 5px; }
-    .lap-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.4); border-radius: 3px; }
-    .lap-item { display: flex; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.15); border-radius: 5px; margin-bottom: 6px; font-size: 13px; backdrop-filter: blur(10px); }
-    .lap-item:last-child { margin-bottom: 0; }
+.timer-progress { margin-top: 24px; }
+.progress-bar-wrap { width: 100%; height: 16px; background: rgba(255,255,255,0.2); border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+.progress-bar { height: 100%; background: linear-gradient(90deg, #2bac76, #1264a3); transition: width 0.3s; border-radius: 8px; }
+.timer-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center; }
+.stat-item { background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; }
+.stat-value { font-size: 24px; font-weight: 800; display: block; margin-bottom: 4px; }
+.stat-label { font-size: 11px; opacity: 0.7; text-transform: uppercase; }
 
-    .memo-textarea { width: 100%; flex: 1; border: 1px solid rgba(255,255,255,0.4); border-radius: 8px; padding: 14px; font-size: 14px; font-family: inherit; background: rgba(255,255,255,0.2); color: white; line-height: 1.6; overflow-y: auto; overflow-wrap: break-word; word-wrap: break-word; max-height: 100%; backdrop-filter: blur(10px); }
-    .memo-textarea:focus { outline: none; border-color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.25); }
-    .memo-textarea:empty:before { content: attr(data-placeholder); color: rgba(255,255,255,0.6); }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.card { background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: all 0.3s; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border); height: 600px; }
+.card:hover { transform: translateY(-4px); box-shadow: 0 6px 25px rgba(0,0,0,0.2); background: var(--card-hover); }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-shrink: 0; }
+.card-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.card-icon { width: 20px; height: 20px; }
+.card-action { background: rgba(255,255,255,0.15); border: none; border-radius: 5px; padding: 5px 10px; color: var(--text); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.card-action:hover { background: rgba(255,255,255,0.25); }
+.card-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+.card.wide { grid-column: span 2; }
+.card.tall { height: 750px; }
 
-    .fullscreen-alert { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 10000; }
-    .fullscreen-alert.show { display: flex; animation: fadeIn 0.3s ease; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .alert-content { text-align: center; color: white; animation: slideUp 0.4s ease; }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
-    .alert-title { font-size: 56px; font-weight: 700; margin-bottom: 16px; }
-    .alert-message { font-size: 24px; margin-bottom: 32px; opacity: 0.8; }
-    .alert-close { padding: 14px 36px; background: white; color: #333; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; }
-    .alert-close:hover { transform: scale(1.05); }
+.clock-time { font-size: 48px; font-weight: 800; font-variant-numeric: tabular-nums; margin-bottom: 8px; text-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+.clock-date { font-size: 16px; opacity: 0.85; margin-bottom: 20px; font-weight: 500; }
+.world-clock-item { display: flex; justify-content: space-between; padding: 14px 16px; background: rgba(255,255,255,0.1); border-radius: 8px; margin-bottom: 8px; font-size: 15px; font-weight: 600; transition: all 0.2s; }
+.world-clock-item:hover { background: rgba(255,255,255,0.15); transform: translateX(4px); }
+.world-clock-city { display: flex; align-items: center; gap: 8px; }
+.world-clock-time { font-size: 18px; }
 
-    .action-ring { position: fixed; display: none; z-index: 9999; pointer-events: none; }
-    .action-ring.show { display: block; }
-    .action-ring.show .ring-center { animation: ringCenterIn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
-    .action-ring.show .ring-item { animation: ringItemIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
-    .action-ring.show .ring-item:nth-child(2) { animation-delay: 0.05s; }
-    .action-ring.show .ring-item:nth-child(3) { animation-delay: 0.1s; }
-    .action-ring.show .ring-item:nth-child(4) { animation-delay: 0.15s; }
-    .action-ring.show .ring-item:nth-child(5) { animation-delay: 0.2s; }
-    .action-ring.show .ring-item:nth-child(6) { animation-delay: 0.25s; }
-    .action-ring.show .ring-item:nth-child(7) { animation-delay: 0.3s; }
-    .action-ring.show .ring-item:nth-child(8) { animation-delay: 0.35s; }
-    .action-ring.show .ring-item:nth-child(9) { animation-delay: 0.4s; }
-    @keyframes ringCenterIn { 0% { opacity: 0; transform: scale(0); } 100% { opacity: 1; transform: scale(1); } }
-    @keyframes ringItemIn { 0% { opacity: 0; transform: scale(0); } 100% { opacity: 1; transform: scale(1); } }
+.weather-wrap { text-align: center; margin-bottom: 20px; flex-shrink: 0; }
+.weather-icon-wrap { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; }
+.weather-icon { width: 56px; height: 56px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2)); }
+.weather-desc { font-size: 20px; font-weight: 600; }
+.weather-temp { font-size: 48px; font-weight: 800; margin: 12px 0; text-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+.weather-minmax { display: flex; justify-content: center; gap: 20px; font-size: 14px; color: var(--text-dim); margin-bottom: 10px; font-weight: 600; }
+.weather-loc { font-size: 13px; opacity: 0.7; }
+.weather-iframe-wrap { flex: 1; display: flex; flex-direction: column; min-height: 0; position: relative; }
+.weather-reload-btn { position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; background: rgba(255,255,255,0.9); border: none; border-radius: 6px; cursor: pointer; z-index: 10; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+.weather-reload-btn:hover { background: rgba(255,255,255,1); transform: rotate(180deg); }
+.weather-iframe { width: 100%; height: 100%; border: none; border-radius: 10px; background: rgba(255,255,255,0.95); }
 
-    .ring-center { position: absolute; width: 70px; height: 70px; background: rgba(255,255,255,0.95); border-radius: 50%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; color: #333; backdrop-filter: blur(10px); border: 3px solid rgba(255,255,255,0.3); left: -35px; top: -35px; }
-    .ring-center svg { width: 28px; height: 28px; }
-    .ring-item { position: absolute; width: 56px; height: 56px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 3px 15px rgba(0,0,0,0.15); pointer-events: auto; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.4); color: #333; }
-    .ring-item:hover { transform: scale(1.15); box-shadow: 0 5px 25px rgba(0,0,0,0.25); background: white; }
-    .ring-item svg { width: 24px; height: 24px; }
-    .ring-label { position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s ease; }
-    .ring-item:hover .ring-label { opacity: 1; }
+.display-lg { font-size: 42px; font-weight: 800; font-variant-numeric: tabular-nums; margin-bottom: 16px; text-align: center; text-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+.input-group { display: flex; gap: 10px; justify-content: center; align-items: center; margin-bottom: 16px; font-size: 18px; font-weight: 600; }
+.input-sm { width: 60px; padding: 10px; border: 1px solid var(--border); border-radius: 6px; text-align: center; font-weight: 700; background: rgba(255,255,255,0.15); color: var(--text); font-size: 16px; transition: all 0.2s; }
+.input-sm:focus { outline: none; border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.25); box-shadow: 0 0 0 3px rgba(255,255,255,0.1); }
+.controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.btn { padding: 10px 20px; background: rgba(255,255,255,0.2); border: none; border-radius: 6px; color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+.lap-list { flex: 1; overflow-y: auto; margin-top: 12px; min-height: 0; }
+.lap-list::-webkit-scrollbar { width: 5px; }
+.lap-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
+.lap-item { display: flex; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.1); border-radius: 6px; margin-bottom: 6px; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+.lap-item:hover { background: rgba(255,255,255,0.15); }
 
-    .settings-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 10000; }
-    .settings-modal.show { display: flex; }
-    .settings-content { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 16px; padding: 32px; max-width: 400px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
-    .settings-title { font-size: 24px; font-weight: 700; margin-bottom: 24px; color: #333; }
-    .setting-item { margin-bottom: 20px; }
-    .setting-label { display: block; font-size: 14px; font-weight: 600; color: #555; margin-bottom: 8px; }
-    .setting-input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; font-weight: 600; color: #333; background: white; }
-    .setting-input:focus { outline: none; border-color: #666; }
-    .settings-buttons { display: flex; gap: 12px; margin-top: 24px; }
-    .settings-btn { flex: 1; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; }
-    .settings-btn-save { background: #333; color: white; }
-    .settings-btn-save:hover { background: #555; }
-    .settings-btn-cancel { background: #ddd; color: #555; }
-    .settings-btn-cancel:hover { background: #ccc; }
+.memo { width: 100%; flex: 1; border: 1px solid var(--border); border-radius: 10px; padding: 14px; font-size: 14px; font-family: inherit; background: rgba(255,255,255,0.15); color: var(--text); line-height: 1.7; overflow-y: auto; transition: all 0.2s; min-height: 0; }
+.memo:focus { outline: none; border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.2); box-shadow: 0 0 0 3px rgba(255,255,255,0.1); }
+.memo:empty:before { content: attr(data-placeholder); color: var(--text-dim); }
+.toolbar { display: flex; gap: 5px; margin-bottom: 10px; padding: 6px; background: rgba(255,255,255,0.1); border-radius: 6px; flex-wrap: wrap; flex-shrink: 0; }
+.toolbar-btn { min-width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: none; border-radius: 4px; color: var(--text); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0 8px; }
+.toolbar-btn:hover { background: rgba(255,255,255,0.2); }
+.file-upload { display: none; }
+.memo-files { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; flex-shrink: 0; }
+.memo-file { background: rgba(255,255,255,0.15); padding: 8px 12px; border-radius: 6px; font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s; }
+.memo-file:hover { background: rgba(255,255,255,0.25); }
+.memo-file-remove { background: rgba(255,0,0,0.3); border: none; color: var(--text); border-radius: 3px; padding: 2px 6px; cursor: pointer; font-size: 10px; }
+.memo-image { max-width: 200px; max-height: 200px; border-radius: 8px; margin: 8px 0; cursor: pointer; }
 
-    .floating-timer, .floating-clock { position: fixed; top: 20px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 12px; padding: 12px 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); cursor: pointer; z-index: 1000; opacity: 0; transform: translateY(-20px); pointer-events: none; transition: all 0.4s ease; }
-    .floating-timer { right: 20px; }
-    .floating-clock { left: 20px; }
-    .floating-timer.show, .floating-clock.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
-    .floating-timer:hover, .floating-clock:hover { transform: translateY(0) scale(1.05); }
-    .floating-timer-time, .floating-clock-time { font-size: 20px; font-weight: 700; color: #333; font-variant-numeric: tabular-nums; }
+.notion-iframe { width: 100%; flex: 1; border: none; border-radius: 10px; opacity: 0.85; transition: opacity 0.3s; min-height: 0; }
+.notion-iframe:hover { opacity: 1; }
+.notion-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; flex-shrink: 0; }
+.notion-tab { padding: 8px 16px; background: rgba(255,255,255,0.15); border: none; border-radius: 6px; color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+.notion-tab:hover { background: rgba(255,255,255,0.25); }
+.notion-tab.active { background: #1264a3; }
+.notion-add { background: #2bac76; }
 
-    .text-toolbar { display: flex; gap: 4px; margin-bottom: 8px; padding: 6px; background: rgba(255,255,255,0.15); border-radius: 6px; flex-shrink: 0; backdrop-filter: blur(10px); }
-    .toolbar-btn { width: 32px; height: 32px; background: rgba(255,255,255,0.15); border: none; border-radius: 4px; color: white; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
-    .toolbar-btn:hover { background: rgba(255,255,255,0.25); }
-    .toolbar-btn.active { background: rgba(255,255,255,0.35); }
+.gemini-wrap { display: flex; align-items: flex-end; gap: 10px; }
+.gemini-input-wrap { flex: 1; display: flex; flex-direction: column; }
+.gemini-input { width: 100%; min-height: 44px; max-height: 100px; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 14px; font-family: inherit; background: rgba(255,255,255,0.15); color: var(--text); line-height: 1.6; overflow-y: auto; transition: all 0.2s; }
+.gemini-input:focus { outline: none; border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.2); box-shadow: 0 0 0 3px rgba(255,255,255,0.1); }
+.gemini-input:empty:before { content: attr(data-placeholder); color: var(--text-dim); }
+.gemini-send { padding: 10px 24px; background: #2bac76; border: none; border-radius: 8px; color: var(--text); font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; height: 44px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.gemini-send:hover { background: #25a06a; transform: translateY(-2px); }
 
-    .gemini-input-area { display: flex; align-items: center; gap: 8px; }
-    .gemini-input-wrapper { flex: 1; display: flex; flex-direction: column; }
-    .gemini-input { width: 100%; min-height: 40px; max-height: 80px; border: 1px solid rgba(255,255,255,0.4); border-radius: 8px; padding: 10px 14px; font-size: 14px; font-family: inherit; background: rgba(255,255,255,0.2); color: white; line-height: 1.6; overflow-y: auto; backdrop-filter: blur(10px); }
-    .gemini-input:focus { outline: none; border-color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.25); }
-    .gemini-input:empty:before { content: attr(data-placeholder); color: rgba(255,255,255,0.6); }
-    .gemini-send-btn { padding: 10px 20px; background: rgba(255,255,255,0.3); border: none; border-radius: 6px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; height: 40px; backdrop-filter: blur(10px); }
-    .gemini-send-btn:hover { background: rgba(255,255,255,0.4); }
-    .gemini-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.calculator { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; flex-shrink: 0; }
+.calc-display { grid-column: span 4; background: rgba(255,255,255,0.15); border: 1px solid var(--border); border-radius: 10px; padding: 20px; font-size: 32px; font-weight: 700; text-align: right; margin-bottom: 10px; min-height: 60px; word-break: break-all; }
+.calc-btn { padding: 20px; background: rgba(43,172,118,0.3); border: none; border-radius: 8px; color: var(--text); font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.calc-btn:hover { background: rgba(43,172,118,0.5); transform: scale(1.05); }
+.calc-btn.operator { background: rgba(18,100,163,0.5); }
+.calc-btn.operator:hover { background: rgba(18,100,163,0.7); }
+.calc-btn.clear { background: rgba(224,30,90,0.5); }
+.calc-btn.clear:hover { background: rgba(224,30,90,0.7); }
+.calc-btn.equals { background: rgba(43,172,118,0.6); grid-column: span 2; }
+.calc-btn.equals:hover { background: rgba(43,172,118,0.8); }
+.calc-history { flex: 1; overflow-y: auto; margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; min-height: 0; }
+.calc-history-item { padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px; margin-bottom: 6px; font-size: 13px; text-align: right; }
 
-    .notion-controls { display: flex; justify-content: flex-end; margin-bottom: 8px; gap: 8px; }
-    .notion-nav-btn { padding: 8px 16px; background: rgba(255,255,255,0.25); border: none; border-radius: 6px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(10px); }
-    .notion-nav-btn:hover { background: rgba(255,255,255,0.35); }
+.youtube-player { display: flex; flex-direction: column; gap: 12px; height: 100%; }
+.youtube-controls { display: flex; gap: 8px; align-items: center; background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; flex-shrink: 0; }
+.youtube-btn { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border: none; border-radius: 6px; color: var(--text); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+.youtube-btn:hover { background: rgba(255,255,255,0.3); }
+.youtube-volume { flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.2); outline: none; -webkit-appearance: none; }
+.youtube-volume::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #2bac76; cursor: pointer; }
+.youtube-volume::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: #2bac76; cursor: pointer; border: none; }
+#yt-player { flex: 1; min-height: 0; }
+.youtube-iframe { width: 100%; height: 100%; border: none; border-radius: 10px; }
 
-    @media (max-width: 1200px) {
-      .cards-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto; }
-      .card.memo-card, .card.todo-card { grid-row: auto; grid-column: auto; }
-      .card.gemini-card { grid-column: 1 / 3; }
-    }
-    @media (max-width: 768px) {
-      .timer-display { font-size: 64px; }
-      .cards-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
-      .card.gemini-card { grid-column: auto; }
-      .main-content { padding: 0 16px 32px; }
-      .card { padding: 18px; }
-      .header { padding: 16px; }
-      .clock-time { font-size: 36px; }
-      .display-medium { font-size: 32px; }
-      .card-title { font-size: 16px; }
-      .world-clock-item { font-size: 13px; padding: 8px 12px; }
-      .input-small { width: 50px; font-size: 14px; }
-      .btn-small { padding: 8px 16px; font-size: 13px; }
-    }
-    @media (max-width: 480px) {
-      .timer-display { font-size: 56px; }
-      .alert-title { font-size: 42px; }
-      .alert-message { font-size: 18px; }
-      .control-btn { padding: 14px 32px; font-size: 15px; }
-      .clock-time { font-size: 32px; }
-      .display-medium { font-size: 28px; }
-    }
+.stats-modal, .modal, .alert { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(4px); }
+.stats-modal.show, .modal.show, .alert.show { display: flex; animation: fadeIn 0.3s; }
+.stats-content, .modal-content { background: rgba(255,255,255,0.98); backdrop-filter: blur(20px); border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 24px 48px rgba(0,0,0,0.5); animation: slideUp 0.4s; color: #333; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+.stats-title, .modal-title { font-size: 24px; font-weight: 800; margin-bottom: 24px; color: #393937; }
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.stats-card { background: #f5f5f5; padding: 16px; border-radius: 10px; }
+.stats-card-value { font-size: 32px; font-weight: 800; color: #1264a3; margin-bottom: 4px; }
+.stats-card-label { font-size: 12px; color: #666; text-transform: uppercase; }
+.stats-close, .modal-btn { padding: 14px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; }
+.stats-close { margin-top: 24px; background: #393937; color: white; width: 100%; }
+.setting-item { margin-bottom: 20px; }
+.setting-label { display: block; font-size: 13px; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.setting-input { width: 100%; padding: 12px 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; font-weight: 600; color: #333; background: white; transition: all 0.2s; }
+.setting-input:focus { outline: none; border-color: #1264a3; box-shadow: 0 0 0 3px rgba(18,100,163,0.1); }
+.modal-btns { display: flex; gap: 10px; margin-top: 28px; }
+.modal-btn { flex: 1; }
+.modal-btn.primary { background: #393937; color: white; }
+.modal-btn.primary:hover { background: #636362; transform: translateY(-2px); }
+.modal-btn.secondary { background: #636362; color: #ffffff; }
+.modal-btn.secondary:hover { background: #d8d8d8; }
+
+.alert-wrap { text-align: center; animation: slideUp 0.4s; }
+.alert-title { font-size: 56px; font-weight: 800; margin-bottom: 16px; text-shadow: 0 4px 16px rgba(0,0,0,0.5); }
+.alert-msg { font-size: 24px; margin-bottom: 32px; opacity: 0.9; }
+.alert-close { padding: 14px 40px; background: white; color: #333; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.alert-close:hover { background: #f0f0f0; transform: translateY(-2px); }
+@media (max-width: 900px) {
+  .sidebar { margin-left: 0; position: fixed; z-index: 150; height: 100%; }
+  .main { margin-left: var(--sidebar); }
+}
+@media (max-width: 600px) {
+  .cards { grid-template-columns: 1fr; }
+  .card.wide { grid-column: span 1; }
+}
+
   </style>
 </head>
 <body>
@@ -183,528 +243,386 @@
   </div>
   <div id="bg-overlay"></div>
 
-  <div class="fullscreen-alert" id="alert">
-    <div class="alert-content">
+  <div class="alert" id="alert">
+    <div class="alert-wrap">
       <div class="alert-title" id="alert-title">Time Up!</div>
-      <div class="alert-message" id="alert-message">Finished your task</div>
+      <div class="alert-msg" id="alert-msg">Finished your task</div>
       <button class="alert-close" onclick="hideAlert()">OK</button>
     </div>
   </div>
 
-  <div class="settings-modal" id="settings">
-    <div class="settings-content">
-      <div class="settings-title">Pomodoro Settings</div>
+  <div class="modal" id="settings">
+    <div class="modal-content">
+      <div class="modal-title">Pomodoro Settings</div>
       <div class="setting-item">
-        <label class="setting-label">Work Time (minutes)</label>
+        <label class="setting-label">Work Time (min)</label>
         <input type="number" class="setting-input" id="set-work" min="1" max="60" value="25">
       </div>
       <div class="setting-item">
-        <label class="setting-label">Break Time (minutes)</label>
+        <label class="setting-label">Break Time (min)</label>
         <input type="number" class="setting-input" id="set-break" min="1" max="30" value="5">
       </div>
       <div class="setting-item">
-        <label class="setting-label">Repeat Count (0 = infinite)</label>
+        <label class="setting-label">Repeat (0 = ∞)</label>
         <input type="number" class="setting-input" id="set-repeat" min="0" max="20" value="0">
       </div>
-      <div class="settings-buttons">
-        <button class="settings-btn settings-btn-cancel" onclick="hideSettings()">Cancel</button>
-        <button class="settings-btn settings-btn-save" onclick="saveSettings()">Save</button>
+      <div class="modal-btns">
+        <button class="modal-btn secondary" onclick="hideSettings()">Cancel</button>
+        <button class="modal-btn primary" onclick="saveSettings()">Save</button>
       </div>
     </div>
   </div>
 
-  <div class="floating-timer" id="float-timer" onclick="scrollToTimer()">
-    <div class="floating-timer-time" id="float-timer-time">25:00</div>
-  </div>
-
-  <div class="floating-clock" id="float-clock" onclick="scrollToClock()">
-    <div class="floating-clock-time" id="float-clock-time">00:00:00</div>
-  </div>
-
-  <div class="action-ring" id="ring">
-    <div class="ring-center">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="3"/>
-        <path d="M12 1v6m0 6v6M1 12h6m6 0h6m-12.78-7.78 4.24 4.24m7.08 0 4.24-4.24M4.22 19.78l4.24-4.24m7.08 0 4.24 4.24"/>
-      </svg>
+  <div class="modal" id="app-settings">
+    <div class="modal-content">
+      <div class="modal-title">App Settings</div>
+      <div class="setting-item">
+        <label class="setting-label">Text Color</label>
+        <input type="color" class="setting-input" id="text-color" value="#ffffff">
+      </div>
+      <div class="modal-btns">
+        <button class="modal-btn secondary" onclick="hideAppSettings()">Close</button>
+      </div>
     </div>
   </div>
 
-  <div class="header">
-    <div class="search-container">
-      <input type="text" class="search-box" id="search" placeholder="Google Search..." onkeypress="if(event.key==='Enter')doSearch()">
-      <button class="search-btn" onclick="doSearch()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/>
-          <path d="m21 21-4.35-4.35"/>
+  <div class="stats-modal" id="stats-modal">
+    <div class="stats-content">
+      <div class="stats-title">Work Statistics</div>
+      <div class="stats-grid">
+        <div class="stats-card">
+          <div class="stats-card-value" id="stat-sessions">0</div>
+          <div class="stats-card-label">Total Sessions</div>
+        </div>
+        <div class="stats-card">
+          <div class="stats-card-value" id="stat-minutes">0</div>
+          <div class="stats-card-label">Total Minutes</div>
+        </div>
+        <div class="stats-card">
+          <div class="stats-card-value" id="stat-today">0</div>
+          <div class="stats-card-label">Today's Sessions</div>
+        </div>
+        <div class="stats-card">
+          <div class="stats-card-value" id="stat-streak">0</div>
+          <div class="stats-card-label">Day Streak</div>
+        </div>
+      </div>
+      <button class="stats-close" onclick="hideStats()">Close</button>
+    </div>
+  </div>
+
+  <div class="float float-timer" id="float-timer" onclick="switchSection('timer')">
+    <div class="float-time" id="float-timer-time">25:00</div>
+  </div>
+
+  <div class="float float-clock" id="float-clock" onclick="switchSection('clock')">
+    <div class="float-time" id="float-clock-time">00:00:00</div>
+  </div>
+
+  <div class="youtube-fixed-controls" id="youtube-fixed-controls">
+    <button class="youtube-btn" onclick="toggleYoutubePlay()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <polygon id="yt-play-icon" points="5 3 19 12 5 21 5 3"/>
+        <rect id="yt-pause-icon" x="6" y="4" width="4" height="16" style="display:none;"/>
+        <rect id="yt-pause-icon2" x="14" y="4" width="4" height="16" style="display:none;"/>
+      </svg>
+    </button>
+    <input type="range" class="youtube-volume" id="youtube-volume-fixed" min="0" max="100" value="70" oninput="setYoutubeVolume(this.value)">
+  </div>
+
+  <div class="mobile-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
+
+  <div class="site-links">
+    <a class="site-link" href="https://github.com" target="_blank">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+    </a>
+    <a class="site-link" href="https://chat.openai.com" target="_blank">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>
+    </a>
+    <a class="site-link" href="https://claude.ai" target="_blank">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M12 0L24 6v12L12 24 0 18V6L12 0zm0 2.5L2 7.5v9l10 5.5 10-5.5v-9L12 2.5z"/></svg>
+    </a>
+    <a class="site-link" href="https://vscode.dev" target="_blank">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.942-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/></svg>
+    </a>
+    <a class="site-link" href="https://notion.so" target="_blank">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.933zm14.336.653c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z"/></svg>
+    </a>
+    <a class="site-link" href="https://drive.google.com" target="_blank">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M7.71 3.5L1.15 15l3.43 5.5h13.71L22 15l-6.56-11.5H7.71zM8.73 5.5h6.54L19.21 15h-3.09l-3.43-5.5-4.63 8H4.03L8.73 5.5zm-.42 11.5h6.54l-3.26 5.5h-6.54l3.26-5.5z"/></svg>
+    </a>
+  </div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">
+          <svg version="1.1" viewBox="0.0 0.0 1133.8582677165355 1133.8582677165355" fill="none" stroke="none" stroke-linecap="square" stroke-miterlimit="10" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg"><clipPath id="p.0"><path d="m0 0l1133.8583 0l0 1133.8583l-1133.8583 0l0 -1133.8583z" clip-rule="nonzero"/></clipPath><g clip-path="url(#p.0)"><path fill="#ffffff" fill-opacity="0.0" d="m0 0l1133.8583 0l0 1133.8583l-1133.8583 0z" fill-rule="evenodd"/><path fill="#ffffff" d="m137.30708 634.6552l0 0c0 -237.27368 192.34834 -429.62204 429.62207 -429.62204l0 0c113.94287 0 223.21887 45.263626 303.78864 125.833405c80.56976 80.56976 125.833435 189.84583 125.833435 303.78864l0 0c0 237.27374 -192.34839 429.622 -429.62207 429.622l0 0c-237.27371 0 -429.62207 -192.34827 -429.62207 -429.622zm71.40318 0l0 0c0 197.8388 160.38007 358.21887 358.21887 358.21887c197.8388 0 358.21887 -160.38007 358.21887 -358.21887l0 0c0 -197.8388 -160.38007 -358.21884 -358.21887 -358.21884l0 0c-197.8388 0 -358.21887 160.38004 -358.21887 358.21884z" fill-rule="evenodd"/><path fill="#ffffff" d="m901.1631 246.48668l46.80316 46.803146l-97.82678 97.82678l-46.80316 -46.80316z" fill-rule="evenodd"/><path fill="#ffffff" d="m369.46457 102.85433l0 0l0 0c0 -8.800179 3.4958496 -17.239922 9.718506 -23.462585c6.222687 -6.222664 14.662415 -9.718521 23.462585 -9.718521l33.338593 0c3.0517578E-4 0 5.493164E-4 2.5177002E-4 5.493164E-4 5.569458E-4l-5.493164E-4 66.36165l0 0c0 3.0517578E-4 -2.4414062E-4 5.493164E-4 -5.493164E-4 5.493164E-4l-33.338043 -5.493164E-4l0 0c-18.325409 0 -33.18109 -14.855682 -33.18109 -33.1811z" fill-rule="evenodd"/><path fill="#ffffff" d="m764.3937 102.76247l0 0l0 0c0 8.800179 -3.4958496 17.239922 -9.718506 23.462585c-6.2226562 6.2226562 -14.662415 9.718521 -23.462585 9.718521l-33.338562 0c-3.0517578E-4 0 -5.493164E-4 -2.4414062E-4 -5.493164E-4 -5.493164E-4l5.493164E-4 -66.36166l0 0c0 -3.0517578E-4 2.4414062E-4 -5.569458E-4 5.493164E-4 -5.569458E-4l33.338013 5.569458E-4l0 0c18.32544 0 33.18109 14.855682 33.18109 33.1811z" fill-rule="evenodd"/><path fill="#ffffff" d="m702.85016 69.6601l0 66.20472l-271.84253 0l0 -66.20472z" fill-rule="evenodd"/><path fill="#ffffff" d="m573.54333 632.707l0 0l0 0c-8.800232 0 -17.23993 -3.4958496 -23.462585 -9.718506c-6.2227173 -6.2226562 -9.718567 -14.662415 -9.718567 -23.462585l0 -33.338562c0 -3.0517578E-4 2.4414062E-4 -5.493164E-4 5.493164E-4 -5.493164E-4l66.361694 5.493164E-4l0 0c3.0517578E-4 0 5.493164E-4 2.4414062E-4 5.493164E-4 5.493164E-4l-5.493164E-4 33.338013l0 0c0 18.32544 -14.855713 33.18109 -33.18109 33.18109z" fill-rule="evenodd"/><path fill="#ffffff" d="m573.4514 348.70172l0 0l0 0c8.800232 0 17.23993 3.4958801 23.462585 9.718536c6.2227173 6.2226562 9.718567 14.662415 9.718567 23.462585l0 33.338562c0 3.0517578E-4 -2.4414062E-4 5.493164E-4 -5.493164E-4 5.493164E-4l-66.361694 -5.493164E-4l0 0c-3.0517578E-4 0 -5.493164E-4 -2.4414062E-4 -5.493164E-4 -5.493164E-4l5.493164E-4 -33.338013l0 0c0 -18.32544 14.855713 -33.18112 33.18109 -33.18112z" fill-rule="evenodd"/><path fill="#ffffff" d="m540.34906 392.95953l66.20477 0l0 195.4961l-66.20477 0z" fill-rule="evenodd"/><path fill="#ffffff" d="m958.7662 235.65749l0 0l0 0c6.1897583 6.1897736 9.667114 14.584915 9.667114 23.338577c0 8.753662 -3.477356 17.148804 -9.667114 23.338593l-23.685059 23.685028c-1.8310547E-4 2.1362305E-4 -5.493164E-4 2.1362305E-4 -7.9345703E-4 0l-46.67639 -46.677155l0 0c-1.8310547E-4 -2.1362305E-4 -1.8310547E-4 -5.79834E-4 0 -7.9345703E-4l23.685059 -23.68425l0 0c12.889526 -12.889542 33.78766 -12.889542 46.677185 0z" fill-rule="evenodd"/></g></svg>
+        </div>
+        <span>Work Hub</span>
+      </div>
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
         </svg>
       </button>
     </div>
-  </div>
 
-  <div class="main-content">
-    <div class="timer-section" id="timer-section">
-      <div class="timer-tabs">
-        <button class="tab-btn active" onclick="switchTimer('pomodoro')">Pomodoro</button>
-        <button class="tab-btn" onclick="switchTimer('short')">Short Break</button>
-        <button class="tab-btn" onclick="switchTimer('long')">Long Break</button>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Main</div>
+        <a class="nav-item active" onclick="switchSection('timer')">
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <span class="nav-label">Timer</span>
+          <span class="shortcut-hint">1</span>
+        </a>
+        <a class="nav-item" onclick="switchSection('clock')">
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <span class="nav-label">Clock</span>
+          <span class="shortcut-hint">2</span>
+        </a>
+        <a class="nav-item" onclick="switchSection('weather')">
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
+            </svg>
+          </div>
+          <span class="nav-label">Weather</span>
+          <span class="shortcut-hint">3</span>
+        </a>
+        <a class="nav-item" onclick="openNewTab()">
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <line x1="12" y1="8" x2="12" y2="16"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+          </div>
+          <span class="nav-label">New Tab</span>
+        </a>
       </div>
-      <div class="timer-display" id="timer">25:00</div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Tools</div>
+        <a class="nav-item" onclick="switchSection('stopwatch')">
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="13" r="8"/>
+              <path d="M12 9v4l2 2"/>
+            </svg>
+          </div>
+          <span class="nav-label">Stopwatch</span>
+          <span class="shortcut-hint">4</span>
+        </a>
+        <a class="nav-item" onclick="switchSection('custom-timer')">
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <span class="nav-label">Custom Timer</span>
+          <span class="shortcut-hint">5</span>
+        </a>
+        <a class="nav-item" onclick="switchSection('calculator')">
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="4" y="2" width="16" height="20" rx="2"/>
+              <line x1="8" y1="6" x2="16" y2="6"/>
+            </svg>
+          </div>
+          <span class="nav-label">Calculator</span>
+          <span class="shortcut-hint">8</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Productivity</div>
+        <a class="nav-item" onclick="switchSection('memo')">
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+          </div>
+          <span class="nav-label">Memo</span>
+          <span class="shortcut-hint">6</span>
+        </a>
+        <a class="nav-item" onclick="switchSection('notion')">
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 11 12 14 22 4"/>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+          </div>
+          <span class="nav-label">Notion</span>
+        </a>
+        <a class="nav-item" onclick="switchSection('gemini')">
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <span class="nav-label">Gemini</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Settings</div>
+        <a class="nav-item" onclick="showSettings()">
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 12.91H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1A1.65 1.65 0 0 0 4.27 6.09l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 .33 1.82A1.65 1.65 0 0 
+              "></path>
+            </svg>
+          </div>
+          <span class="nav-label">Pomodoro Settings</span>
+        </a>
+        <a class="nav-item" onclick="showAppSettings()">
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 12.91H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1A1.65 1.65 0 0 0 4.27 6.09l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 .33 1.82A1.65 1.65 0 0 0 12.91 4h0a2 2 0 0 1 4 0h0a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82A1.65 1.65 0 0 0 20 11.09v0a2 2 0 0 1 0 4h0a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </div>
+          <span class="nav-label">App Settings</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+  <div class="settings-modal" id="settings-modal">
+    <div class="settings-content">
+      <div class="settings-header">
+        <h2>Pomodoro Settings</h2>
+        <button class="settings-close" onclick="closeSettings()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="settings-body">
+        <label for="work-duration">Work Duration (minutes):</label>
+        <input type="number" id="work-duration" min="1" max="120" value="25">
+
+        <label for="break-duration">Break Duration (minutes):</label>
+        <input type="number" id="break-duration" min="1" max="60" value="5">
+
+        <label for="long-break-duration">Long Break Duration (minutes):</label>
+        <input type="number" id="long-break-duration" min="5" max="30" value="15">
+
+        <label for="sessions-before-long-break">Sessions Before Long Break:</label>
+        <input type="number" id="sessions-before-long-break" min="1" max="10" value="4">
+
+        <button class="settings-save" onclick="saveSettings()">Save Settings</button>
+      </div>
+    </div>
+  </div>
+  <div class="settings-modal" id="app-settings-modal">
+    <div class="settings-content">
+      <div class="settings-header">
+        <h2>App Settings</h2>
+        <button class="settings-close" onclick="closeAppSettings()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="settings-body">
+        <label for="theme-select">Theme:</label>
+        <select id="theme-select">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+          <option value="system">System Default</option>
+        </select>
+
+        <label for="notifications-toggle">
+          <input type="checkbox" id="notifications-toggle" checked>
+          Enable Notifications
+        </label>
+
+        <button class="settings-save" onclick="saveAppSettings()">Save Settings</button>
+      </div>
+    </div>
+  </div>
+  <main class="main-content" id="main-content">
+    <section class="section active" id="timer-section">
+      <h1>Timer</h1>
+      <div class="timer-display" id="timer-display">25:00</div>
       <div class="timer-controls">
-        <button class="control-btn" id="start" onclick="toggleTimer()">Start</button>
-        <button class="control-btn" onclick="resetTimer()">Reset</button>
+        <button id="start-timer-btn">Start</button>
+        <button id="pause-timer-btn">Pause</button>
+        <button id="reset-timer-btn">Reset</button>
       </div>
-    </div>
+    </section>
 
-    <div class="cards-grid">
-      <div class="card" id="clock-card">
-        <div class="card-title">Clock</div>
-        <div class="card-content">
-          <div class="clock-time" id="time">00:00:00</div>
-          <div class="clock-date" id="date">2024/1/1</div>
-          <div class="world-clock-item"><span>Tokyo</span><span id="tokyo">00:00:00</span></div>
-          <div class="world-clock-item"><span>New York</span><span id="ny">00:00:00</span></div>
-          <div class="world-clock-item"><span>London</span><span id="london">00:00:00</span></div>
-        </div>
+    <section class="section" id="clock-section">
+      <h1>Clock</h1>
+      <div class="clock-display" id="clock-display">12:00 PM</div>
+    </section>
+
+    <section class="section" id="weather-section">
+      <h1>Weather</h1>
+      <div class="weather-display" id="weather-display">Loading...</div>
+    </section>
+
+    <section class="section" id="stopwatch-section">
+      <h1>Stopwatch</h1>
+      <div class="stopwatch-display" id="stopwatch-display">00:00:00</div>
+      <div class="stopwatch-controls">
+        <button id="start-stopwatch-btn">Start</button>
+        <button id="pause-stopwatch-btn">Pause</button>
+        <button id="reset-stopwatch-btn">Reset</button>
       </div>
+    </section>
 
-      <div class="card memo-card">
-        <div class="card-title">Memo</div>
-        <div class="card-content">
-          <div class="text-toolbar">
-            <button class="toolbar-btn" onclick="fmt('bold')" title="Bold (Ctrl+B)">B</button>
-            <button class="toolbar-btn" onclick="fmt('underline')" title="Underline (Ctrl+U)">U</button>
-            <button class="toolbar-btn" onclick="fmt('larger')" title="Larger (Ctrl+Shift+>)">A+</button>
-            <button class="toolbar-btn" onclick="fmt('smaller')" title="Smaller (Ctrl+Shift+<)">A-</button>
-          </div>
-          <div class="memo-textarea" id="memo" contenteditable="true" data-placeholder="Enter your notes here..." onfocus="focused=this" oninput="saveMemo()"></div>
-        </div>
+    <section class="section" id="custom-timer-section">
+      <h1>Custom Timer</h1>
+      <div class="custom-timer-inputs">
+        <input type="number" id="custom-minutes" placeholder="Minutes" min="0">
+        <input type="number" id="custom-seconds" placeholder="Seconds" min="0" max="59">
       </div>
-
-      <div class="card">
-        <div class="card-title">Weather</div>
-        <div class="card-content">
-          <div id="weather" style="text-align: center;">
-            <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-              <img id="w-icon" src="" alt="" style="width: 40px; height: 40px; display: none;">
-              <span id="w-desc" style="font-size: 20px;">Loading...</span>
-            </div>
-            <div class="display-medium" id="w-temp" style="margin-bottom: 8px;">--°</div>
-            <div style="display: flex; justify-content: center; gap: 16px; font-size: 14px; color: rgba(255,255,255,0.9); margin-bottom: 8px;">
-              <span>▲ <span id="w-max">--</span>°</span>
-              <span>▼ <span id="w-min">--</span>°</span>
-            </div>
-            <div style="font-size: 12px; opacity: 0.8;" id="w-loc">--</div>
-          </div>
-        </div>
+      <div class="custom-timer-display" id="custom-timer-display">00:00</div>
+      <div class="custom-timer-controls">
+        <button id="start-custom-timer-btn">Start</button>
+        <button id="pause-custom-timer-btn">Pause</button>
+        <button id="reset-custom-timer-btn">Reset</button>
       </div>
+    </section>
 
-      <div class="card">
-        <div class="card-title">Stopwatch</div>
-        <div class="card-content">
-          <div class="display-medium" id="sw">00:00:00</div>
-          <div class="controls-small">
-            <button class="btn-small" id="sw-btn" onclick="toggleSW()">Start</button>
-            <button class="btn-small" onclick="lapSW()">Lap</button>
-            <button class="btn-small" onclick="resetSW()">Reset</button>
-          </div>
-          <div class="lap-list" id="laps"></div>
-        </div>
+    <section class="section" id="calculator-section">
+      <h1>Calculator</h1>
+      <div class="calculator-display" id="calculator-display">0</div>
+      <div class="calculator-buttons">
+        <button class="calc-btn" data-value="7">7</button>
+        <button class="calc-btn" data-value="8">8</button>
+        <button class="calc-btn" data-value="9">9</button>
+        <button class="calc-btn" data-value="/">/</button>
+        <button class="calc-btn" data-value="4">4</button>
+        <button class="calc-btn" data-value="5">5</button>
+        <button class="calc-btn" data-value="6">6</button>
+        <button class="calc-btn" data-value="*">*</button>
+        <button class="calc-btn" data-value="1">1</button>
+        <button class="calc-btn" data-value="2">2</button>
+        <button class="calc-btn" data-value="3">3</button>
+        <button class="calc-btn" data-value="-">-</button>
+        <button class="calc-btn" data-value="0">0</button>
+        <button class="calc-btn" data-value=".">.</button>
+        <button class="calc-btn" data-value="=">=</button>
+        <button class="calc-btn" data-value="+">+</button>  
       </div>
-
-      <div class="card todo-card">
-        <div class="card-title">Notion</div>
-        <div class="card-content">
-          <div class="notion-controls">
-            <button class="notion-nav-btn" id="n-prev" style="display: none;" onclick="notionNav(-1)"><span>&lt;</span></button>
-            <button class="notion-nav-btn" id="n-next" onclick="notionNav(1)"><span>&gt;</span></button>
-          </div>
-          <iframe allowtransparency="true" id="notion" src="https://todolist-home.notion.site/ebd//2c9ee93cc3e4800aba3ef91a7b2b0a31?v=2c9ee93cc3e480868d75000c8bfe4b7d" width="100%" height="100%" frameborder="0" allowfullscreen style="border: none; border-radius: 8px; display: block; flex: 1; opacity: 0.75;"></iframe>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Custom Timer</div>
-        <div class="card-content">
-          <div class="display-medium" id="ct">00:00:00</div>
-          <div class="input-group">
-            <input type="number" class="input-small" id="ct-h" value="0" min="0" max="23">
-            <span>:</span>
-            <input type="number" class="input-small" id="ct-m" value="0" min="0" max="59">
-            <span>:</span>
-            <input type="number" class="input-small" id="ct-s" value="0" min="0" max="59">
-          </div>
-          <div class="controls-small">
-            <button class="btn-small" id="ct-btn" onclick="toggleCT()">Start</button>
-            <button class="btn-small" onclick="resetCT()">Reset</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card gemini-card">
-        <div class="card-title">Gemini Chat</div>
-        <div class="card-content" style="flex-direction: row; gap: 8px;">
-          <div class="gemini-input-area">
-            <div class="gemini-input-wrapper">
-              <div class="text-toolbar">
-                <button class="toolbar-btn" onclick="fmt('bold')" title="Bold (Ctrl+B)">B</button>
-                <button class="toolbar-btn" onclick="fmt('underline')" title="Underline (Ctrl+U)">U</button>
-                <button class="toolbar-btn" onclick="fmt('larger')" title="Larger (Ctrl+Shift+>)">A+</button>
-                <button class="toolbar-btn" onclick="fmt('smaller')" title="Smaller (Ctrl+Shift+<)">A-</button>
-              </div>
-              <div class="gemini-input" id="gemini" contenteditable="true" data-placeholder="Ask Gemini..." onfocus="focused=this" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendGemini();}"></div>
-            </div>
-            <button class="gemini-send-btn" onclick="sendGemini()">Send</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <audio id="snd-timer" preload="auto"><source src="./timer-sound.mp3" type="audio/mp3"></audio>
-  <audio id="snd-click" preload="auto"><source src="./click.mp3" type="audio/mp3"></audio>
-  <audio id="snd-lap" preload="auto"><source src="./lap.mp3" type="audio/mp3"></audio>
-  <audio id="snd-pomo" preload="auto"><source src="./pomodoro.mp3" type="audio/mp3"></audio>
-
+    </section>
+  </main>
   <script>
-    const $ = (id) => document.getElementById(id);
-    const play = (id) => { const a = $(id); if(a) { a.currentTime = 0; a.play().catch(()=>{}); }};
-    const pad = (n) => String(n).padStart(2, '0');
-    const fmtTime = (s) => `${pad(Math.floor(s/60))}:${pad(s%60)}`;
-    const fmtTime3 = (s) => `${pad(Math.floor(s/3600))}:${pad(Math.floor((s%3600)/60))}:${pad(s%60)}`;
-
-    let focused = null;
-    let ringOn = false;
-    let nPage = 0;
-
-    // 背景スライドショー
-    const bgImgs = Array.from({length: 16}, (_, i) => `background-image/bgimg-${i+1}.jpg`);
-    const bg = document.querySelectorAll('.bg-img');
-    let bgIdx = 0, bgVis = 0;
-    setInterval(() => {
-      const next = (bgVis + 1) % 2;
-      bgIdx = (bgIdx + 1) % bgImgs.length;
-      bg[next].src = bgImgs[bgIdx];
-      bg[bgVis].classList.remove('active');
-      bg[next].classList.add('active');
-      bgVis = next;
-    }, 10000);
-
-    // フォーマット
-    function fmt(a) {
-      if(!focused) return;
-      focused.focus();
-      if(a === 'bold') document.execCommand('bold');
-      else if(a === 'underline') document.execCommand('underline');
-      else if(a === 'larger' || a === 'smaller') {
-        const sel = window.getSelection();
-        if(sel.rangeCount > 0 && !sel.isCollapsed) {
-          const delta = a === 'larger' ? 2 : -2;
-          const range = sel.getRangeAt(0);
-          const span = document.createElement('span');
-          try {
-            range.surroundContents(span);
-            span.style.fontSize = (parseFloat(getComputedStyle(span).fontSize) + delta) + 'px';
-          } catch(e) {
-            const frag = range.extractContents();
-            span.appendChild(frag);
-            span.style.fontSize = (parseFloat(getComputedStyle(focused).fontSize) + delta) + 'px';
-            range.insertNode(span);
-          }
-        }
-      }
-    }
-
-    document.addEventListener('keydown', e => {
-      if(!focused) return;
-      if(e.ctrlKey && !e.shiftKey && e.key === 'b') { e.preventDefault(); fmt('bold'); }
-      else if(e.ctrlKey && !e.shiftKey && e.key === 'u') { e.preventDefault(); fmt('underline'); }
-      else if(e.ctrlKey && e.shiftKey && e.key === '>') { e.preventDefault(); fmt('larger'); }
-      else if(e.ctrlKey && e.shiftKey && e.key === '<') { e.preventDefault(); fmt('smaller'); }
-    });
-
-    // Notion
-    const nUrls = ['https://todolist-home.notion.site/ebd//2c9ee93cc3e4800aba3ef91a7b2b0a31?v=2c9ee93cc3e480868d75000c8bfe4b7d', 'https://todolist-home.notion.site/ebd//2c9ee93cc3e480d0a9feecd8ab2bc460'];
-    function notionNav(d) {
-      play('snd-click');
-      nPage = d > 0 ? 1 : 0;
-      $('notion').src = nUrls[nPage];
-      $('n-prev').style.display = nPage ? 'flex' : 'none';
-      $('n-next').style.display = nPage ? 'none' : 'flex';
-    }
-    setInterval(() => { $('notion').src = $('notion').src; }, 300000);
-
-    // アクションリング
-    document.addEventListener('contextmenu', e => { e.preventDefault(); showRing(e.clientX, e.clientY); });
-    document.addEventListener('click', e => { if(ringOn && !e.target.closest('.ring-item, .ring-center')) hideRing(); });
-    document.addEventListener('keydown', e => { if(e.key === 'Escape' && ringOn) hideRing(); });
-
-    function showRing(x, y) {
-      const r = $('ring');
-      const m = 150, vw = innerWidth, vh = innerHeight;
-      x = Math.max(m, Math.min(x, vw - m));
-      y = Math.max(m, Math.min(y, vh - m));
-      r.style.left = x + 'px';
-      r.style.top = y + 'px';
-      r.classList.add('show');
-      ringOn = true;
-      r.querySelectorAll('.ring-item').forEach(i => i.remove());
-
-      const acts = [
-        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>', label: 'New Memo', action: () => { play('snd-click'); $('memo').focus(); hideRing(); }, angle: 0},
-        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>', label: 'Notion Page', action: () => { play('snd-click'); notionNav(nPage ? -1 : 1); hideRing(); }, angle: 40},
-        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>', label: 'Start Timer', action: () => { play('snd-click'); toggleTimer(); hideRing(); }, angle: 80},
-        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>', label: 'Reset Timer', action: () => { play('snd-click'); resetTimer(); hideRing(); }, angle: 120},
-        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6M1 12h6m6 0h6"/></svg>', label: 'Settings', action: () => { play('snd-click'); $('settings').classList.add('show'); hideRing(); }, angle: 160},
-        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>', label: 'Search', action: () => { play('snd-click'); $('search').focus(); hideRing(); }, angle: 200},
-        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>', label: 'Reset All', action: () => { play('snd-click'); if(confirm('すべてのデータをリセットしますか？')) { localStorage.clear(); location.reload(); } hideRing(); }, angle: 240},
-        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>', label: 'Stopwatch', action: () => { play('snd-click'); toggleSW(); hideRing(); }, angle: 280},
-        {icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>', label: 'Custom Timer', action: () => { play('snd-click'); toggleCT(); hideRing(); }, angle: 320}
-      ];
-
-      const rad = 100;
-      acts.forEach(a => {
-        const item = document.createElement('div');
-        item.className = 'ring-item';
-        const radian = (a.angle - 90) * (Math.PI / 180);
-        item.style.left = (Math.cos(radian) * rad - 28) + 'px';
-        item.style.top = (Math.sin(radian) * rad - 28) + 'px';
-        item.innerHTML = a.icon + `<div class="ring-label">${a.label}</div>`;
-        item.onclick = a.action;
-        r.appendChild(item);
-      });
-    }
-
-    function hideRing() { $('ring').classList.remove('show'); ringOn = false; }
-
-    // 検索
-    function doSearch() {
-      const q = $('search').value.trim();
-      if(q) { window.open('https://www.google.com/search?q=' + encodeURIComponent(q), '_blank'); $('search').value = ''; }
-    }
-
-    // アラート
-    function showAlert(title, msg) {
-      $('alert-title').textContent = title;
-      $('alert-message').textContent = msg;
-      $('alert').classList.add('show');
-    }
-    function hideAlert() { $('alert').classList.remove('show'); }
-
-    // 設定
-    let sets = JSON.parse(localStorage.getItem('sets') || '{"work":25,"break":5,"repeat":0}');
-    $('set-work').value = sets.work;
-    $('set-break').value = sets.break;
-    $('set-repeat').value = sets.repeat;
-
-    function saveSettings() {
-      play('snd-click');
-      sets.work = parseInt($('set-work').value) || 25;
-      sets.break = parseInt($('set-break').value) || 5;
-      sets.repeat = parseInt($('set-repeat').value) || 0;
-      localStorage.setItem('sets', JSON.stringify(sets));
-      pomoT = sets.work;
-      shortT = sets.break;
-      if(timerType === 'pomodoro') timeLeft = pomoT * 60;
-      else if(timerType === 'short') timeLeft = shortT * 60;
-      updateTimer();
-      hideSettings();
-    }
-    function hideSettings() { play('snd-click'); $('settings').classList.remove('show'); }
-
-    // Pomodoro Timer
-    let pomoT = sets.work, shortT = sets.break, longT = 15;
-    let timerType = 'pomodoro', timeLeft = pomoT * 60, timerInt = null, timerRun = false;
-    let cycles = 0, isWork = true;
-
-    function updateTimer() {
-      const str = fmtTime(timeLeft);
-      $('timer').textContent = str;
-      $('float-timer-time').textContent = str;
-    }
-
-    function switchTimer(type) {
-      if(timerRun) { clearInterval(timerInt); timerRun = false; $('start').textContent = 'Start'; }
-      timerType = type;
-      document.body.className = type === 'short' ? 'short-break' : type === 'long' ? 'long-break' : '';
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-btn')[type === 'pomodoro' ? 0 : type === 'short' ? 1 : 2].classList.add('active');
-      timeLeft = type === 'pomodoro' ? (isWork = true, pomoT * 60) : type === 'short' ? (isWork = false, shortT * 60) : (isWork = false, longT * 60);
-      updateTimer();
-    }
-
-    function toggleTimer() {
-      play('snd-click');
-      if(timerRun) {
-        clearInterval(timerInt);
-        timerRun = false;
-        $('start').textContent = 'Start';
-      } else {
-        timerRun = true;
-        $('start').textContent = 'Stop';
-        timerInt = setInterval(() => {
-          if(--timeLeft <= 0) {
-            clearInterval(timerInt);
-            timerRun = false;
-            $('start').textContent = 'Start';
-            if(isWork) {
-              cycles++;
-              play('snd-pomo');
-              showAlert('作業完了！', '休憩時間です');
-              if(sets.repeat === 0 || cycles < sets.repeat) setTimeout(() => { switchTimer('short'); toggleTimer(); }, 3000);
-            } else {
-              play('snd-timer');
-              showAlert('休憩終了！', '次の作業を始めましょう');
-              if(sets.repeat === 0 || cycles < sets.repeat) setTimeout(() => { switchTimer('pomodoro'); toggleTimer(); }, 3000);
-            }
-          }
-          updateTimer();
-        }, 1000);
-      }
-    }
-
-    function resetTimer() {
-      play('snd-click');
-      if(timerRun) { clearInterval(timerInt); timerRun = false; $('start').textContent = 'Start'; }
-      cycles = 0;
-      switchTimer(timerType);
-    }
-
-    function scrollToTimer() { $('timer-section').scrollIntoView({ behavior: 'smooth' }); }
-    function scrollToClock() { $('clock-card').scrollIntoView({ behavior: 'smooth' }); }
-
-    function checkVis() {
-      const tr = $('timer-section').getBoundingClientRect();
-      $('float-timer').classList.toggle('show', tr.top < 0 || tr.bottom > innerHeight);
-      const cr = $('clock-card').getBoundingClientRect();
-      $('float-clock').classList.toggle('show', cr.top < 0 || cr.bottom > innerHeight);
-    }
-    addEventListener('scroll', checkVis);
-    addEventListener('resize', checkVis);
-
-    // Custom Timer
-    let ctTime = 0, ctInt = null, ctRun = false;
-    function updateCT() { $('ct').textContent = fmtTime3(ctTime); }
-    function toggleCT() {
-      play('snd-click');
-      if(ctRun) {
-        clearInterval(ctInt);
-        ctRun = false;
-        $('ct-btn').textContent = 'Start';
-      } else {
-        if(ctTime === 0) {
-          ctTime = (parseInt($('ct-h').value) || 0) * 3600 + (parseInt($('ct-m').value) || 0) * 60 + (parseInt($('ct-s').value) || 0);
-          if(ctTime === 0) return alert('Please set the time');
-        }
-        ctRun = true;
-        $('ct-btn').textContent = 'Stop';
-        ctInt = setInterval(() => {
-          if(--ctTime <= 0) {
-            clearInterval(ctInt);
-            ctRun = false;
-            $('ct-btn').textContent = 'Start';
-            play('snd-timer');
-            showAlert('Time Up！', 'カスタムタイマーが終了しました');
-          }
-          updateCT();
-        }, 1000);
-      }
-    }
-    function resetCT() {
-      play('snd-click');
-      clearInterval(ctInt);
-      ctRun = false;
-      ctTime = 0;
-      $('ct-btn').textContent = 'Start';
-      $('ct-h').value = $('ct-m').value = $('ct-s').value = 0;
-      updateCT();
-    }
-
-    // Stopwatch
-    let swTime = 0, swInt = null, swRun = false, lapCnt = 0;
-    function updateSW() { $('sw').textContent = fmtTime3(swTime); }
-    function toggleSW() {
-      play('snd-click');
-      if(swRun) {
-        clearInterval(swInt);
-        swRun = false;
-        $('sw-btn').textContent = 'Start';
-      } else {
-        swRun = true;
-        $('sw-btn').textContent = 'Stop';
-        swInt = setInterval(() => { swTime++; updateSW(); }, 1000);
-      }
-    }
-    function lapSW() {
-      if(swRun) {
-        play('snd-lap');
-        const lap = document.createElement('div');
-        lap.className = 'lap-item';
-        lap.innerHTML = `<span>Lap ${++lapCnt}</span><span>${fmtTime3(swTime)}</span>`;
-        $('laps').insertBefore(lap, $('laps').firstChild);
-      }
-    }
-    function resetSW() {
-      play('snd-click');
-      clearInterval(swInt);
-      swRun = false;
-      swTime = lapCnt = 0;
-      $('sw-btn').textContent = 'Start';
-      $('laps').innerHTML = '';
-      updateSW();
-    }
-
-    // Memo
-    const memo = $('memo');
-    if(localStorage.memo) memo.innerHTML = localStorage.memo;
-    function saveMemo() { localStorage.memo = memo.innerHTML; }
-
-    // Clock
-    function updateClocks() {
-      const now = new Date();
-      const t = fmtTime3(now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds());
-      $('time').textContent = t;
-      $('float-clock-time').textContent = t;
-      const wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][now.getDay()];
-      $('date').textContent = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} (${wd})`;
-      const getTZ = (tz) => { const d = new Date(now.toLocaleString('en-US', {timeZone: tz})); return fmtTime3(d.getHours()*3600+d.getMinutes()*60+d.getSeconds()); };
-      $('tokyo').textContent = getTZ('Asia/Tokyo');
-      $('ny').textContent = getTZ('America/New_York');
-      $('london').textContent = getTZ('Europe/London');
-    }
-    updateClocks();
-    setInterval(updateClocks, 1000);
-
-    // Weather
-    function loadWeather() {
-      fetch(`https://api.openweathermap.org/data/2.5/weather?lat=35.85272206403399&lon=136.28673448772105&appid=8eb6dc5492a964ea79dd0ef92f1ae01c&units=metric&lang=ja`)
-        .then(r => r.json())
-        .then(d => {
-          $('w-icon').src = `./weather-svg/${d.weather[0].icon}.svg`;
-          $('w-icon').style.display = 'block';
-          $('w-desc').textContent = d.weather[0].description;
-          $('w-temp').textContent = Math.round(d.main.temp) + '°';
-          $('w-max').textContent = Math.round(d.main.temp_max);
-          $('w-min').textContent = Math.round(d.main.temp_min);
-          $('w-loc').textContent = d.name || '指定地点';
-        })
-        .catch(e => { $('w-desc').textContent = 'エラー: ' + e.message; });
-    }
-    loadWeather();
-    setInterval(loadWeather, 1800000);
-
-    // Gemini
-    function sendGemini() {
-      const msg = $('gemini').textContent.trim();
-      if(!msg) return;
-      $('gemini').textContent = '';
-      console.log('Message sent to Gemini:', msg);
-    }
-
-    updateTimer();
-    updateCT();
-    updateSW();
-    checkVis();
   </script>
 </body>
 </html>
