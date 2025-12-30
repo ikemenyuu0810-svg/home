@@ -8,257 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="./icon-ver.black.svg">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; }
-
-    :root {
-      --sidebar: 240px;
-      --sidebar-collapsed: 60px;
-      --header: 56px;
-      --bg-overlay: rgba(0,0,0,0.4);
-      --card-bg: rgba(255,255,255,0.12);
-      --card-hover: rgba(255,255,255,0.18);
-      --sidebar-bg: rgba(57, 57, 55,0.95);
-      --text: #ffffff;
-      --text-dim: rgba(255,255,255,0.7);
-      --border: rgba(255,255,255,0.1);
-    }
-
-    body { font-family: 'Inter', sans-serif; color: var(--text); display: flex; }
-    body.short-break { --bg-overlay: rgba(43,172,118,0.35); }
-    body.long-break { --bg-overlay: rgba(18,100,163,0.35); }
-
-    #bg-container { position: fixed; inset: 0; z-index: -1; }
-    .bg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 2.5s; pointer-events: none; }
-    .bg-img.active { opacity: 1; }
-    #bg-overlay { position: fixed; inset: 0; background: var(--bg-overlay); pointer-events: none; transition: background 0.6s; }
-
-    .sidebar { width: var(--sidebar); height: 100vh; background: var(--sidebar-bg); backdrop-filter: blur(20px); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: width 0.3s; z-index: 100; }
-    .sidebar.collapsed { width: var(--sidebar-collapsed); }
-    .sidebar-header { height: var(--header); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
-    .sidebar-logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 800; white-space: nowrap; overflow: hidden; }
-    .sidebar-logo-icon { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .sidebar-logo-icon svg { width: 100%; height: 100%; }
-    .sidebar-toggle { width: 28px; height: 28px; background: rgba(255,255,255,0.1); border: none; border-radius: 5px; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-    .sidebar-toggle:hover { background: rgba(255,255,255,0.2); }
-    .sidebar-nav { flex: 1; overflow-y: auto; padding: 10px; }
-    .sidebar-nav::-webkit-scrollbar { width: 5px; }
-    .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
-    .nav-section { margin-bottom: 20px; }
-    .nav-section-title { font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; padding: 0 10px; margin-bottom: 6px; white-space: nowrap; overflow: hidden; z-index: 10;}
-    .sidebar.collapsed .nav-section-title { opacity: 0; height: 0; margin: 0; padding: 0; }
-    .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s; margin-bottom: 2px; position: relative; }
-    .nav-item:hover { background: rgba(255,255,255,0.1); }
-    .nav-item.active { background: #1264a3; font-weight: 600; }
-    .nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
-    .nav-icon svg { width: 100%; height: 100%; }
-    .nav-label { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .sidebar.collapsed .nav-label { opacity: 0; width: 0; }
-    .nav-badge { margin-left: auto; background: #2bac76; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; min-width: 16px; text-align: center; }
-    .sidebar.collapsed .nav-badge { position: absolute; right: 6px; top: 6px; }
-    .shortcut-hint { font-size: 10px; opacity: 0.5; margin-left: auto; }
-    .sidebar.collapsed .shortcut-hint { display: none; }
-
-    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    .header { height: var(--header); padding: 0 24px; display: flex; align-items: center; gap: 16px; backdrop-filter: blur(10px); background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); }
-    .search-wrap { flex: 1; max-width: 600px; position: relative; margin: 0 auto; }
-    .search-box { width: 100%; padding: 10px 40px 10px 36px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: rgba(255,255,255,0.15); color: var(--text); backdrop-filter: blur(10px); transition: all 0.3s; }
-    .search-box::placeholder { color: var(--text-dim); }
-    .search-box:focus { outline: none; background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.4); box-shadow: 0 0 0 3px rgba(255,255,255,0.1); }
-    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-dim); pointer-events: none; }
-    .search-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; cursor: pointer; padding: 6px; color: var(--text); border-radius: 4px; transition: all 0.2s; }
-    .search-btn:hover { background: rgba(255,255,255,0.3); }
-    .header-actions { display: flex; gap: 10px; align-items: center; margin-left: auto; }
-    .header-btn { width: 36px; height: 36px; background: rgba(255,255,255,0.15); border: none; border-radius: 6px; color: var(--text); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; position: relative; }
-    .header-btn:hover { background: rgba(255,255,255,0.25); }
-
-    .content { flex: 1; overflow-y: auto; padding: 24px; z-index: 0;}
-    .content::-webkit-scrollbar { width: 8px; }
-    .content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
-    .section { display: none; animation: fadeIn 0.3s; }
-    .section.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-    .section-title { font-size: 24px; font-weight: 700; margin-bottom: 20px; text-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 1;}
-
-    .timer-hero { background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); border-radius: 12px; padding: 40px; text-align: center; margin-bottom: 24px; border: 1px solid var(--border); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
-    .timer-tabs { display: inline-flex; gap: 6px; margin-bottom: 32px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 10px; }
-    .tab-btn { padding: 10px 24px; background: transparent; border: none; color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 7px; transition: all 0.2s; opacity: 0.6; }
-    .tab-btn:hover { opacity: 0.8; background: rgba(255,255,255,0.05); }
-    .tab-btn.active { background: rgba(255,255,255,0.2); opacity: 1; }
-    .timer-display { font-size: 80px; font-weight: 800; font-variant-numeric: tabular-nums; margin-bottom: 28px; text-shadow: 0 4px 20px rgba(0,0,0,0.4); letter-spacing: 0.02em; }
-    .timer-controls { display: flex; gap: 12px; justify-content: center; }
-    .ctrl-btn { padding: 16px 40px; background: var(--text); border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 16px rgba(0,0,0,0.2); min-width: 110px; color: rgba(57, 57, 55,0.95 );}
-    .ctrl-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
-
-    .timer-progress { margin-top: 24px; }
-    .progress-bar-wrap { width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
-    .progress-bar { height: 100%; background: linear-gradient(90deg, #2bac76, #1264a3); transition: width 0.3s; }
-    .timer-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center; }
-    .stat-item { background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; }
-    .stat-value { font-size: 24px; font-weight: 800; display: block; margin-bottom: 4px; }
-    .stat-label { font-size: 11px; opacity: 0.7; text-transform: uppercase; }
-
-    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-    .card { background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: all 0.3s; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border); min-height: 750px; }
-    .card:hover { transform: translateY(-4px); box-shadow: 0 6px 25px rgba(0,0,0,0.2); background: var(--card-hover); }
-    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-    .card-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-    .card-icon { width: 20px; height: 20px; }
-    .card-action { background: rgba(255,255,255,0.15); border: none; border-radius: 5px; padding: 5px 10px; color: var(--text); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .card-action:hover { background: rgba(255,255,255,0.25); }
-    .card-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    .card.wide { grid-column: span 2; }
-    .card.tall { grid-row: span 2; }
-
-    .clock-time { font-size: 48px; font-weight: 800; font-variant-numeric: tabular-nums; margin-bottom: 8px; text-shadow: 0 2px 12px rgba(0,0,0,0.3); }
-    .clock-date { font-size: 16px; opacity: 0.85; margin-bottom: 20px; font-weight: 500; }
-    .world-clock-item { display: flex; justify-content: space-between; padding: 14px 16px; background: rgba(255,255,255,0.1); border-radius: 8px; margin-bottom: 8px; font-size: 15px; font-weight: 600; transition: all 0.2s; }
-    .world-clock-item:hover { background: rgba(255,255,255,0.15); transform: translateX(4px); }
-    .world-clock-city { display: flex; align-items: center; gap: 8px; }
-    .world-clock-time { font-size: 18px; }
-
-    .weather-wrap { text-align: center; margin-bottom: 20px; }
-    .weather-icon-wrap { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; }
-    .weather-icon { width: 56px; height: 56px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2)); }
-    .weather-desc { font-size: 20px; font-weight: 600; }
-    .weather-temp { font-size: 48px; font-weight: 800; margin: 12px 0; text-shadow: 0 4px 16px rgba(0,0,0,0.3); }
-    .weather-minmax { display: flex; justify-content: center; gap: 20px; font-size: 14px; color: var(--text-dim); margin-bottom: 10px; font-weight: 600; }
-    .weather-loc { font-size: 13px; opacity: 0.7; }
-    .weather-iframe { width: 100%; height: 400px; border: none; border-radius: 10px; background: rgba(255,255,255,0.05); }
-
-    .display-lg { font-size: 42px; font-weight: 800; font-variant-numeric: tabular-nums; margin-bottom: 16px; text-align: center; text-shadow: 0 2px 12px rgba(0,0,0,0.3); }
-    .input-group { display: flex; gap: 10px; justify-content: center; align-items: center; margin-bottom: 16px; font-size: 18px; font-weight: 600; }
-    .input-sm { width: 60px; padding: 10px; border: 1px solid var(--border); border-radius: 6px; text-align: center; font-weight: 700; background: rgba(255,255,255,0.15); color: var(--text); font-size: 16px; transition: all 0.2s; }
-    .input-sm:focus { outline: none; border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.25); box-shadow: 0 0 0 3px rgba(255,255,255,0.1); }
-    .controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-    .btn { padding: 10px 20px; background: rgba(255,255,255,0.2); border: none; border-radius: 6px; color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
-    .lap-list { flex: 1; overflow-y: auto; margin-top: 12px; }
-    .lap-list::-webkit-scrollbar { width: 5px; }
-    .lap-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
-    .lap-item { display: flex; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.1); border-radius: 6px; margin-bottom: 6px; font-size: 13px; font-weight: 600; transition: all 0.2s; }
-    .lap-item:hover { background: rgba(255,255,255,0.15); }
-
-    .memo { width: 100%; flex: 1; border: 1px solid var(--border); border-radius: 10px; padding: 14px; font-size: 14px; font-family: inherit; background: rgba(255,255,255,0.15); color: var(--text); line-height: 1.7; overflow-y: auto; transition: all 0.2s; }
-    .memo:focus { outline: none; border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.2); box-shadow: 0 0 0 3px rgba(255,255,255,0.1); }
-    .memo:empty:before { content: attr(data-placeholder); color: var(--text-dim); }
-    .toolbar { display: flex; gap: 5px; margin-bottom: 10px; padding: 6px; background: rgba(255,255,255,0.1); border-radius: 6px; flex-wrap: wrap; }
-    .toolbar-btn { min-width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: none; border-radius: 4px; color: var(--text); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0 8px; }
-    .toolbar-btn:hover { background: rgba(255,255,255,0.2); }
-    .file-upload { display: none; }
-    .memo-files { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-    .memo-file { background: rgba(255,255,255,0.15); padding: 8px 12px; border-radius: 6px; font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s; }
-    .memo-file:hover { background: rgba(255,255,255,0.25); }
-    .memo-file-remove { background: rgba(255,0,0,0.3); border: none; color: var(--text); border-radius: 3px; padding: 2px 6px; cursor: pointer; font-size: 10px; }
-    .memo-image { max-width: 200px; max-height: 200px; border-radius: 8px; margin: 8px 0; cursor: pointer; }
-
-    .notion-iframe { width: 100%; flex: 1; border: none; border-radius: 10px; opacity: 0.85; transition: opacity 0.3s; }
-    .notion-iframe:hover { opacity: 1; }
-    .notion-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; }
-    .notion-tab { padding: 8px 16px; background: rgba(255,255,255,0.15); border: none; border-radius: 6px; color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
-    .notion-tab:hover { background: rgba(255,255,255,0.25); }
-    .notion-tab.active { background: #1264a3; }
-    .notion-add { padding: 8px 12px; background: #2bac76; }
-
-    .gemini-wrap { display: flex; align-items: flex-end; gap: 10px; }
-    .gemini-input-wrap { flex: 1; display: flex; flex-direction: column; }
-    .gemini-input { width: 100%; min-height: 44px; max-height: 100px; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 14px; font-family: inherit; background: rgba(255,255,255,0.15); color: var(--text); line-height: 1.6; overflow-y: auto; transition: all 0.2s; }
-    .gemini-input:focus { outline: none; border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.2); box-shadow: 0 0 0 3px rgba(255,255,255,0.1); }
-    .gemini-input:empty:before { content: attr(data-placeholder); color: var(--text-dim); }
-    .gemini-send { padding: 10px 24px; background: #2bac76; border: none; border-radius: 8px; color: var(--text); font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; height: 44px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-    .gemini-send:hover { background: #25a06a; transform: translateY(-2px); }
-
-    .quick-links-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    .quick-link { background: rgba(255,255,255,0.15); border: none; border-radius: 10px; padding: 16px; color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; text-decoration: none; position: relative; }
-    .quick-link:hover { background: rgba(255,255,255,0.25); transform: translateY(-2px); }
-    .quick-link-icon { width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-    .quick-link-icon svg { width: 20px; height: 20px; }
-    .quick-link-icon img { width: 100%; height: 100%; object-fit: contain; }
-    .quick-link-name { text-align: center; word-break: break-word; }
-    .quick-link-edit { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; background: rgba(0,0,0,0.5); border: none; border-radius: 4px; color: var(--text); cursor: pointer; opacity: 0; transition: opacity 0.2s; }
-    .quick-link:hover .quick-link-edit { opacity: 1; }
-
-    .calculator { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-    .calc-display { grid-column: span 4; background: rgba(255,255,255,0.15); border: 1px solid var(--border); border-radius: 10px; padding: 20px; font-size: 32px; font-weight: 700; text-align: right; margin-bottom: 10px; min-height: 60px; word-break: break-all; }
-    .calc-btn { padding: 20px; background: rgba(255,255,255,0.2); border: none; border-radius: 8px; color: var(--text); font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .calc-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.05); }
-    .calc-btn.operator { background: #2bac76; }
-    .calc-btn.clear { background: #e01e5a; }
-    .calc-btn.equals { background: #1264a3; grid-column: span 2; }
-
-    .youtube-player { display: flex; flex-direction: column; gap: 12px; }
-    .youtube-controls { display: flex; gap: 8px; align-items: center; background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; }
-    .youtube-btn { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border: none; border-radius: 6px; color: var(--text); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
-    .youtube-btn:hover { background: rgba(255,255,255,0.3); }
-    .youtube-volume { flex: 1; }
-    .youtube-iframe { width: 100%; aspect-ratio: 16/9; border: none; border-radius: 10px; }
-
-    .stats-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(4px); }
-    .stats-modal.show { display: flex; animation: fadeIn 0.3s; }
-    .stats-content { background: rgba(255,255,255,0.98); backdrop-filter: blur(20px); border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 24px 48px rgba(0,0,0,0.5); animation: slideUp 0.4s; color: #333; }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-    .stats-title { font-size: 24px; font-weight: 800; margin-bottom: 24px; color: #393937; }
-    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-    .stats-card { background: #f5f5f5; padding: 16px; border-radius: 10px; }
-    .stats-card-value { font-size: 32px; font-weight: 800; color: #1264a3; margin-bottom: 4px; }
-    .stats-card-label { font-size: 12px; color: #666; text-transform: uppercase; }
-    .stats-close { margin-top: 24px; padding: 14px; background: #393937; color: white; border: none; border-radius: 10px; width: 100%; font-size: 15px; font-weight: 700; cursor: pointer; }
-
-    .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(4px); }
-    .modal.show { display: flex; animation: fadeIn 0.3s; }
-    .modal-content { background: rgba(255,255,255,0.98); backdrop-filter: blur(20px); border-radius: 16px; padding: 32px; max-width: 420px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 24px 48px rgba(0,0,0,0.5); animation: slideUp 0.4s; color: #333; }
-    .modal-title { font-size: 24px; font-weight: 800; margin-bottom: 24px; color: #393937; }
-    .setting-item { margin-bottom: 20px; }
-    .setting-label { display: block; font-size: 13px; font-weight: 700; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .setting-input { width: 100%; padding: 12px 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; font-weight: 600; color: #333; background: white; transition: all 0.2s; }
-    .setting-input:focus { outline: none; border-color: #1264a3; box-shadow: 0 0 0 3px rgba(18,100,163,0.1); }
-    .modal-btns { display: flex; gap: 10px; margin-top: 28px; }
-    .modal-btn { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-    .modal-btn.primary { background: #393937; color: white; }
-    .modal-btn.primary:hover { background: #636362; transform: translateY(-2px); }
-    .modal-btn.secondary { background: #636362; color: #ffffff; }
-    .modal-btn.secondary:hover { background: #d8d8d8; }
-
-    .alert { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 10001; }
-    .alert.show { display: flex; animation: fadeIn 0.3s; }
-    .alert-wrap { text-align: center; animation: slideUp 0.4s; }
-    .alert-title { font-size: 56px; font-weight: 800; margin-bottom: 16px; text-shadow: 0 4px 16px rgba(0,0,0,0.5); }
-    .alert-msg { font-size: 24px; margin-bottom: 32px; opacity: 0.9; }
-    .alert-close { padding: 14px 40px; background: white; color: #333; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
-    .alert-close:hover { transform: scale(1.05); }
-
-    .float { position: fixed; top: 70px; background: rgba(255,255,255,0.98); backdrop-filter: blur(20px); border-radius: 10px; padding: 12px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); cursor: pointer; z-index: 1000; opacity: 0; transform: translateY(-20px); pointer-events: none; transition: all 0.4s; }
-    .float.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
-    .float:hover { transform: translateY(-2px) scale(1.05); }
-    .float-timer { right: 24px; }
-    .float-clock { right: 180px; transition: right 0.3s, opacity 0.4s, transform 0.4s; }
-    .float-time { font-size: 20px; font-weight: 800; color: #4a154b; font-variant-numeric: tabular-nums; }
-
-    .quick-actions { position: fixed; bottom: 24px; right: 24px; display: flex; gap: 10px; z-index: 999; }
-    .quick-btn { width: 56px; height: 56px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border: none; border-radius: 50%; box-shadow: 0 6px 20px rgba(0,0,0,0.3); cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; color: #4a154b; }
-    .quick-btn:hover { transform: scale(1.1) translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
-
-    @media (max-width: 1024px) {
-      .sidebar { position: fixed; z-index: 1000; transform: translateX(-100%); }
-      .sidebar.open { transform: translateX(0); }
-      .float-clock { right: 180px !important; }
-      .cards { grid-template-columns: 1fr; }
-      .card.wide, .card.tall { grid-column: auto; grid-row: auto; }
-      .quick-actions { bottom: 16px; right: 16px; }
-    }
-    @media (max-width: 768px) {
-      .timer-display { font-size: 64px; }
-      .alert-title { font-size: 42px; }
-      .alert-msg { font-size: 18px; }
-      .quick-links-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    .mobile-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
-    .mobile-overlay.show { display: block; }
-
-    .youtube-fixed-controls { position: fixed; bottom: 90px; right: 24px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 12px; padding: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); display: none; z-index: 998; }
-    .youtube-fixed-controls.show { display: flex; align-items: center; gap: 8px; }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div id="bg-container">
@@ -301,9 +51,8 @@
     <div class="modal-content">
       <div class="modal-title">App Settings</div>
       <div class="setting-item">
-        <label class="setting-label">Quick Links</label>
-        <div id="quick-links-edit"></div>
-        <button class="modal-btn primary" style="margin-top:10px;" onclick="addQuickLink()">Add Link</button>
+        <label class="setting-label">Text Color</label>
+        <input type="color" class="setting-input" id="text-color" value="#ffffff">
       </div>
       <div class="modal-btns">
         <button class="modal-btn secondary" onclick="hideAppSettings()">Close</button>
@@ -357,6 +106,27 @@
 
   <div class="mobile-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
 
+  <div class="site-links">
+    <a class="site-link" href="https://github.com" target="_blank">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+    </a>
+    <a class="site-link" href="https://chat.openai.com" target="_blank">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>
+    </a>
+    <a class="site-link" href="https://claude.ai" target="_blank">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M12 0L24 6v12L12 24 0 18V6L12 0zm0 2.5L2 7.5v9l10 5.5 10-5.5v-9L12 2.5z"/></svg>
+    </a>
+    <a class="site-link" href="https://vscode.dev" target="_blank">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.942-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/></svg>
+    </a>
+    <a class="site-link" href="https://notion.so" target="_blank">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.933zm14.336.653c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z"/></svg>
+    </a>
+    <a class="site-link" href="https://drive.google.com" target="_blank">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M7.71 3.5L1.15 15l3.43 5.5h13.71L22 15l-6.56-11.5H7.71zM8.73 5.5h6.54L19.21 15h-3.09l-3.43-5.5-4.63 8H4.03L8.73 5.5zm-.42 11.5h6.54l-3.26 5.5h-6.54l3.26-5.5z"/></svg>
+    </a>
+  </div>
+
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
@@ -404,6 +174,16 @@
           <span class="nav-label">Weather</span>
           <span class="shortcut-hint">3</span>
         </a>
+        <a class="nav-item" onclick="openNewTab()">
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <line x1="12" y1="8" x2="12" y2="16"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+          </div>
+          <span class="nav-label">New Tab</span>
+        </a>
       </div>
 
       <div class="nav-section">
@@ -433,9 +213,6 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="4" y="2" width="16" height="20" rx="2"/>
               <line x1="8" y1="6" x2="16" y2="6"/>
-              <line x1="16" y1="10" x2="16" y2="10"/>
-              <line x1="8" y1="10" x2="8" y2="10"/>
-              <line x1="12" y1="10" x2="12" y2="10"/>
             </svg>
           </div>
           <span class="nav-label">Calculator</span>
@@ -470,45 +247,26 @@
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
           </div>
-          <span class="nav-label">Gemini Chat</span>
-          <span class="shortcut-hint">7</span>
-        </a>
-        <a class="nav-item" onclick="switchSection('quick-links')">
-          <div class="nav-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-            </svg>
-          </div>
-          <span class="nav-label">Quick Links</span>
-          <span class="shortcut-hint">9</span>
-        </a>
-        <a class="nav-item" onclick="switchSection('youtube')">
-          <div class="nav-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="5 3 19 12 5 21 5 3"/>
-            </svg>
-          </div>
-          <span class="nav-label">YouTube</span>
+          <span class="nav-label">Gemini</span>
         </a>
       </div>
-
       <div class="nav-section">
         <div class="nav-section-title">Settings</div>
         <a class="nav-item" onclick="showSettings()">
           <div class="nav-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="3"/>
-              <path d="M12 1v6m0 6v6M1 12h6m6 0h6"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 12.91H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1A1.65 1.65 0 0 0 4.27 6.09l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 .33 1.82A1.65 1.65 0 0 
+              "></path>
             </svg>
           </div>
-          <span class="nav-label">Timer Settings</span>
+          <span class="nav-label">Pomodoro Settings</span>
         </a>
         <a class="nav-item" onclick="showAppSettings()">
           <div class="nav-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="3"/>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 12.91H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1A1.65 1.65 0 0 0 4.27 6.09l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 .33 1.82A1.65 1.65 0 0 0 12.91 4h0a2 2 0 0 1 4 0h0a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82A1.65 1.65 0 0 0 20 11.09v0a2 2 0 0 1 0 4h0a1.65 1.65 0 0 0-1.51 1z"></path>
             </svg>
           </div>
           <span class="nav-label">App Settings</span>
@@ -516,1215 +274,128 @@
       </div>
     </nav>
   </aside>
-
-  <div class="main">
-    <header class="header">
-      <button class="header-btn" onclick="toggleSidebar()" style="display:none;" id="mobile-menu">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="12" x2="21" y2="12"/>
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <line x1="3" y1="18" x2="21" y2="18"/>
-        </svg>
-      </button>
-
-      <div class="search-wrap">
-        <div class="search-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.35-4.35"/>
-          </svg>
-        </div>
-        <input type="text" class="search-box" id="search" placeholder="Search Google..." onkeypress="if(event.key==='Enter')doSearch()">
-        <button class="search-btn" onclick="doSearch()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.35-4.35"/>
+  <div class="settings-modal" id="settings-modal">
+    <div class="settings-content">
+      <div class="settings-header">
+        <h2>Pomodoro Settings</h2>
+        <button class="settings-close" onclick="closeSettings()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
           </svg>
         </button>
       </div>
+      <div class="settings-body">
+        <label for="work-duration">Work Duration (minutes):</label>
+        <input type="number" id="work-duration" min="1" max="120" value="25">
 
-      <div class="header-actions">
-        <button class="header-btn" onclick="showStats()" title="Statistics">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="20" x2="18" y2="10"/>
-            <line x1="12" y1="20" x2="12" y2="4"/>
-            <line x1="6" y1="20" x2="6" y2="14"/>
-          </svg>
-        </button>
-        <button class="header-btn" onclick="showSettings()" title="Settings">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M12 1v6m0 6v6M1 12h6m6 0h6"/>
-          </svg>
-        </button>
-        <button class="header-btn" onclick="showAppSettings()" title="App Settings">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        <label for="break-duration">Break Duration (minutes):</label>
+        <input type="number" id="break-duration" min="1" max="60" value="5">
+
+        <label for="long-break-duration">Long Break Duration (minutes):</label>
+        <input type="number" id="long-break-duration" min="5" max="30" value="15">
+
+        <label for="sessions-before-long-break">Sessions Before Long Break:</label>
+        <input type="number" id="sessions-before-long-break" min="1" max="10" value="4">
+
+        <button class="settings-save" onclick="saveSettings()">Save Settings</button>
+      </div>
+    </div>
+  </div>
+  <div class="settings-modal" id="app-settings-modal">
+    <div class="settings-content">
+      <div class="settings-header">
+        <h2>App Settings</h2>
+        <button class="settings-close" onclick="closeAppSettings()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
           </svg>
         </button>
       </div>
-    </header>
+      <div class="settings-body">
+        <label for="theme-select">Theme:</label>
+        <select id="theme-select">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+          <option value="system">System Default</option>
+        </select>
 
-    <main class="content">
-      <section class="section active" id="section-timer">
-        <h1 class="section-title">Pomodoro Timer</h1>
-        <div class="timer-hero">
-          <div class="timer-tabs">
-            <button class="tab-btn active" onclick="switchTimer('pomodoro')">Pomodoro</button>
-            <button class="tab-btn" onclick="switchTimer('short')">Short Break</button>
-            <button class="tab-btn" onclick="switchTimer('long')">Long Break</button>
-          </div>
-          <div class="timer-display" id="timer">25:00</div>
-          <div class="timer-controls">
-            <button class="ctrl-btn" id="start" onclick="toggleTimer()">Start</button>
-            <button class="ctrl-btn" onclick="resetTimer()">Reset</button>
-          </div>
-          <div class="timer-progress">
-            <div class="progress-bar-wrap">
-              <div class="progress-bar" id="progress-bar" style="width:100%;"></div>
-            </div>
-            <div class="timer-stats">
-              <div class="stat-item">
-                <span class="stat-value" id="current-session">0</span>
-                <span class="stat-label">Current Cycle</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-value" id="total-today">0</span>
-                <span class="stat-label">Today</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-value" id="next-break">5:00</span>
-                <span class="stat-label">Next Break</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+        <label for="notifications-toggle">
+          <input type="checkbox" id="notifications-toggle" checked>
+          Enable Notifications
+        </label>
 
-      <section class="section" id="section-clock">
-        <h1 class="section-title">World Clock</h1>
-        <div class="cards">
-          <div class="card wide">
-            <div class="card-header">
-              <div class="card-title">
-                <div class="card-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                  </svg>
-                </div>
-                Local Time
-              </div>
-            </div>
-            <div class="card-content">
-              <div class="clock-time" id="time">00:00:00</div>
-              <div class="clock-date" id="date">2024/1/1</div>
-              <div class="world-clock-item">
-                <span class="world-clock-city">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                    <rect width="24" height="8" fill="#B22234"/>
-                    <rect y="8" width="24" height="8" fill="white"/>
-                    <rect y="16" width="24" height="8" fill="#3C3B6E"/>
-                  </svg>
-                  New York
-                </span>
-                <span class="world-clock-time" id="ny">00:00:00</span>
-              </div>
-              <div class="world-clock-item">
-                <span class="world-clock-city">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                    <rect width="24" height="8" fill="#012169"/>
-                    <rect y="8" width="24" height="8" fill="white"/>
-                    <rect y="16" width="24" height="8" fill="#C8102E"/>
-                  </svg>
-                  London
-                </span>
-                <span class="world-clock-time" id="london">00:00:00</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="section-weather">
-        <h1 class="section-title">Weather</h1>
-        <div class="cards">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">
-                <div class="card-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
-                  </svg>
-                </div>
-                Current Weather
-              </div>
-            </div>
-            <div class="card-content">
-              <div class="weather-wrap">
-                <div class="weather-icon-wrap">
-                  <img id="w-icon" class="weather-icon" src="" alt="" style="display:none;">
-                  <span class="weather-desc" id="w-desc">Loading...</span>
-                </div>
-                <div class="weather-temp" id="w-temp">--°</div>
-                <div class="weather-minmax">
-                  <span>▲ <span id="w-max">--</span>°</span>
-                  <span>▼ <span id="w-min">--</span>°</span>
-                </div>
-                <div class="weather-loc" id="w-loc">--</div>
-              </div>
-              <iframe class="weather-iframe" src="https://weathernews.jp/onebox/35.850943/136.278247/q=%E7%A6%8F%E4%BA%95%E7%9C%8C%E4%BB%8A%E7%AB%8B%E9%83%A1%E6%B1%A0%E7%94%B0%E7%94%BA%E9%AD%9A%E8%A6%8B&v=e584b100c1228484728e08d1f92053b590586760440b3ec15bba5c0a4a49d956&temp=Temp.c&lang=ja"></iframe>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="section-stopwatch">
-        <h1 class="section-title">Stopwatch</h1>
-        <div class="cards">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">
-                <div class="card-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="13" r="8"/>
-                    <path d="M12 9v4l2 2"/>
-                  </svg>
-                </div>
-                Stopwatch
-              </div>
-              <button class="card-action" onclick="resetSW()">Clear</button>
-            </div>
-            <div class="card-content">
-              <div class="display-lg" id="sw">00:00:00</div>
-              <div class="controls">
-                <button class="btn" id="sw-btn" onclick="toggleSW()">Start</button>
-                <button class="btn" onclick="lapSW()">Lap</button>
-                <button class="btn" onclick="resetSW()">Reset</button>
-              </div>
-              <div class="lap-list" id="laps"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="section-custom-timer">
-        <h1 class="section-title">Custom Timer</h1>
-        <div class="cards">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">
-                <div class="card-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                  </svg>
-                </div>
-                Custom Timer
-              </div>
-            </div>
-            <div class="card-content">
-              <div class="display-lg" id="ct">00:00:00</div>
-              <div class="input-group">
-                <input type="number" class="input-sm" id="ct-h" value="0" min="0" max="23" placeholder="HH">
-                <span>:</span>
-                <input type="number" class="input-sm" id="ct-m" value="0" min="0" max="59" placeholder="MM">
-                <span>:</span>
-                <input type="number" class="input-sm" id="ct-s" value="0" min="0" max="59" placeholder="SS">
-              </div>
-              <div class="controls">
-                <button class="btn" id="ct-btn" onclick="toggleCT()">Start</button>
-                <button class="btn" onclick="resetCT()">Reset</button>
-              </div>
-              <div class="timer-progress" style="margin-top:20px;">
-                <div class="progress-bar-wrap">
-                  <div class="progress-bar" id="ct-progress" style="width:100%;"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="section-calculator">
-        <h1 class="section-title">Calculator</h1>
-        <div class="cards">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">
-                <div class="card-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="4" y="2" width="16" height="20" rx="2"/>
-                    <line x1="8" y1="6" x2="16" y2="6"/>
-                  </svg>
-                </div>
-                Calculator
-              </div>
-              <button class="card-action" onclick="clearCalc()">Clear</button>
-            </div>
-            <div class="card-content">
-              <div class="calc-display" id="calc-display">0</div>
-              <div class="calculator">
-                <button class="calc-btn clear" onclick="clearCalc()">C</button>
-                <button class="calc-btn operator" onclick="calcInput('/')">/</button>
-                <button class="calc-btn operator" onclick="calcInput('*')">×</button>
-                <button class="calc-btn operator" onclick="calcInput('-')">-</button>
-                <button class="calc-btn" onclick="calcInput('7')">7</button>
-                <button class="calc-btn" onclick="calcInput('8')">8</button>
-                <button class="calc-btn" onclick="calcInput('9')">9</button>
-                <button class="calc-btn operator" onclick="calcInput('+')">+</button>
-                <button class="calc-btn" onclick="calcInput('4')">4</button>
-                <button class="calc-btn" onclick="calcInput('5')">5</button>
-                <button class="calc-btn" onclick="calcInput('6')">6</button>
-                <button class="calc-btn operator" onclick="calcInput('%')">%</button>
-                <button class="calc-btn" onclick="calcInput('1')">1</button>
-                <button class="calc-btn" onclick="calcInput('2')">2</button>
-                <button class="calc-btn" onclick="calcInput('3')">3</button>
-                <button class="calc-btn equals" onclick="calcEquals()">=</button>
-                <button class="calc-btn" onclick="calcInput('0')" style="grid-column:span 2;">0</button>
-                <button class="calc-btn" onclick="calcInput('.')">.</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="section-memo">
-        <h1 class="section-title">Memo</h1>
-        <div class="cards">
-          <div class="card wide tall">
-            <div class="card-header">
-              <div class="card-title">
-                <div class="card-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                  </svg>
-                </div>
-                Notes
-              </div>
-              <button class="card-action" onclick="clearMemo()">Clear</button>
-            </div>
-            <div class="card-content">
-              <div class="toolbar">
-                <button class="toolbar-btn" onclick="fmt('bold')" title="Bold (Ctrl+B)">B</button>
-                <button class="toolbar-btn" onclick="fmt('underline')" title="Underline (Ctrl+U)">U</button>
-                <button class="toolbar-btn" onclick="fmt('larger')" title="Larger">A+</button>
-                <button class="toolbar-btn" onclick="fmt('smaller')" title="Smaller">A-</button>
-                <label class="toolbar-btn" style="cursor:pointer;" title="Upload File">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="17 8 12 3 7 8"/>
-                    <line x1="12" y1="3" x2="12" y2="15"/>
-                  </svg>
-                  <input type="file" class="file-upload" id="memo-file" onchange="handleMemoFile(event)" multiple>
-                </label>
-                <button class="toolbar-btn" onclick="insertLink()" title="Insert Link">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                  </svg>
-                </button>
-              </div>
-              <div class="memo-files" id="memo-files"></div>
-              <div class="memo" id="memo" contenteditable="true" data-placeholder="Start typing..." onfocus="focused=this" oninput="saveMemo()"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="section-notion">
-        <h1 class="section-title">Notion Workspace</h1>
-        <div class="cards">
-          <div class="card wide tall">
-            <div class="card-header">
-              <div class="card-title">
-                <div class="card-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="9 11 12 14 22 4"/>
-                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                  </svg>
-                </div>
-                Tasks
-              </div>
-              <button class="card-action" onclick="addNotionPage()">+ Add Page</button>
-            </div>
-            <div class="card-content">
-              <div class="notion-tabs" id="notion-tabs"></div>
-              <iframe class="notion-iframe" id="notion" src="https://todolist-home.notion.site/ebd//2c9ee93cc3e4800aba3ef91a7b2b0a31?v=2c9ee93cc3e480868d75000c8bfe4b7d" allowtransparency="true" allowfullscreen></iframe>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="section-gemini">
-        <h1 class="section-title">Gemini Chat</h1>
-        <div class="cards">
-          <div class="card wide">
-            <div class="card-header">
-              <div class="card-title">
-                <div class="card-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                  </svg>
-                </div>
-                AI Assistant
-              </div>
-            </div>
-            <div class="card-content">
-              <div class="gemini-wrap">
-                <div class="gemini-input-wrap">
-                  <div class="toolbar">
-                    <button class="toolbar-btn" onclick="fmt('bold')" title="Bold">B</button>
-                    <button class="toolbar-btn" onclick="fmt('underline')" title="Underline">U</button>
-                    <button class="toolbar-btn" onclick="fmt('larger')" title="Larger">A+</button>
-                    <button class="toolbar-btn" onclick="fmt('smaller')" title="Smaller">A-</button>
-                  </div>
-                  <div class="gemini-input" id="gemini" contenteditable="true" data-placeholder="Ask Gemini..." onfocus="focused=this" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendGemini();}"></div>
-                </div>
-                <button class="gemini-send" onclick="sendGemini()">Send</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="section-quick-links">
-        <h1 class="section-title">Quick Links</h1>
-        <div class="cards">
-          <div class="card wide">
-            <div class="card-header">
-              <div class="card-title">
-                <div class="card-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                  </svg>
-                </div>
-                Favorite Sites
-              </div>
-              <button class="card-action" onclick="showAppSettings()">Edit</button>
-            </div>
-            <div class="card-content">
-              <div class="quick-links-grid" id="quick-links-display"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="section-youtube">
-        <h1 class="section-title">YouTube Player</h1>
-        <div class="cards">
-          <div class="card wide tall">
-            <div class="card-header">
-              <div class="card-title">
-                <div class="card-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polygon points="5 3 19 12 5 21 5 3"/>
-                  </svg>
-                </div>
-                Music Player
-              </div>
-            </div>
-            <div class="card-content">
-              <div class="youtube-player">
-                <div class="setting-item">
-                  <label class="setting-label" style="color:var(--text);">Playlist URL</label>
-                  <input type="text" class="setting-input" id="yt-playlist" placeholder="https://www.youtube.com/playlist?list=..." style="background:rgba(255,255,255,0.15);color:var(--text);border-color:var(--border);">
-                  <button class="btn" style="margin-top:10px;" onclick="loadYoutubePlaylist()">Load Playlist</button>
-                </div>
-                <div id="yt-player"></div>
-                <div class="youtube-controls">
-                  <button class="youtube-btn" onclick="toggleYoutubePlay()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <polygon points="5 3 19 12 5 21 5 3"/>
-                    </svg>
-                  </button>
-                  <button class="youtube-btn" onclick="prevYoutube()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <polygon points="19 20 9 12 19 4 19 20"/>
-                      <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"/>
-                    </svg>
-                  </button>
-                  <button class="youtube-btn" onclick="nextYoutube()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <polygon points="5 4 15 12 5 20 5 4"/>
-                      <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"/>
-                    </svg>
-                  </button>
-                  <input type="range" class="youtube-volume" id="youtube-volume" min="0" max="100" value="70" oninput="setYoutubeVolume(this.value)">
-                  <span style="font-size:12px;font-weight:600;min-width:40px;text-align:center;" id="yt-vol-display">70%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
+        <button class="settings-save" onclick="saveAppSettings()">Save Settings</button>
+      </div>
+    </div>
   </div>
+  <main class="main-content" id="main-content">
+    <section class="section active" id="timer-section">
+      <h1>Timer</h1>
+      <div class="timer-display" id="timer-display">25:00</div>
+      <div class="timer-controls">
+        <button id="start-timer-btn">Start</button>
+        <button id="pause-timer-btn">Pause</button>
+        <button id="reset-timer-btn">Reset</button>
+      </div>
+    </section>
 
-  <div class="quick-actions">
-    <button class="quick-btn" onclick="resetTimer()" title="Reset Timer">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="23 4 23 10 17 10"/>
-        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-      </svg>
-    </button>
-    <button class="quick-btn" onclick="toggleTimer()" title="Start/Stop Timer">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polygon points="5 3 19 12 5 21 5 3"/>
-      </svg>
-    </button>
-  </div>
+    <section class="section" id="clock-section">
+      <h1>Clock</h1>
+      <div class="clock-display" id="clock-display">12:00 PM</div>
+    </section>
 
-  <audio id="snd-timer" preload="auto"><source src="./timer-sound.mp3" type="audio/mp3"></audio>
-  <audio id="snd-click" preload="auto"><source src="./click.mp3" type="audio/mp3"></audio>
-  <audio id="snd-lap" preload="auto"><source src="./lap.mp3" type="audio/mp3"></audio>
-  <audio id="snd-pomo" preload="auto"><source src="./pomodoro.mp3" type="audio/mp3"></audio>
+    <section class="section" id="weather-section">
+      <h1>Weather</h1>
+      <div class="weather-display" id="weather-display">Loading...</div>
+    </section>
 
-  <script src="https://www.youtube.com/iframe_api"></script>
-  <script>
-    const $ = id => document.getElementById(id);
-    const play = id => { const a = $(id); if(a) { a.currentTime = 0; a.play().catch(()=>{}); }};
-    const pad = n => String(n).padStart(2, '0');
-    const fmtTime = s => `${pad(Math.floor(s/60))}:${pad(s%60)}`;
-    const fmtTime3 = s => `${pad(Math.floor(s/3600))}:${pad(Math.floor((s%3600)/60))}:${pad(s%60)}`;
+    <section class="section" id="stopwatch-section">
+      <h1>Stopwatch</h1>
+      <div class="stopwatch-display" id="stopwatch-display">00:00:00</div>
+      <div class="stopwatch-controls">
+        <button id="start-stopwatch-btn">Start</button>
+        <button id="pause-stopwatch-btn">Pause</button>
+        <button id="reset-stopwatch-btn">Reset</button>
+      </div>
+    </section>
 
-    let focused = null, currentSection = 'timer';
+    <section class="section" id="custom-timer-section">
+      <h1>Custom Timer</h1>
+      <div class="custom-timer-inputs">
+        <input type="number" id="custom-minutes" placeholder="Minutes" min="0">
+        <input type="number" id="custom-seconds" placeholder="Seconds" min="0" max="59">
+      </div>
+      <div class="custom-timer-display" id="custom-timer-display">00:00</div>
+      <div class="custom-timer-controls">
+        <button id="start-custom-timer-btn">Start</button>
+        <button id="pause-custom-timer-btn">Pause</button>
+        <button id="reset-custom-timer-btn">Reset</button>
+      </div>
+    </section>
 
-    // 背景
-    const bgImgs = Array.from({length: 16}, (_, i) => `background-image/bgimg-${i+1}.jpg`);
-    const bg = document.querySelectorAll('.bg-img');
-    let bgIdx = 0, bgVis = 0;
-    setInterval(() => {
-      const next = (bgVis + 1) % 2;
-      bgIdx = (bgIdx + 1) % bgImgs.length;
-      bg[next].src = bgImgs[bgIdx];
-      bg[bgVis].classList.remove('active');
-      bg[next].classList.add('active');
-      bgVis = next;
-    }, 10000);
-
-    // サイドバー
-    function toggleSidebar() {
-      $('sidebar').classList.toggle(window.innerWidth <= 1024 ? 'open' : 'collapsed');
-      $('mobile-overlay').classList.toggle('show');
-      play('snd-click');
-    }
-
-    // セクション切り替え
-    function switchSection(section) {
-      play('snd-click');
-      currentSection = section;
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      $(`section-${section}`).classList.add('active');
-      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-      event.target.closest('.nav-item')?.classList.add('active');
-      if (window.innerWidth <= 1024) {
-        $('sidebar').classList.remove('open');
-        $('mobile-overlay').classList.remove('show');
-      }
-      checkVis();
-      updateYoutubeControls();
-    }
-
-    // キーボードショートカット
-    document.addEventListener('keydown', e => {
-      if (e.target.tagName !== 'INPUT' && e.target.contentEditable !== 'true') {
-        const key = e.key;
-        const sections = ['timer', 'clock', 'weather', 'stopwatch', 'custom-timer', 'memo', 'gemini', 'calculator', 'quick-links'];
-        const idx = parseInt(key) - 1;
-        if (idx >= 0 && idx < sections.length) {
-          switchSection(sections[idx]);
-        } else if (key === ' ' && currentSection === 'timer') {
-          e.preventDefault();
-          toggleTimer();
-        }
-      }
-      
-      if (focused) {
-        if (e.ctrlKey && !e.shiftKey && e.key === 'b') { e.preventDefault(); fmt('bold'); }
-        else if (e.ctrlKey && !e.shiftKey && e.key === 'u') { e.preventDefault(); fmt('underline'); }
-        else if (e.ctrlKey && e.shiftKey && e.key === '>') { e.preventDefault(); fmt('larger'); }
-        else if (e.ctrlKey && e.shiftKey && e.key === '<') { e.preventDefault(); fmt('smaller'); }
-      }
-    });
-
-    // フォーマット
-    function fmt(a) {
-      if (!focused) return;
-      focused.focus();
-      if (a === 'bold') document.execCommand('bold');
-      else if (a === 'underline') document.execCommand('underline');
-      else if (a === 'larger' || a === 'smaller') {
-        const sel = window.getSelection();
-        if (sel.rangeCount > 0 && !sel.isCollapsed) {
-          const delta = a === 'larger' ? 2 : -2;
-          const range = sel.getRangeAt(0);
-          const span = document.createElement('span');
-          try {
-            range.surroundContents(span);
-            span.style.fontSize = (parseFloat(getComputedStyle(span).fontSize) + delta) + 'px';
-          } catch(e) {
-            const frag = range.extractContents();
-            span.appendChild(frag);
-            span.style.fontSize = (parseFloat(getComputedStyle(focused).fontSize) + delta) + 'px';
-            range.insertNode(span);
-          }
-        }
-      }
-    }
-
-    // 検索
-    function doSearch() {
-      const q = $('search').value.trim();
-      if (q) {
-        window.open('https://www.google.com/search?q=' + encodeURIComponent(q), '_blank');
-        $('search').value = '';
-      }
-    }
-
-    // アラート
-    function showAlert(title, msg) {
-      $('alert-title').textContent = title;
-      $('alert-msg').textContent = msg;
-      $('alert').classList.add('show');
-    }
-    function hideAlert() { $('alert').classList.remove('show'); }
-
-    // 統計
-    let stats = JSON.parse(localStorage.getItem('work-stats') || '{"sessions":0,"minutes":0,"today":0,"lastDate":"","streak":0}');
-    
-    function updateStats() {
-      const today = new Date().toDateString();
-      if (stats.lastDate !== today) {
-        if (stats.today > 0) {
-          const lastD = new Date(stats.lastDate);
-          const todayD = new Date(today);
-          const diff = Math.floor((todayD - lastD) / (1000 * 60 * 60 * 24));
-          if (diff === 1) stats.streak++;
-          else if (diff > 1) stats.streak = 1;
-        }
-        stats.today = 0;
-        stats.lastDate = today;
-      }
-      localStorage.setItem('work-stats', JSON.stringify(stats));
-    }
-
-    function showStats() {
-      play('snd-click');
-      updateStats();
-      $('stat-sessions').textContent = stats.sessions;
-      $('stat-minutes').textContent = stats.minutes;
-      $('stat-today').textContent = stats.today;
-      $('stat-streak').textContent = stats.streak;
-      $('stats-modal').classList.add('show');
-    }
-
-    function hideStats() {
-      play('snd-click');
-      $('stats-modal').classList.remove('show');
-    }
-
-    // 設定
-    let sets = JSON.parse(localStorage.getItem('sets') || '{"work":25,"break":5,"repeat":0}');
-    $('set-work').value = sets.work;
-    $('set-break').value = sets.break;
-    $('set-repeat').value = sets.repeat;
-
-    function showSettings() {
-      play('snd-click');
-      $('settings').classList.add('show');
-    }
-    function saveSettings() {
-      play('snd-click');
-      sets.work = parseInt($('set-work').value) || 25;
-      sets.break = parseInt($('set-break').value) || 5;
-      sets.repeat = parseInt($('set-repeat').value) || 0;
-      localStorage.setItem('sets', JSON.stringify(sets));
-      pomoT = sets.work;
-      shortT = sets.break;
-      if (timerType === 'pomodoro') timeLeft = pomoT * 60;
-      else if (timerType === 'short') timeLeft = shortT * 60;
-      updateTimer();
-      hideSettings();
-    }
-    function hideSettings() {
-      play('snd-click');
-      $('settings').classList.remove('show');
-    }
-
-    // Pomodoro
-    let pomoT = sets.work, shortT = sets.break, longT = 15;
-    let timerType = 'pomodoro', timeLeft = pomoT * 60, timerInt = null, timerRun = false;
-    let cycles = 0, isWork = true, initialTime = pomoT * 60;
-
-    function updateTimer() {
-      const str = fmtTime(timeLeft);
-      $('timer').textContent = str;
-      $('float-timer-time').textContent = str;
-      const progress = (timeLeft / initialTime) * 100;
-      $('progress-bar').style.width = progress + '%';
-      $('current-session').textContent = cycles;
-      $('total-today').textContent = stats.today;
-      $('next-break').textContent = isWork ? fmtTime(shortT * 60) : fmtTime(pomoT * 60);
-    }
-
-    function switchTimer(type) {
-      if (timerRun) {
-        clearInterval(timerInt);
-        timerRun = false;
-        $('start').textContent = 'Start';
-      }
-      timerType = type;
-      document.body.className = type === 'short' ? 'short-break' : type === 'long' ? 'long-break' : '';
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document. viewBox="0 0 24 24"; fill="currentColor";
-      document.querySelectorAll('.tab-btn')[type === 'pomodoro' ? 0 : type === 'short' ? 1 : 2].classList.add('active');
-      isWork = type === 'pomodoro';
-      timeLeft = initialTime = type === 'pomodoro' ? pomoT * 60 : type === 'short' ? shortT * 60 : longT * 60;
-      updateTimer();
-    }
-
-    function toggleTimer() {
-      play('snd-click');
-      if (timerRun) {
-        clearInterval(timerInt);
-        timerRun = false;
-        $('start').textContent = 'Start';
-      } else {
-        timerRun = true;
-        $('start').textContent = 'Pause';
-        timerInt = setInterval(() => {
-          if (--timeLeft <= 0) {
-            clearInterval(timerInt);
-            timerRun = false;
-            $('start').textContent = 'Start';
-            if (isWork) {
-              cycles++;
-              stats.sessions++;
-              stats.today++;
-              stats.minutes += pomoT;
-              updateStats();
-              play('snd-pomo');
-              showAlert('作業完了！', '休憩時間です');
-              if (sets.repeat === 0 || cycles < sets.repeat) {
-                setTimeout(() => { switchTimer('short'); toggleTimer(); }, 3000);
-              }
-            } else {
-              play('snd-timer');
-              showAlert('休憩終了！', '次の作業を始めましょう');
-              if (sets.repeat === 0 || cycles < sets.repeat) {
-                setTimeout(() => { switchTimer('pomodoro'); toggleTimer(); }, 3000);
-              }
-            }
-          }
-          updateTimer();
-        }, 1000);
-      }
-    }
-
-    function resetTimer() {
-      play('snd-click');
-      if (timerRun) {
-        clearInterval(timerInt);
-        timerRun = false;
-        $('start').textContent = 'Start';
-      }
-      cycles = 0;
-      switchTimer(timerType);
-    }
-
-    // フローティング表示制御
-    function checkVis() {
-      const scrollTop = document.querySelector('.content').scrollTop;
-      const shouldShow = scrollTop > 200;
-      $('float-timer').classList.toggle('show', shouldShow && currentSection !== 'timer');
-      $('float-clock').classList.toggle('show', shouldShow && currentSection !== 'clock');
-    }
-
-    document.querySelector('.content').addEventListener('scroll', checkVis);
-    window.addEventListener('resize', checkVis);
-
-    // Custom Timer
-    let ctTime = 0, ctInt = null, ctRun = false, ctInitial = 0;
-    function updateCT() {
-      $('ct').textContent = fmtTime3(ctTime);
-      if (ctInitial > 0) {
-        const progress = (ctTime / ctInitial) * 100;
-        $('ct-progress').style.width = progress + '%';
-      }
-    }
-    function toggleCT() {
-      play('snd-click');
-      if (ctRun) {
-        clearInterval(ctInt);
-        ctRun = false;
-        $('ct-btn').textContent = 'Start';
-      } else {
-        if (ctTime === 0) {
-          ctTime = ctInitial = (parseInt($('ct-h').value) || 0) * 3600 + (parseInt($('ct-m').value) || 0) * 60 + (parseInt($('ct-s').value) || 0);
-          if (ctTime === 0) return alert('Please set the time');
-        }
-        ctRun = true;
-        $('ct-btn').textContent = 'Pause';
-        ctInt = setInterval(() => {
-          if (--ctTime <= 0) {
-            clearInterval(ctInt);
-            ctRun = false;
-            ctTime = 0;
-            ctInitial = 0;
-            $('ct-btn').textContent = 'Start';
-            play('snd-timer');
-            showAlert('Time Up！', 'カスタムタイマーが終了しました');
-          }
-          updateCT();
-        }, 1000);
-      }
-    }
-    function resetCT() {
-      play('snd-click');
-      clearInterval(ctInt);
-      ctRun = false;
-      ctTime = 0;
-      ctInitial = 0;
-      $('ct-btn').textContent = 'Start';
-      $('ct-h').value = $('ct-m').value = $('ct-s').value = 0;
-      updateCT();
-    }
-
-    // Stopwatch
-    let swTime = 0, swInt = null, swRun = false, lapCnt = 0;
-    function updateSW() { $('sw').textContent = fmtTime3(swTime); }
-    function toggleSW() {
-      play('snd-click');
-      if (swRun) {
-        clearInterval(swInt);
-        swRun = false;
-        $('sw-btn').textContent = 'Start';
-      } else {
-        swRun = true;
-        $('sw-btn').textContent = 'Pause';
-        swInt = setInterval(() => { swTime++; updateSW(); }, 1000);
-      }
-    }
-    function lapSW() {
-      if (swRun) {
-        play('snd-lap');
-        const lap = document.createElement('div');
-        lap.className = 'lap-item';
-        lap.innerHTML = `<span>Lap ${++lapCnt}</span><span>${fmtTime3(swTime)}</span>`;
-        $('laps').insertBefore(lap, $('laps').firstChild);
-      }
-    }
-    function resetSW() {
-      play('snd-click');
-      clearInterval(swInt);
-      swRun = false;
-      swTime = lapCnt = 0;
-      $('sw-btn').textContent = 'Start';
-      $('laps').innerHTML = '';
-      updateSW();
-    }
-
-    // Calculator
-    let calcStr = '0', calcPrev = 0, calcOp = null, calcNew = true;
-    function calcInput(v) {
-      play('snd-click');
-      if (calcNew && !isNaN(v)) calcStr = v;
-      else if (['+','-','*','/','%'].includes(v)) {
-        calcPrev = parseFloat(calcStr);
-        calcOp = v;
-        calcNew = true;
-      } else calcStr = calcStr === '0' ? v : calcStr + v;
-      $('calc-display').textContent = calcStr;
-    }
-    function calcEquals() {
-      play('snd-click');
-      const curr = parseFloat(calcStr);
-      let result = curr;
-      if (calcOp === '+') result = calcPrev + curr;
-      else if (calcOp === '-') result = calcPrev - curr;
-      else if (calcOp === '*') result = calcPrev * curr;
-      else if (calcOp === '/') result = calcPrev / curr;
-      else if (calcOp === '%') result = calcPrev % curr;
-      calcStr = String(result);
-      $('calc-display').textContent = calcStr;
-      calcNew = true;
-      calcOp = null;
-    }
-    function clearCalc() {
-      play('snd-click');
-      calcStr = '0';
-      calcPrev = 0;
-      calcOp = null;
-      calcNew = true;
-      $('calc-display').textContent = '0';
-    }
-
-    // Memo
-    const memo = $('memo');
-    const memoFiles = {};
-    if (localStorage.memo) memo.innerHTML = localStorage.memo;
-    if (localStorage.memoFiles) Object.assign(memoFiles, JSON.parse(localStorage.memoFiles));
-    
-    function saveMemo() {
-      localStorage.memo = memo.innerHTML;
-    }
-    
-    function clearMemo() {
-      if (confirm('Clear all notes?')) {
-        memo.innerHTML = '';
-        localStorage.removeItem('memo');
-        Object.keys(memoFiles).forEach(k => delete memoFiles[k]);
-        localStorage.removeItem('memoFiles');
-        renderMemoFiles();
-      }
-    }
-
-    function handleMemoFile(e) {
-      const files = e.target.files;
-      Array.from(files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = ev => {
-          const id = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-          memoFiles[id] = {
-            name: file.name,
-            type: file.type,
-            data: ev.target.result
-          };
-          localStorage.memoFiles = JSON.stringify(memoFiles);
-          renderMemoFiles();
-          if (file.type.startsWith('image/')) {
-            const img = document.createElement('img');
-            img.src = ev.target.result;
-            img.className = 'memo-image';
-            img.onclick = () => window.open(ev.target.result, '_blank');
-            memo.appendChild(img);
-            saveMemo();
-          } else if (file.type === 'text/plain') {
-            const reader2 = new FileReader();
-            reader2.onload = e2 => {
-              const div = document.createElement('div');
-              div.style.cssText = 'background:rgba(255,255,255,0.1);padding:10px;border-radius:6px;margin:8px 0;';
-              div.textContent = e2.target.result;
-              memo.appendChild(div);
-              saveMemo();
-            };
-            reader2.readAsText(file);
-          }
-        };
-        reader.readAsDataURL(file);
-      });
-      e.target.value = '';
-    }
-
-    function renderMemoFiles() {
-      const container = $('memo-files');
-      container.innerHTML = '';
-      Object.entries(memoFiles).forEach(([id, file]) => {
-        const div = document.createElement('div');
-        div.className = 'memo-file';
-        div.innerHTML = `
-          <span>${file.name}</span>
-          <button class="memo-file-remove" onclick="removeMemoFile('${id}')">×</button>
-        `;
-        div.onclick = e => {
-          if (e.target.tagName !== 'BUTTON') {
-            if (file.type.startsWith('image/')) {
-              window.open(file.data, '_blank');
-            } else {
-              const a = document.createElement('a');
-              a.href = file.data;
-              a.download = file.name;
-              a.click();
-            }
-          }
-        };
-        container.appendChild(div);
-      });
-    }
-
-    function removeMemoFile(id) {
-      delete memoFiles[id];
-      localStorage.memoFiles = JSON.stringify(memoFiles);
-      renderMemoFiles();
-    }
-
-    function insertLink() {
-      const url = prompt('Enter URL:');
-      if (url) {
-        const name = prompt('Enter link name:') || url;
-        const a = document.createElement('a');
-        a.href = url;
-        a.target = '_blank';
-        a.textContent = name;
-        a.style.cssText = 'color:#2bac76;text-decoration:underline;';
-        memo.appendChild(a);
-        memo.appendChild(document.createTextNode(' '));
-        saveMemo();
-      }
-    }
-
-    renderMemoFiles();
-
-    // Clock
-    function updateClocks() {
-      const now = new Date();
-      const t = fmtTime3(now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds());
-      $('time').textContent = t;
-      $('float-clock-time').textContent = t;
-      const wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][now.getDay()];
-      $('date').textContent = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} (${wd})`;
-      const getTZ = tz => {
-        const d = new Date(now.toLocaleString('en-US', {timeZone: tz}));
-        return fmtTime3(d.getHours()*3600+d.getMinutes()*60+d.getSeconds());
-      };
-      $('tokyo').textContent = getTZ('Asia/Tokyo');
-      $('ny').textContent = getTZ('America/New_York');
-      $('london').textContent = getTZ('Europe/London');
-    }
-    updateClocks();
-    setInterval(updateClocks, 1000);
-
-    // Weather
-    function loadWeather() {
-      fetch(`https://api.openweathermap.org/data/2.5/weather?lat=35.85272206403399&lon=136.28673448772105&appid=8eb6dc5492a964ea79dd0ef92f1ae01c&units=metric&lang=ja`)
-        .then(r => r.json())
-        .then(d => {
-          $('w-icon').src = `./weather-svg/${d.weather[0].icon}.svg`;
-          $('w-icon').style.display = 'block';
-          $('w-desc').textContent = d.weather[0].description;
-          $('w-temp').textContent = Math.round(d.main.temp) + '°';
-          $('w-max').textContent = Math.round(d.main.temp_max);
-          $('w-min').textContent = Math.round(d.main.temp_min);
-          $('w-loc').textContent = d.name || '指定地点';
-        })
-        .catch(e => { $('w-desc').textContent = 'Error loading weather'; });
-    }
-    loadWeather();
-    setInterval(loadWeather, 1800000);
-
-    // Gemini
-    function sendGemini() {
-      const msg = $('gemini').textContent.trim();
-      if (!msg) return;
-      $('gemini').textContent = '';
-      console.log('Message sent to Gemini:', msg);
-    }
-
-    // Quick Links
-    let quickLinks = JSON.parse(localStorage.getItem('quick-links') || JSON.stringify([
-      {name:'GitHub',url:'https://github.com',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.840 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.430.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>'},
-      {name:'ChatGPT',url:'https://chat.openai.com',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>'},
-      {name:'Claude',url:'https://claude.ai',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M12 0L24 6v12L12 24 0 18V6L12 0zm0 2.5L2 7.5v9l10 5.5 10-5.5v-9L12 2.5z"/></svg>'},
-      {name:'VS Code',url:'https://vscode.dev',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.942-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/></svg>'},
-      {name:'Notion',url:'https://notion.so',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.933zm14.336.653c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z"/></svg>'},
-      {name:'Drive',url:'https://drive.google.com',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M7.71 3.5L1.15 15l3.43 5.5h13.71L22 15l-6.56-11.5H7.71zM8.73 5.5h6.54L19.21 15h-3.09l-3.43-5.5-4.63 8H4.03L8.73 5.5zm-.42 11.5h6.54l-3.26 5.5h-6.54l3.26-5.5z"/></svg>'}
-    ]));
-
-    function renderQuickLinks() {
-      const display = $('quick-links-display');
-      display.innerHTML = '';
-      quickLinks.forEach((link, idx) => {
-        const a = document.createElement('a');
-        a.className = 'quick-link';
-        a.href = link.url;
-        a.target = '_blank';
-        a.innerHTML = `
-          <div class="quick-link-icon">${link.icon}</div>
-          <div class="quick-link-name">${link.name}</div>
-          <button class="quick-link-edit" onclick="editQuickLink(${idx});event.preventDefault();event.stopPropagation();">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-            </svg>
-          </button>
-        `;
-        display.appendChild(a);
-      });
-    }
-
-    function showAppSettings() {
-  play('snd-click');
-  const edit = $('quick-links-edit');
-  edit.innerHTML = ''; // 初期化
-
-  quickLinks.forEach((link, idx) => {
-    const container = document.createElement('div');
-    container.style.cssText = 'margin-bottom:15px;padding:15px;background:#f5f5f5;border-radius:8px;';
-
-    // 名前入力欄
-    const nameInput = document.createElement('input');
-    nameInput.type = 'text';
-    nameInput.placeholder = 'Name';
-    nameInput.value = link.name; // 安全に代入
-    nameInput.style.cssText = 'width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:4px;';
-    // 入力時に即座にデータを更新する例
-    nameInput.addEventListener('input', (e) => { link.name = e.target.value; });
-
-    // URL入力欄
-    const urlInput = document.createElement('input');
-    urlInput.type = 'text';
-    urlInput.placeholder = 'URL';
-    urlInput.value = link.url;
-    urlInput.style.cssText = 'width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:4px;';
-    urlInput.addEventListener('input', (e) => { link.url = e.target.value; });
-
-    // アイコンアップロード
-    const label = document.createElement('label');
-    label.style.cssText = 'display:block;padding:8px;background:#e0e0e0;border-radius:4px;cursor:pointer;text-align:center;';
-    label.textContent = 'Upload Icon';
-    
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    fileInput.style.display = 'none';
-    fileInput.addEventListener('change', (e) => uploadQuickLinkIcon(idx, e));
-    label.appendChild(fileInput);
-
-    // 削除ボタン
-    const removeBtn = document.createElement('button');
-    removeBtn.textContent = 'Remove';
-    removeBtn.style.cssText = 'margin-top:8px;padding:8px 16px;background:#e01e5a;color:white;border:none;border-radius:4px;cursor:pointer;width:100%;';
-    removeBtn.addEventListener('click', () => removeQuickLink(idx));
-
-    // 要素を組み立てる
-    container.append(nameInput, urlInput, label, removeBtn);
-    edit.appendChild(container);
-  });
-
-  $('app-settings').classList.add('show');
-}
-
-    function hideAppSettings() {
-      play('snd-click');
-      quickLinks.forEach((link, idx) => {
-        const name = $(`qln-${idx}`);
-        const url = $(`qlu-${idx}`);
-        if (name && url) {
-          link.name = name.value;
-          link.url = url.value;
-        }
-      });
-      localStorage.setItem('quick-links', JSON.stringify(quickLinks));
-      renderQuickLinks();
-      $('app-settings').classList.remove('show');
-    }
-
-    function addQuickLink() {
-      quickLinks.push({name:'New Link',url:'https://example.com',icon:'<svg viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="10"/></svg>'});
-      showAppSettings();
-    }
-
-    function editQuickLink(idx) {
-      showAppSettings();
-    }
-
-    function removeQuickLink(idx) {
-      quickLinks.splice(idx, 1);
-      showAppSettings();
-    }
-
-    function uploadQuickLinkIcon(idx, e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = ev => {
-          quickLinks[idx].icon = `<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:contain;">`;
-          showAppSettings();
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    renderQuickLinks();
-
-    // Notion
-    let notionPages = JSON.parse(localStorage.getItem('notion-pages') || JSON.stringify([
-      {name:'Tasks',url:'https://todolist-home.notion.site/ebd//2c9ee93cc3e4800aba3ef91a7b2b0a31?v=2c9ee93cc3e480868d75000c8bfe4b7d'},
-      {name:'Notes',url:'https://todolist-home.notion.site/ebd//2c9ee93cc3e480d0a9feecd8ab2bc460'}
-    ]));
-    let notionIdx = 0;
-
-    function renderNotionTabs() {
-      const tabs = $('notion-tabs');
-      tabs.innerHTML = '';
-      notionPages.forEach((page, idx) => {
-        const btn = document.createElement('button');
-        btn.className = 'notion-tab' + (idx === notionIdx ? ' active' : '');
-        btn.textContent = page.name;
-        btn.onclick = () => switchNotionPage(idx);
-        tabs.appendChild(btn);
-      });
-      if (notionPages.length < 5) {
-        const add = document.createElement('button');
-        add.className = 'notion-tab notion-add';
-        add.textContent = '+ Add';
-        add.onclick = addNotionPage;
-        tabs.appendChild(add);
-      }
-    }
-
-    function switchNotionPage(idx) {
-      play('snd-click');
-      notionIdx = idx;
-      $('notion').src = notionPages[idx].url;
-      renderNotionTabs();
-    }
-
-    function addNotionPage() {
-      if (notionPages.length >= 5) return alert('Maximum 5 pages');
-      const url = prompt('Enter Notion page URL:');
-      if (url) {
-        const name = prompt('Enter page name:') || 'Page ' + (notionPages.length + 1);
-        notionPages.push({name, url});
-        localStorage.setItem('notion-pages', JSON.stringify(notionPages));
-        renderNotionTabs();
-      }
-    }
-    renderNotionTabs();
-    setInterval(() => { $('notion').src = $('notion').src; }, 300000);
-
-    // YouTube
-    let ytPlayer = null;
-    let ytPlaying = false;
-    let ytPlaylistId = '';
-    function editNotionPages() {
-      play('snd-click');
-      const edit = $('notion-edit');
-      edit.innerHTML = '';
-      notionPages.forEach((page, idx) => {
-        const div = document.createElement('div');
-        div.style.cssText = 'margin-bottom:15px;padding:15px;background:#f5f5f5;border-radius:8px;';
-        div.innerHTML = `
-          <input type="text" placeholder="Name" value="${page.name}" id="npn-${idx}" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:4px;">
-          <input type="text" placeholder="URL" value="${page.url}" id="npu-${idx}" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:4px;">
-          <button onclick="removeNotionPage(${idx})" style="margin-top:8px;padding:8px 16px;background:#e01e5a;color:white;border:none;border-radius:4px;cursor:pointer;width:100%;">Remove</button>
-        `;
-        edit.appendChild(div);
-      });
-      $('notion-settings').classList.add('show');
-    }
-    function hideNotionSettings() {
-      play('snd-click');
-      notionPages.forEach((page, idx) => {
-        const name = $(`npn-${idx}`);
-        const url = $(`npu-${idx}`);
-        if (name && url) {
-          page.name = name.value;
-          page.url = url.value;
-        }
-      });
-      localStorage.setItem('notion-pages', JSON.stringify(notionPages));
-      renderNotionTabs();
-      $('notion-settings').classList.remove('show');
-    }
-    function removeNotionPage(idx) {
-      notionPages.splice(idx, 1);
-      editNotionPages();
-    }
-    </script>
-    </body>
+    <section class="section" id="calculator-section">
+      <h1>Calculator</h1>
+      <div class="calculator-display" id="calculator-display">0</div>
+      <div class="calculator-buttons">
+        <button class="calc-btn" data-value="7">7</button>
+        <button class="calc-btn" data-value="8">8</button>
+        <button class="calc-btn" data-value="9">9</button>
+        <button class="calc-btn" data-value="/">/</button>
+        <button class="calc-btn" data-value="4">4</button>
+        <button class="calc-btn" data-value="5">5</button>
+        <button class="calc-btn" data-value="6">6</button>
+        <button class="calc-btn" data-value="*">*</button>
+        <button class="calc-btn" data-value="1">1</button>
+        <button class="calc-btn" data-value="2">2</button>
+        <button class="calc-btn" data-value="3">3</button>
+        <button class="calc-btn" data-value="-">-</button>
+        <button class="calc-btn" data-value="0">0</button>
+        <button class="calc-btn" data-value=".">.</button>
+        <button class="calc-btn" data-value="=">=</button>
+        <button class="calc-btn" data-value="+">+</button>  
+      </div>
+    </section>
+  </main>
+  <script src="main.js"></script>
+</body>
 </html>
