@@ -57,7 +57,7 @@ function switchSection(section) {
 document.addEventListener('keydown', e => {
   if (e.target.tagName !== 'INPUT' && e.target.contentEditable !== 'true' && !e.target.classList.contains('calc-btn')) {
     const key = e.key;
-    const sections = ['timer', 'clock', 'weather', 'stopwatch', 'custom-timer', 'memo', 'gemini', 'calculator'];
+    const sections = ['home', 'timer', 'clock', 'weather', 'stopwatch', 'custom-timer', 'memo', 'gemini', 'calculator'];
     const idx = parseInt(key) - 1;
     if (idx >= 0 && idx < sections.length) {
       switchSection(sections[idx]);
@@ -599,6 +599,18 @@ function updateClocks() {
 updateClocks();
 setInterval(updateClocks, 1000);
 
+function updateHomeClock() {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const homeClockEl = $('home-clock');
+  if (homeClockEl) {
+    homeClockEl.textContent = `${hours}:${minutes}:${seconds}`;
+  }
+}
+updateHomeClock();
+setInterval(updateHomeClock, 1000);
 // Weather
 function loadWeather() {
   fetch(`https://api.openweathermap.org/data/2.5/weather?lat=35.85272206403399&lon=136.28673448772105&appid=8eb6dc5492a964ea79dd0ef92f1ae01c&units=metric&lang=ja`)
