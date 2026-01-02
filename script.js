@@ -6,7 +6,7 @@ const fmtTime3 = s => `${pad(Math.floor(s/3600))}:${pad(Math.floor((s%3600)/60))
 
 let focused = null, currentSection = 'timer';
 
-// 背景画像
+// Background
 const bgImgs = Array.from({length: 16}, (_, i) => `background-image/bgimg-${i+1}.jpg`);
 const bg = document.querySelectorAll('.bg-img');
 let bgIdx = 0, bgVis = 0;
@@ -19,26 +19,32 @@ setInterval(() => {
   bgVis = next;
 }, 10000);
 
-// サイドバー
+// Sidebar
 function toggleSidebar() {
   const sidebar = $('sidebar');
+  const overlay = $('mobile-overlay');
+  
   if (window.innerWidth <= 1024) {
     sidebar.classList.toggle('open');
-    $('mobile-overlay').classList.toggle('show');
+    overlay.classList.toggle('show');
   } else {
     sidebar.classList.toggle('collapsed');
   }
   play('snd-click');
 }
 
-// セクション切り替え
+// Section
 function switchSection(section) {
   play('snd-click');
   currentSection = section;
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   $(`section-${section}`).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-  event.target.closest('.nav-item')?.classList.add('active');
+  const navItem = Array.from(document.querySelectorAll('.nav-item')).find(item => 
+    item.getAttribute('onclick') && item.getAttribute('onclick').includes(`'${section}'`)
+  );
+  if (navItem) navItem.classList.add('active');
+  
   if (window.innerWidth <= 1024) {
     $('sidebar').classList.remove('open');
     $('mobile-overlay').classList.remove('show');
@@ -47,15 +53,9 @@ function switchSection(section) {
   updateYoutubeControls();
 }
 
-// 新しいタブを開く
-function openNewTab() {
-  window.open('about:blank', '_blank');
-  play('snd-click');
-}
-
-// キーボードショートカット
+// Keyboard
 document.addEventListener('keydown', e => {
-  if (e.target.tagName !== 'INPUT' && e.target.contentEditable !== 'true') {
+  if (e.target.tagName !== 'INPUT' && e.target.contentEditable !== 'true' && !e.target.classList.contains('calc-btn')) {
     const key = e.key;
     const sections = ['timer', 'clock', 'weather', 'stopwatch', 'custom-timer', 'memo', 'gemini', 'calculator'];
     const idx = parseInt(key) - 1;
@@ -67,6 +67,14 @@ document.addEventListener('keydown', e => {
     }
   }
   
+  if (currentSection === 'calculator' && e.target.tagName !== 'INPUT') {
+    if (/^[0-9]$/.test(e.key)) calcInput(e.key);
+    else if (['+', '-', '*', '/', '%', '.'].includes(e.key)) calcInput(e.key);
+    else if (e.key === 'Enter' || e.key === '=') calcEquals();
+    else if (e.key === 'Escape' || e.key === 'c') clearCalc();
+    else if (e.key === 'Backspace') backspaceCalc();
+  }
+  
   if (focused) {
     if (e.ctrlKey && !e.shiftKey && e.key === 'b') { e.preventDefault(); fmt('bold'); }
     else if (e.ctrlKey && !e.shiftKey && e.key === 'u') { e.preventDefault(); fmt('underline'); }
@@ -75,7 +83,7 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// フォーマット
+// Format
 function fmt(a) {
   if (!focused) return;
   focused.focus();
@@ -100,7 +108,7 @@ function fmt(a) {
   }
 }
 
-// 検索
+// Search
 function doSearch() {
   const q = $('search').value.trim();
   if (q) {
@@ -109,7 +117,7 @@ function doSearch() {
   }
 }
 
-// アラート
+// Alert
 function showAlert(title, msg) {
   $('alert-title').textContent = title;
   $('alert-msg').textContent = msg;
@@ -117,7 +125,7 @@ function showAlert(title, msg) {
 }
 function hideAlert() { $('alert').classList.remove('show'); }
 
-// 統計
+// Stats
 let stats = JSON.parse(localStorage.getItem('work-stats') || '{"sessions":0,"minutes":0,"today":0,"lastDate":"","streak":0}');
 
 function updateStats() {
@@ -151,7 +159,7 @@ function hideStats() {
   $('stats-modal').classList.remove('show');
 }
 
-// 設定
+// Settings
 let sets = JSON.parse(localStorage.getItem('sets') || '{"work":25,"break":5,"repeat":0}');
 $('set-work').value = sets.work;
 $('set-break').value = sets.break;
@@ -179,28 +187,6 @@ function hideSettings() {
   $('settings').classList.remove('show');
 }
 
-// アプリ設定
-function showAppSettings() {
-  play('snd-click');
-  const textColor = localStorage.getItem('text-color') || '#ffffff';
-  $('text-color').value = textColor;
-  $('app-settings').classList.add('show');
-}
-
-function hideAppSettings() {
-  play('snd-click');
-  const textColor = $('text-color').value;
-  localStorage.setItem('text-color', textColor);
-  document.documentElement.style.setProperty('--text', textColor);
-  $('app-settings').classList.remove('show');
-}
-
-// 保存された文字色を適用
-const savedTextColor = localStorage.getItem('text-color');
-if (savedTextColor) {
-  document.documentElement.style.setProperty('--text', savedTextColor);
-}
-
 // Pomodoro
 let pomoT = sets.work, shortT = sets.break, longT = 15;
 let timerType = 'pomodoro', timeLeft = pomoT * 60, timerInt = null, timerRun = false;
@@ -222,7 +208,7 @@ function switchTimer(type) {
     clearInterval(timerInt);
     timerRun = false;
     $('start').textContent = 'Start';
-    updatePlayButton(false);
+    updateQuickPlayIcon(false);
   }
   timerType = type;
   document.body.className = type === 'short' ? 'short-break' : type === 'long' ? 'long-break' : '';
@@ -233,32 +219,23 @@ function switchTimer(type) {
   updateTimer();
 }
 
-function updatePlayButton(isPlaying) {
-  const quickPlaySvg = $('quick-play-svg');
-  if (isPlaying) {
-    quickPlaySvg.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
-  } else {
-    quickPlaySvg.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
-  }
-}
-
 function toggleTimer() {
   play('snd-click');
   if (timerRun) {
     clearInterval(timerInt);
     timerRun = false;
     $('start').textContent = 'Start';
-    updatePlayButton(false);
+    updateQuickPlayIcon(false);
   } else {
     timerRun = true;
     $('start').textContent = 'Pause';
-    updatePlayButton(true);
+    updateQuickPlayIcon(true);
     timerInt = setInterval(() => {
       if (--timeLeft <= 0) {
         clearInterval(timerInt);
         timerRun = false;
         $('start').textContent = 'Start';
-        updatePlayButton(false);
+        updateQuickPlayIcon(false);
         if (isWork) {
           cycles++;
           stats.sessions++;
@@ -289,35 +266,35 @@ function resetTimer() {
     clearInterval(timerInt);
     timerRun = false;
     $('start').textContent = 'Start';
-    updatePlayButton(false);
+    updateQuickPlayIcon(false);
   }
   cycles = 0;
   switchTimer(timerType);
 }
 
-// フローティング表示制御
+function updateQuickPlayIcon(playing) {
+  const icon = $('quick-play-icon');
+  if (playing) {
+    icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+  } else {
+    icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+  }
+}
+
+// Float visibility
 function checkVis() {
   const scrollTop = document.querySelector('.content').scrollTop;
   const shouldShow = scrollTop > 200;
-  const timerFloat = $('float-timer');
-  const clockFloat = $('float-clock');
+  const showTimer = shouldShow && currentSection !== 'timer';
+  const showClock = shouldShow && currentSection !== 'clock';
   
-  timerFloat.classList.toggle('show', shouldShow && currentSection !== 'timer');
-  clockFloat.classList.toggle('show', shouldShow && currentSection !== 'clock');
+  $('float-timer').classList.toggle('show', showTimer);
+  $('float-clock').classList.toggle('show', showClock);
   
-  // 両方表示される場合は結合
-  if (timerFloat.classList.contains('show') && clockFloat.classList.contains('show')) {
-    clockFloat.style.right = '24px';
-    timerFloat.style.right = '180px';
-    const clockTime = $('float-clock-time').textContent;
-    const timerTime = $('float-timer-time').textContent;
-    clockFloat.querySelector('.float-time').textContent = `${clockTime} | ${timerTime}`;
-    timerFloat.style.display = 'none';
+  if (showTimer && showClock) {
+    $('float-clock').style.right = '200px';
   } else {
-    clockFloat.style.right = '180px';
-    timerFloat.style.right = '24px';
-    timerFloat.style.display = '';
-    updateClocks(); // 時刻を元に戻す
+    $('float-clock').style.right = '24px';
   }
 }
 
@@ -407,37 +384,26 @@ function resetSW() {
 
 // Calculator
 let calcStr = '0', calcPrev = 0, calcOp = null, calcNew = true;
-let calcHistory = JSON.parse(localStorage.getItem('calc-history') || '[]');
-
-function renderCalcHistory() {
-  const historyEl = $('calc-history');
-  if (calcHistory.length === 0) {
-    historyEl.style.display = 'none';
-  } else {
-    historyEl.style.display = 'block';
-    historyEl.innerHTML = calcHistory.slice(-10).reverse().map(h => 
-      `<div class="calc-history-item">${h}</div>`
-    ).join('');
-  }
-}
+let calcHistory = [];
 
 function calcInput(v) {
   play('snd-click');
-  if (calcNew && !isNaN(v)) calcStr = v;
-  else if (['+','-','*','/','%'].includes(v)) {
+  if (calcNew && !isNaN(v)) {
+    calcStr = v;
+    calcNew = false;
+  } else if (['+','-','*','/','%'].includes(v)) {
+    if (!calcNew) {
+      calcEquals();
+    }
     calcPrev = parseFloat(calcStr);
     calcOp = v;
     calcNew = true;
-  } else calcStr = calcStr === '0' ? v : calcStr + v;
-  $('calc-display').textContent = calcStr;
-}
-
-function calcBackspace() {
-  play('snd-click');
-  if (calcStr.length > 1) {
-    calcStr = calcStr.slice(0, -1);
   } else {
-    calcStr = '0';
+    if (calcStr === '0' && v !== '.') {
+      calcStr = v;
+    } else {
+      calcStr += v;
+    }
   }
   $('calc-display').textContent = calcStr;
 }
@@ -446,21 +412,26 @@ function calcEquals() {
   play('snd-click');
   const curr = parseFloat(calcStr);
   let result = curr;
-  let expression = '';
-  if (calcOp === '+') { result = calcPrev + curr; expression = `${calcPrev} + ${curr}`; }
-  else if (calcOp === '-') { result = calcPrev - curr; expression = `${calcPrev} - ${curr}`; }
-  else if (calcOp === '*') { result = calcPrev * curr; expression = `${calcPrev} × ${curr}`; }
-  else if (calcOp === '/') { result = calcPrev / curr; expression = `${calcPrev} ÷ ${curr}`; }
-  else if (calcOp === '%') { result = calcPrev % curr; expression = `${calcPrev} % ${curr}`; }
+  let historyStr = '';
   
-  if (expression) {
-    calcHistory.push(`${expression} = ${result}`);
-    localStorage.setItem('calc-history', JSON.stringify(calcHistory));
-    renderCalcHistory();
+  if (calcOp) {
+    historyStr = `${calcPrev} ${calcOp} ${curr} = `;
+    if (calcOp === '+') result = calcPrev + curr;
+    else if (calcOp === '-') result = calcPrev - curr;
+    else if (calcOp === '*') result = calcPrev * curr;
+    else if (calcOp === '/') result = calcPrev / curr;
+    else if (calcOp === '%') result = calcPrev % curr;
   }
   
   calcStr = String(result);
   $('calc-display').textContent = calcStr;
+  
+  if (historyStr) {
+    historyStr += result;
+    calcHistory.push(historyStr);
+    updateCalcHistory();
+  }
+  
   calcNew = true;
   calcOp = null;
 }
@@ -474,23 +445,26 @@ function clearCalc() {
   $('calc-display').textContent = '0';
 }
 
-// 電卓のキーボード入力
-document.addEventListener('keydown', e => {
-  if (currentSection === 'calculator' && e.target.tagName !== 'INPUT') {
-    if (e.key >= '0' && e.key <= '9') calcInput(e.key);
-    else if (e.key === '.') calcInput('.');
-    else if (e.key === '+') calcInput('+');
-    else if (e.key === '-') calcInput('-');
-    else if (e.key === '*') calcInput('*');
-    else if (e.key === '/') { e.preventDefault(); calcInput('/'); }
-    else if (e.key === '%') calcInput('%');
-    else if (e.key === 'Enter') { e.preventDefault(); calcEquals(); }
-    else if (e.key === 'Escape' || e.key === 'c' || e.key === 'C') clearCalc();
-    else if (e.key === 'Backspace') calcBackspace();
+function backspaceCalc() {
+  play('snd-click');
+  if (calcStr.length > 1) {
+    calcStr = calcStr.slice(0, -1);
+  } else {
+    calcStr = '0';
   }
-});
+  $('calc-display').textContent = calcStr;
+}
 
-renderCalcHistory();
+function updateCalcHistory() {
+  const history = $('calc-history');
+  history.innerHTML = '';
+  calcHistory.slice(-5).forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'calc-history-item';
+    div.textContent = item;
+    history.appendChild(div);
+  });
+}
 
 // Memo
 const memo = $('memo');
@@ -499,9 +473,7 @@ if (localStorage.memo) memo.innerHTML = localStorage.memo;
 if (localStorage.memoFiles) {
   try {
     Object.assign(memoFiles, JSON.parse(localStorage.memoFiles));
-  } catch(e) {
-    console.error('Failed to load memo files:', e);
-  }
+  } catch(e) {}
 }
 
 function saveMemo() {
@@ -531,6 +503,7 @@ function handleMemoFile(e) {
       };
       localStorage.memoFiles = JSON.stringify(memoFiles);
       renderMemoFiles();
+      
       if (file.type.startsWith('image/')) {
         const img = document.createElement('img');
         img.src = ev.target.result;
@@ -609,9 +582,7 @@ function updateClocks() {
   const now = new Date();
   const t = fmtTime3(now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds());
   $('time').textContent = t;
-  if (!$('float-clock').style.display || $('float-clock').style.display !== 'none') {
-    $('float-clock-time').textContent = t;
-  }
+  $('float-clock-time').textContent = t;
   const wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][now.getDay()];
   $('date').textContent = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} (${wd})`;
   
@@ -619,6 +590,7 @@ function updateClocks() {
     const d = new Date(now.toLocaleString('en-US', {timeZone: tz}));
     return fmtTime3(d.getHours()*3600+d.getMinutes()*60+d.getSeconds());
   };
+  
   $('tokyo').textContent = getTZ('Asia/Tokyo');
   $('ny').textContent = getTZ('America/New_York');
   $('london').textContent = getTZ('Europe/London');
@@ -640,11 +612,15 @@ function loadWeather() {
       $('w-loc').textContent = d.name || '指定地点';
     })
     .catch(e => { $('w-desc').textContent = 'Error loading weather'; });
-  
-  // iframeをリロード
+}
+
+function reloadWeather() {
+  play('snd-click');
+  loadWeather();
   const iframe = $('weather-iframe');
   iframe.src = iframe.src;
 }
+
 loadWeather();
 setInterval(loadWeather, 1800000);
 
@@ -655,6 +631,105 @@ function sendGemini() {
   $('gemini').textContent = '';
   console.log('Message sent to Gemini:', msg);
 }
+
+// Quick Links
+let quickLinks = JSON.parse(localStorage.getItem('quick-links') || JSON.stringify([
+  {name:'GitHub',url:'https://github.com',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.840 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.430.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>'},
+  {name:'ChatGPT',url:'https://chat.openai.com',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>'},
+  {name:'Claude',url:'https://claude.ai',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M12 0L24 6v12L12 24 0 18V6L12 0zm0 2.5L2 7.5v9l10 5.5 10-5.5v-9L12 2.5z"/></svg>'},
+  {name:'VS Code',url:'https://vscode.dev',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.942-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/></svg>'},
+  {name:'Notion',url:'https://notion.so',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.933zm14.336.653c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z"/></svg>'},
+  {name:'Drive',url:'https://drive.google.com',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M7.71 3.5L1.15 15l3.43 5.5h13.71L22 15l-6.56-11.5H7.71zM8.73 5.5h6.54L19.21 15h-3.09l-3.43-5.5-4.63 8H4.03L8.73 5.5zm-.42 11.5h6.54l-3.26 5.5h-6.54l3.26-5.5z"/></svg>'}
+]));
+
+function renderQuickLinksSidebar() {
+  const container = $('quick-links-sidebar');
+  container.innerHTML = '';
+  quickLinks.forEach(link => {
+    const a = document.createElement('a');
+    a.className = 'quick-link-sidebar-item';
+    a.href = link.url;
+    a.target = '_blank';
+    a.innerHTML = `<div class="quick-link-sidebar-icon">${link.icon}</div>`;
+    a.title = link.name;
+    container.appendChild(a);
+  });
+}
+
+function showAppSettings() {
+  play('snd-click');
+  const edit = $('quick-links-edit');
+  edit.innerHTML = '';
+
+  quickLinks.forEach((link, idx) => {
+    const container = document.createElement('div');
+    container.style.cssText = 'margin-bottom:15px;padding:15px;background:#f5f5f5;border-radius:8px;';
+
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.placeholder = 'Name';
+    nameInput.value = link.name;
+    nameInput.style.cssText = 'width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:4px;';
+    nameInput.addEventListener('input', (e) => { link.name = e.target.value; });
+
+    const urlInput = document.createElement('input');
+    urlInput.type = 'text';
+    urlInput.placeholder = 'URL';
+    urlInput.value = link.url;
+    urlInput.style.cssText = 'width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:4px;';
+    urlInput.addEventListener('input', (e) => { link.url = e.target.value; });
+
+    const label = document.createElement('label');
+    label.style.cssText = 'display:block;padding:8px;background:#e0e0e0;border-radius:4px;cursor:pointer;text-align:center;margin-bottom:8px;';
+    label.textContent = 'Upload Icon';
+    
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    fileInput.addEventListener('change', (e) => uploadQuickLinkIcon(idx, e));
+    label.appendChild(fileInput);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = 'Remove';
+    removeBtn.style.cssText = 'padding:8px 16px;background:#e01e5a;color:white;border:none;border-radius:4px;cursor:pointer;width:100%;';
+    removeBtn.addEventListener('click', () => {
+      quickLinks.splice(idx, 1);
+      showAppSettings();
+    });
+
+    container.append(nameInput, urlInput, label, removeBtn);
+    edit.appendChild(container);
+  });
+
+  $('app-settings').classList.add('show');
+}
+
+function hideAppSettings() {
+  play('snd-click');
+  localStorage.setItem('quick-links', JSON.stringify(quickLinks));
+  renderQuickLinksSidebar();
+  $('app-settings').classList.remove('show');
+}
+
+function addQuickLink() {
+  quickLinks.push({name:'New Link',url:'https://example.com',icon:'<svg viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="10"/></svg>'});
+  showAppSettings();
+}
+
+function uploadQuickLinkIcon(idx, e) {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      quickLinks[idx].icon = `<img src="${ev.target.result}">`;
+      showAppSettings();
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+renderQuickLinksSidebar();
 
 // Notion
 let notionPages = JSON.parse(localStorage.getItem('notion-pages') || JSON.stringify([
@@ -701,19 +776,21 @@ function addNotionPage() {
 }
 
 renderNotionTabs();
-setInterval(() => { const iframe = $('notion'); iframe.src = iframe.src; }, 300000);
+setInterval(() => { $('notion').src = $('notion').src; }, 300000);
 
 // YouTube
 let ytPlayer = null;
 let ytPlaying = false;
 let ytPlaylistId = '';
-let ytPlaylist = [];
-let ytCurrentIndex = 0;
 
 function onYouTubeIframeAPIReady() {
   ytPlayer = new YT.Player('yt-player', {
-    height: '100%',
+    height: '390',
     width: '100%',
+    playerVars: {
+      'playsinline': 1,
+      'controls': 1
+    },
     events: {
       'onReady': onPlayerReady,
       'onStateChange': onPlayerStateChange
@@ -726,37 +803,30 @@ function onPlayerReady(event) {
 }
 
 function onPlayerStateChange(event) {
-  if (event.data == YT.PlayerState.PLAYING) {
-    ytPlaying = true;
-    updateYoutubePlayButton(true);
-  } else if (event.data == YT.PlayerState.PAUSED || event.data == YT.PlayerState.ENDED) {
-    ytPlaying = false;
-    updateYoutubePlayButton(false);
-    if (event.data == YT.PlayerState.ENDED) {
-      playNextInPlaylist();
-    }
-  }
+  ytPlaying = event.data === YT.PlayerState.PLAYING;
+  updateYoutubeControls();
 }
 
 function loadYoutubePlaylist() {
-  const playlistId = prompt('Enter YouTube Playlist ID:');
-  if (playlistId) {
-    ytPlaylistId = playlistId;
-    fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=YOUR_API_KEY`)
-      .then(r => r.json())
-      .then(data => {
-        ytPlaylist = data.items.map(item => item.snippet.resourceId.videoId);
-        ytCurrentIndex = 0;
-        if (ytPlaylist.length > 0) {
-          ytPlayer.loadVideoById(ytPlaylist[ytCurrentIndex]);
-        }
-      })
-      .catch(e => alert('Failed to load playlist'));
+  const url = $('yt-playlist').value.trim();
+  if (!url) return alert('Please enter a playlist URL');
+  
+  const match = url.match(/[?&]list=([^&]+)/);
+  if (match) {
+    ytPlaylistId = match[1];
+    if (ytPlayer && ytPlayer.loadPlaylist) {
+      ytPlayer.loadPlaylist({
+        list: ytPlaylistId,
+        listType: 'playlist'
+      });
+    }
+  } else {
+    alert('Invalid playlist URL');
   }
 }
 
 function toggleYoutubePlay() {
-  play('snd-click');
+  if (!ytPlayer) return;
   if (ytPlaying) {
     ytPlayer.pauseVideo();
   } else {
@@ -764,34 +834,121 @@ function toggleYoutubePlay() {
   }
 }
 
-function updateYoutubePlayButton(isPlaying) {
-  const ytPlaySvg = $('yt-play-svg');
-  if (isPlaying) {
-    ytPlaySvg.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
-  } else {
-    ytPlaySvg.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
-  }
+function nextYoutube() {
+  if (ytPlayer) ytPlayer.nextVideo();
 }
 
-function playNextInPlaylist() {
-  if (ytPlaylist.length > 0) {
-    ytCurrentIndex = (ytCurrentIndex + 1) % ytPlaylist.length;
-    ytPlayer.loadVideoById(ytPlaylist[ytCurrentIndex]);
-  }
+function prevYoutube() {
+  if (ytPlayer) ytPlayer.previousVideo();
 }
 
 function setYoutubeVolume(vol) {
-  if (ytPlayer) {
+  if (ytPlayer && ytPlayer.setVolume) {
     ytPlayer.setVolume(vol);
-    $('yt-volume').value = vol;
+    $('yt-vol-display').textContent = vol + '%';
+    const fixedVol = $('youtube-volume-fixed');
+    if (fixedVol) fixedVol.value = vol;
   }
 }
 
 function updateYoutubeControls() {
-  const ytControls = $('yt-controls');
-  if (currentSection === 'youtube') {
-    ytControls.style.display = 'flex';
+  const fixed = $('youtube-fixed-controls');
+  if (currentSection !== 'youtube' && ytPlaying) {
+    fixed.classList.add('show');
   } else {
-    ytControls.style.display = 'none';
+    fixed.classList.remove('show');
   }
 }
+
+window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+setInterval(updateYoutubeControls, 1000);
+switchTimer('pomodoro');
+loadSettings();
+
+function switchTimer(type) {
+  timerType = type;
+  isWork = type === 'pomodoro';
+  timeLeft = initialTime = type === 'pomodoro' ? pomoT * 60 : type === 'short' ? shortT * 60 : longT * 60;
+  updateTimer();
+}
+
+function updateTimer() {
+  const min = Math.floor(timeLeft / 60);
+  const sec = timeLeft % 60;
+  $('timer').textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  $('float-timer-time').textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  const progress = ((initialTime - timeLeft) / initialTime) * 100;
+  $('timer-progress').style.width = progress + '%';
+}
+
+function toggleTimer() {
+  play('snd-click');
+  if (timerRun) {
+    clearInterval(timerInt);
+    timerRun = false;
+    $('start').textContent = 'Start';
+    updateQuickPlayIcon(false);
+  } else {
+    timerRun = true;
+    $('start').textContent = 'Pause';
+    updateQuickPlayIcon(true);
+    timerInt = setInterval(() => {
+      if (--timeLeft <= 0) {
+        timerRun = false;
+        clearInterval(timerInt);
+        updateQuickPlayIcon(false);
+        if (isWork) {
+          play('snd-timer');
+          showAlert('作業終了！', '休憩時間です');
+          cycles++;
+          if (sets.longBreak > 0 && cycles % sets.longBreak === 0) {
+            setTimeout(() => { switchTimer('long'); toggleTimer(); }, 3000);
+          } else {
+            setTimeout(() => { switchTimer('short'); toggleTimer(); }, 3000);
+          }
+        } else {
+          play('snd-timer');
+          showAlert('休憩終了！', '作業時間です');
+          setTimeout(() => { switchTimer('pomodoro'); toggleTimer(); }, 3000);
+        }
+      }
+      updateTimer();
+    }, 1000);
+  }
+}
+
+function resetTimer() {
+  play('snd-click');
+  if (timerRun) {
+    clearInterval(timerInt);
+    timerRun = false;
+    $('start').textContent = 'Start';
+    updateQuickPlayIcon(false);
+  }
+  timeLeft = initialTime;
+  updateTimer();
+  play('snd-click');
+  if (timerRun) {
+    clearInterval(timerInt);
+    timerRun = false;
+    $('start').textContent = 'Start';
+    updateQuickPlayIcon(false);
+  }
+  timeLeft = initialTime;
+  updateTimer();
+}
+
+function checkVis() {
+  const shouldShow = localStorage.getItem('float-timer') === 'true';
+  if (!shouldShow) return;
+  
+  const content = document.querySelector('.content');
+  const timerRect = $('timer-section').getBoundingClientRect();
+  const contentRect = content.getBoundingClientRect();
+  
+  const isVisible = timerRect.top < contentRect.bottom && timerRect.bottom > contentRect.top;
+  
+  $('float-timer').classList.toggle('visible', !isVisible);
+}
+checkVis();
+setInterval(checkVis, 1000);
