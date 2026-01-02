@@ -693,7 +693,7 @@ function showAppSettings() {
     urlInput.addEventListener('input', (e) => { link.url = e.target.value; });
 
     const label = document.createElement('label');
-    label.style.cssText = 'display:block;padding:8px;background:#e0e0e0;border-radius:4px;cursor:pointer;text-align:center;margin-bottom:8px;';
+    label.style.cssText = 'display:block;padding:8px;background:#e0e0e0;border-radius:8px;cursor:pointer;text-align:center;margin-bottom:8px;';
     label.textContent = 'Upload Icon';
     
     const fileInput = document.createElement('input');
@@ -705,7 +705,7 @@ function showAppSettings() {
 
     const removeBtn = document.createElement('button');
     removeBtn.textContent = 'Remove';
-    removeBtn.style.cssText = 'padding:8px 16px;background:#1264a3;color:white;border:none;border-radius:100vh;cursor:pointer;width:100%;';
+    removeBtn.style.cssText = 'padding:8px 16px;background:#1264a3;color:white;border:none;border-radius:8px;cursor:pointer;width:100%;';
     removeBtn.addEventListener('click', () => {
       quickLinks.splice(idx, 1);
       showAppSettings();
