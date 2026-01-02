@@ -705,7 +705,7 @@ function showAppSettings() {
 
     const removeBtn = document.createElement('button');
     removeBtn.textContent = 'Remove';
-    removeBtn.style.cssText = 'padding:8px 16px;background:#e01e5a;color:white;border:none;border-radius:4px;cursor:pointer;width:100%;';
+    removeBtn.style.cssText = 'padding:8px 16px;background:#1264a3;color:white;border:none;border-radius:4px;cursor:pointer;width:100%;';
     removeBtn.addEventListener('click', () => {
       quickLinks.splice(idx, 1);
       showAppSettings();
