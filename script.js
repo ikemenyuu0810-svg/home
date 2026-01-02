@@ -308,6 +308,7 @@ function updateCT() {
   if (ctInitial > 0) {
     const progress = (ctTime / ctInitial) * 100;
     $('ct-progress').style.width = progress + '%';
+    updateTimer();
   }
 }
 function toggleCT() {
