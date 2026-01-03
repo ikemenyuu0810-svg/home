@@ -81,7 +81,7 @@ body.home-active .search-wrap { position: absolute; top: calc(37.5% + 100px); le
 .section.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 .section-title { font-size: 24px; font-weight: 700; margin-bottom: 20px; text-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 1;}
-#section-home { position: relative; height: 100%; display: none; align-items: center; justify-content: center; }
+#section-home { position: absolute; height: 100%; display: none; align-items: center; justify-content: center; }
 #section-home.active { display: flex; }
 
 
