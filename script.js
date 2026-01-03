@@ -931,42 +931,26 @@ function toggleTimer() {
     $('start').textContent = 'Pause';
     updateQuickPlayIcon(true);
     timerInt = setInterval(() => {
-      timeLeft--;
-      updateTimer();
-      if (timeLeft <= 0) {
-        clearInterval(timerInt);
+      if (--timeLeft <= 0) {
         timerRun = false;
-        $('start').textContent = 'Start';
+        clearInterval(timerInt);
         updateQuickPlayIcon(false);
-        
         if (isWork) {
+          play('snd-timer');
+          showAlert('作業終了！', '休憩時間です');
           cycles++;
-          stats.sessions++;
-          stats.today++;
-          stats.minutes += pomoT;
-          updateStats();
-          play('snd-pomo');
-          showAlert('作業完了！', '休憩時間です');
-          
-          // 3秒後に自動でアラートを閉じて次のフェーズ開始
-          setTimeout(() => {
-            hideAlert();
-            switchTimer('short');
-            toggleTimer();
-          }, 3000);
-          
+          if (sets.longBreak > 0 && cycles % sets.longBreak === 0) {
+            setTimeout(() => { switchTimer('long'); toggleTimer(); }, 3000);
+          } else {
+            setTimeout(() => { switchTimer('short'); toggleTimer(); }, 3000);
+          }
         } else {
           play('snd-timer');
-          showAlert('休憩終了！', '次の作業を始めましょう');
-          
-          // 3秒後に自動でアラートを閉じて次のフェーズ開始
-          setTimeout(() => {
-            hideAlert();
-            switchTimer('pomodoro');
-            toggleTimer();
-          }, 3000);
+          showAlert('休憩終了！', '作業時間です');
+          setTimeout(() => { switchTimer('pomodoro'); toggleTimer(); }, 3000);
         }
       }
+      updateTimer();
     }, 1000);
   }
 }
