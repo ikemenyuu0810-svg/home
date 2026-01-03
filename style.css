@@ -225,7 +225,7 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 .modal-btns { display: flex; gap: 10px; margin-top: 28px; }
 .modal-btn { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
 .modal-btn.primary { background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); color: white; border:1px solid var(--border); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
-.modal-btn.primary:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
+.modal-btn.primary:hover { background: rgba(255,255,255,0.2); }
 .modal-btn.secondary { background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); color: #ffffff; border:1px solid var(--border); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
 .modal-btn.secondary:hover {  background: rgba(255,255,255,0.2); }
 
