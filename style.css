@@ -63,7 +63,7 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .header { height: var(--header); padding: 0 24px; display: flex; align-items: center; gap: 16px; backdrop-filter: blur(10px); background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); transition: all 0.6s ease; }
 .header-actions { transition: opacity 0.6s ease, transform 0.6s ease; }
-.search-wrap { max-width: 900px; width: 900px; position: absolute; left: 50%; transform: translateX(-50%); transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);}
+.search-wrap { max-width: 900px; width: 900px; position: absolute; left: 50%; transform: translateX(-50%); transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
 .search-box { width: 100%; padding: 10px 40px 10px 36px; border: 1px solid var(--border); border-radius: 20px; font-size: 13px; background: rgba(255,255,255,0.15); color: var(--text); backdrop-filter: blur(10px); transition: all 0.3s; }
 .search-box::placeholder { color: var(--text-dim); }
 .search-box:focus { outline: none; background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.4); box-shadow: 0 0 0 3px rgba(255,255,255,0.1); }
