@@ -921,11 +921,12 @@ function switchTimer(type) {
 function updateTimer() {
   const min = Math.floor(timeLeft / 60);
   const sec = timeLeft % 60;
-  $('timer').textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-  $('float-timer-time').textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  document.getElementById('timer').textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  document.getElementById('float-timer-time').textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
   const progress = ((initialTime - timeLeft) / initialTime) * 100;
-  $('timer-progress').style.width = progress + '%';
+  document.getElementById('timer-progress').style.width = progress + '%';
 }
+
 
 function toggleTimer() {
   play('snd-click');
