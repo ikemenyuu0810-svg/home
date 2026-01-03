@@ -204,6 +204,18 @@ function updateTimer() {
   const str = fmtTime(timeLeft);
   $('timer').textContent = str;
   $('float-timer-time').textContent = str;
+  
+  // タイマータイプを更新
+  const typeNames = {
+    'pomodoro': 'Pomodoro',
+    'short': 'Short Break',
+    'long': 'Long Break'
+  };
+  const floatTypeEl = $('float-timer-type');
+  if (floatTypeEl) {
+    floatTypeEl.textContent = typeNames[timerType] || 'Timer';
+  }
+  
   const progress = (timeLeft / initialTime) * 100;
   $('progress-bar').style.width = progress + '%';
   $('current-session').textContent = cycles;
@@ -293,17 +305,11 @@ function updateQuickPlayIcon(playing) {
 function checkVis() {
   const scrollTop = document.querySelector('.content').scrollTop;
   const shouldShow = scrollTop > 200;
-  const showTimer = shouldShow && currentSection !== 'timer';
+  const showTimer = shouldShow && currentSection !== 'timer' && timerRun;
   const showClock = shouldShow && currentSection !== 'clock';
   
   $('float-timer').classList.toggle('show', showTimer);
   $('float-clock').classList.toggle('show', showClock);
-  
-  if (showTimer && showClock) {
-    $('float-clock').style.right = '200px';
-  } else {
-    $('float-clock').style.right = '24px';
-  }
 }
 
 document.querySelector('.content').addEventListener('scroll', checkVis);
