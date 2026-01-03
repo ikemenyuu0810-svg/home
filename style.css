@@ -197,7 +197,7 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 .youtube-btn:hover { background: rgba(255,255,255,0.3); }
 .youtube-volume { flex: 1; -webkit-appearance: none; appearance: none; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; outline: none; }
 .youtube-volume::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: #2bac76; border-radius: 50%; cursor: pointer; }
-.youtube-volume::-moz-range-thumb { width: 16px; height: 16px; background: #2bac76; border-radius: 50%; cursor: pointer; border: none; }
+.youtube-volume::-moz-range-thumb { width: 16px; height: 16px; background: #ffffff; border-radius: 50%; cursor: pointer; border: none; }
 .youtube-iframe { width: 100%; aspect-ratio: 16/9; border: none; border-radius: 10px; }
 
 .stats-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(4px); }
