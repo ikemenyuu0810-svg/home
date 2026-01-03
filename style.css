@@ -196,7 +196,7 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 .youtube-btn { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border: none; border-radius: 6px; color: var(--text); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
 .youtube-btn:hover { background: rgba(255,255,255,0.3); }
 .youtube-volume { flex: 1; -webkit-appearance: none; appearance: none; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; outline: none; }
-.youtube-volume::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: #2bac76; border-radius: 50%; cursor: pointer; }
+.youtube-volume::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: #ffffff; border-radius: 50%; cursor: pointer; }
 .youtube-volume::-moz-range-thumb { width: 16px; height: 16px; background: #ffffff; border-radius: 50%; cursor: pointer; border: none; }
 .youtube-iframe { width: 100%; aspect-ratio: 16/9; border: none; border-radius: 10px; }
 
