@@ -773,7 +773,12 @@ function renderNotionTabs() {
   notionPages.forEach((page, idx) => {
     const btn = document.createElement('button');
     btn.className = 'notion-tab' + (idx === notionIdx ? ' active' : '');
-    btn.textContent = page.name;
+    
+    // テキストをspanで包む
+    const textSpan = document.createElement('span');
+    textSpan.textContent = page.name;
+    btn.appendChild(textSpan);
+    
     btn.onclick = () => switchNotionPage(idx);
     
     // 2ページ以上ある場合のみ削除ボタンを表示
