@@ -224,9 +224,9 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 .setting-input:focus { outline: none; border-color: #1264a3; box-shadow: 0 0 0 3px rgba(18,100,163,0.1); }
 .modal-btns { display: flex; gap: 10px; margin-top: 28px; }
 .modal-btn { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-.modal-btn.primary { background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); color: white; }
+.modal-btn.primary { background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); color: white; border:1px solid var(--border); }
 .modal-btn.primary:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
-.modal-btn.secondary { background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); color: #ffffff; }
+.modal-btn.secondary { background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); color: #ffffff; border:1px solid var(--border); }
 .modal-btn.secondary:hover {  background: rgba(255,255,255,0.2); }
 
 .alert { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 10001; }
