@@ -692,24 +692,24 @@ function showAppSettings() {
 
   quickLinks.forEach((link, idx) => {
     const container = document.createElement('div');
-    container.style.cssText = 'margin-bottom:15px;padding:15px;background:#f5f5f5;border-radius:8px;';
+    container.style.cssText = 'margin-bottom:15px;padding:15px;background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);border-radius:8px;';
 
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
     nameInput.placeholder = 'Name';
     nameInput.value = link.name;
-    nameInput.style.cssText = 'width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:4px;';
+    nameInput.style.cssText = 'width:100%;padding:8px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;';
     nameInput.addEventListener('input', (e) => { link.name = e.target.value; });
 
     const urlInput = document.createElement('input');
     urlInput.type = 'text';
     urlInput.placeholder = 'URL';
     urlInput.value = link.url;
-    urlInput.style.cssText = 'width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:4px;';
+    urlInput.style.cssText = 'width:100%;padding:8px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;';
     urlInput.addEventListener('input', (e) => { link.url = e.target.value; });
 
     const label = document.createElement('label');
-    label.style.cssText = 'display:block;padding:8px;background:#e0e0e0;border-radius:8px;cursor:pointer;text-align:center;margin-bottom:8px;';
+    label.style.cssText = 'display:block;padding:8px;background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);border-radius:8px;cursor:pointer;text-align:center;margin-bottom:8px;';
     label.textContent = 'Upload Icon';
     
     const fileInput = document.createElement('input');
@@ -721,7 +721,7 @@ function showAppSettings() {
 
     const removeBtn = document.createElement('button');
     removeBtn.textContent = 'Remove';
-    removeBtn.style.cssText = 'padding:8px 16px;background:#1264a3;color:white;border:none;border-radius:8px;cursor:pointer;width:100%;';
+    removeBtn.style.cssText = 'padding:8px 16px;background:tgba(255,255,255,0.12);backdrop-filter:blur(10px);color:white;border:none;border-radius:8px;cursor:pointer;width:100%;';
     removeBtn.addEventListener('click', () => {
       quickLinks.splice(idx, 1);
       showAppSettings();
