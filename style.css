@@ -269,3 +269,26 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 .youtube-fixed-controls.show { display: flex; align-items: center; gap: 8px; }
 #home-clock { font-variant-numeric: tabular-nums; font-family: "Alumni Sans Pinstripe", sans-serif; font-weight: 400; font-style: normal; position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 22.5vh; letter-spacing: 0.2rem; color: #ffffff; font-variant-numeric: tabular-nums; }
 @media (max-width: 768px) { #home-clock { font-size: 3rem; } }
+
+.actions-ring-container { position: fixed; bottom: 100px; right: 24px; z-index: 998;}
+.actions-ring-trigger { width: 60px; height: 60px; background: rgba(255,255,255,0.2); backdrop-filter: blur(20px); border: none; border-radius: 50%; box-shadow: 0 6px 20px rgba(0,0,0,0.3); cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; color: #212121; position: relative; z-index: 2; }
+.actions-ring-trigger:hover { transform: scale(1.1); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+.actions-ring-trigger.active { transform: rotate(45deg) scale(1.1); }
+.actions-ring-trigger svg { width: 24px; height: 24px; transition: transform 0.3s; }
+.actions-ring-items { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+.ring-item { position: absolute; width: 48px; height: 48px; background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(20px); border: none; border-radius: 50%; box-shadow: 0 4px 16px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; color: #4a154b; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; transform: translate(-50%, -50%) scale(0); pointer-events: none; left: 50%; top: 50%; }
+.ring-item svg { width: 20px; height: 20px; }
+.actions-ring-container.active .ring-item { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%)  translate( calc(cos(var(--angle)) * 100px), calc(sin(var(--angle)) * 100px) )  scale(1); }
+.ring-item:hover { transform: translate(-50%, -50%) translate( calc(cos(var(--angle)) * 100px), calc(sin(var(--angle)) * 100px) )  scale(1.15); background: rgba(255,255,255,0.3); box-shadow: 0 6px 24px rgba(0,0,0,0.3); }
+.actions-ring-container.active .ring-item:nth-child(1) { transition-delay: 0.05s; }
+.actions-ring-container.active .ring-item:nth-child(2) { transition-delay: 0.1s; }
+.actions-ring-container.active .ring-item:nth-child(3) { transition-delay: 0.15s; }
+.actions-ring-container.active .ring-item:nth-child(4) { transition-delay: 0.2s; }
+.actions-ring-container.active .ring-item:nth-child(5) { transition-delay: 0.25s; }
+.actions-ring-container.active .ring-item:nth-child(6) { transition-delay: 0.3s; }
+.actions-ring-container.active .ring-item:nth-child(7) { transition-delay: 0.35s; }
+.actions-ring-container.active .ring-item:nth-child(8) { transition-delay: 0.4s; }
+
+@media (max-width: 1024px) { .actions-ring-container { bottom: 90px; right: 16px; }
+.actions-ring-container.active .ring-item { transform: translate(-50%, -50%) translate( calc(cos(var(--angle)) * 80px), calc(sin(var(--angle)) * 80px) ) scale(1); }
+.ring-item:hover { transform: translate(-50%, -50%)  translate( calc(cos(var(--angle)) * 80px), calc(sin(var(--angle)) * 80px) ) scale(1.15);}}

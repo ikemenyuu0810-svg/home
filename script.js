@@ -1051,3 +1051,61 @@ function checkVis() {
 }
 checkVis();
 setInterval(checkVis, 1000);
+
+// Actions Ring
+let ringOpen = false;
+
+function toggleActionsRing() {
+  play('snd-click');
+  ringOpen = !ringOpen;
+  const ring = $('actions-ring');
+  const trigger = $('ring-trigger');
+  
+  if (ringOpen) {
+    ring.classList.add('active');
+    trigger.classList.add('active');
+  } else {
+    ring.classList.remove('active');
+    trigger.classList.remove('active');
+  }
+}
+
+function ringAction(action) {
+  play('snd-click');
+  toggleActionsRing();
+  
+  switch(action) {
+    case 'timer':
+      switchSection('timer');
+      break;
+    case 'clock':
+      switchSection('clock');
+      break;
+    case 'weather':
+      switchSection('weather');
+      break;
+    case 'memo':
+      switchSection('memo');
+      break;
+    case 'settings':
+      showSettings();
+      break;
+    case 'stats':
+      showStats();
+      break;
+    case 'home':
+      switchSection('home');
+      break;
+    case 'youtube':
+      switchSection('youtube');
+      break;
+  }
+}
+
+// クリック外で閉じる
+document.addEventListener('click', (e) => {
+  const ring = $('actions-ring');
+  if (ringOpen && !ring.contains(e.target)) {
+    toggleActionsRing();
+  }
+});
