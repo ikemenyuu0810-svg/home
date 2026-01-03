@@ -264,5 +264,5 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 
 .youtube-fixed-controls { position: fixed; bottom: 90px; right: 24px; background: hsla(0, 0%, 0%, 0.55); backdrop-filter: blur(20px); border-radius: 12px; padding: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); display: none; z-index: 998; }
 .youtube-fixed-controls.show { display: flex; align-items: center; gap: 8px; }
-#home-clock { font-variant-numeric: tabular-nums; font-family: "Alumni Sans Pinstripe", sans-serif; font-weight: 400; font-style: normal; position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 22.5vh; letter-spacing: 0.2rem; color: #ffffff; font-variant-numeric: tabular-nums; }
+#home-clock { font-variant-numeric: tabular-nums; font-family: "Alumni Sans Pinstripe", sans-serif; font-weight: 400; font-style: normal; position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 22.5vh; letter-spacing: 0.2rem; color: #ffffff; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 3px rgba(255,255,255,0.1); }
 @media (max-width: 768px) { #home-clock { font-size: 3rem; } }
