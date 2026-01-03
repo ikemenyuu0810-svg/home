@@ -7,7 +7,7 @@ const fmtTime3 = s => `${pad(Math.floor(s/3600))}:${pad(Math.floor((s%3600)/60))
 let focused = null, currentSection = 'timer';
 
 // Background
-const bgImgs = Array.from({length: 16}, (_, i) => `background-image/bgimg-${i+1}.jpg`);
+const bgImgs = Array.from({length: 16}, (_, i) => `../IMG/background-image/bgimg-${i+1}.jpg`);
 const bg = document.querySelectorAll('.bg-img');
 let bgIdx = 0, bgVis = 0;
 setInterval(() => {
