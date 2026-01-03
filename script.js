@@ -236,7 +236,7 @@ function switchTimer(type) {
   document.querySelectorAll('.tab-btn')[type === 'pomodoro' ? 0 : type === 'short' ? 1 : 2].classList.add('active');
   isWork = type === 'pomodoro';
   timeLeft = initialTime = type === 'pomodoro' ? pomoT * 60 : type === 'short' ? shortT * 60 : longT * 60;
-  updateTimer();
+  updateTimer(); // これが必要
 }
 
 function toggleTimer() {
@@ -305,7 +305,9 @@ function updateQuickPlayIcon(playing) {
 function checkVis() {
   const scrollTop = document.querySelector('.content').scrollTop;
   const shouldShow = scrollTop > 200;
-  const showTimer = shouldShow && currentSection !== 'timer' && timerRun;
+  
+  // タイマーが動いている かつ timerタブ以外にいる場合に表示
+  const showTimer = currentSection !== 'timer' && timerRun;
   const showClock = shouldShow && currentSection !== 'clock';
   
   $('float-timer').classList.toggle('show', showTimer);
