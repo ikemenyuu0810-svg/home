@@ -775,14 +775,48 @@ function renderNotionTabs() {
     btn.className = 'notion-tab' + (idx === notionIdx ? ' active' : '');
     btn.textContent = page.name;
     btn.onclick = () => switchNotionPage(idx);
+    
+    // 2ページ以上ある場合のみ削除ボタンを表示
+    if (notionPages.length > 1) {
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'notion-tab-delete';
+      deleteBtn.innerHTML = '×';
+      deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        deleteNotionPage(idx);
+      };
+      btn.appendChild(deleteBtn);
+    }
+    
     tabs.appendChild(btn);
   });
+  
   if (notionPages.length < 5) {
     const add = document.createElement('button');
     add.className = 'notion-tab notion-add';
     add.textContent = '+ Add';
     add.onclick = addNotionPage;
     tabs.appendChild(add);
+  }
+}
+
+function deleteNotionPage(idx) {
+  if (notionPages.length <= 1) {
+    alert('Cannot delete the last page');
+    return;
+  }
+  
+  if (confirm(`Delete "${notionPages[idx].name}"?`)) {
+    notionPages.splice(idx, 1);
+    
+    // 削除したページが現在表示中だった場合、インデックスを調整
+    if (notionIdx >= notionPages.length) {
+      notionIdx = notionPages.length - 1;
+    }
+    
+    localStorage.setItem('notion-pages', JSON.stringify(notionPages));
+    $('notion').src = notionPages[notionIdx].url;
+    renderNotionTabs();
   }
 }
 
