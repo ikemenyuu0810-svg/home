@@ -998,7 +998,7 @@ document.getElementById("fullscreenBtn").onclick = () => {
     document.exitFullscreen();
   }
 };
-document.addEventListener('fullscreenchange', () => {
+document.addEventListener('fullscreen', () => {
   const fsBtn = document.getElementById("fullscreenBtn");
   if (document.fullscreenElement) {
     fsBtn.textContent = 'Exit Fullscreen';
