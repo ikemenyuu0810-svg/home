@@ -846,12 +846,13 @@ function loadYoutubePlaylist() {
   }
 }
 
-function toggleYoutubePlay() {
-  if (!ytPlayer) return;
-  if (ytPlaying) {
-    ytPlayer.pauseVideo();
+function updateYoutubeControls() {
+  const fixed = $('youtube-fixed-controls');
+  
+  if (currentSection !== 'youtube' && ytPlayer && ytPlaylistId) {
+    fixed.classList.add('show');
   } else {
-    ytPlayer.playVideo();
+    fixed.classList.remove('show');
   }
 }
 
