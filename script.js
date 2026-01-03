@@ -37,6 +37,14 @@ function toggleSidebar() {
 function switchSection(section) {
   play('snd-click');
   currentSection = section;
+  
+  // Home タブの特別処理
+  if (section === 'home') {
+    document.body.classList.add('home-active');
+  } else {
+    document.body.classList.remove('home-active');
+  }
+  
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   $(`section-${section}`).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
