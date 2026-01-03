@@ -19,7 +19,7 @@ body.short-break { --bg-overlay: rgba(43,172,118,0.15); }
 body.long-break { --bg-overlay: rgba(18,100,163,0.15); }
 body.home-active .header { background: transparent; backdrop-filter: none; border-bottom: none; }
 body.home-active .header-actions { opacity: 0; transform: translateY(-20px); pointer-events: none; }
-body.home-active .search-wrap { position: absolute; top: calc(37.5% + 100px); left: 50%; transform: translateX(-50%); max-width: 600px; width: 90%; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100; margin: 0; }
+body.home-active .search-wrap { position: relative; top: calc(37.5% + 100px); align-items: center; transform: translateX(-50%); max-width: 600px; width: 90%; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100; margin: 0; }
 
 #bg-container { position: fixed; inset: 0; z-index: -1; }
 .bg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 2.5s; pointer-events: none; }
