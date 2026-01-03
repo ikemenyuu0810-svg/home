@@ -225,9 +225,9 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 .modal-btns { display: flex; gap: 10px; margin-top: 28px; }
 .modal-btn { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
 .modal-btn.primary { background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); color: white; }
-.modal-btn.primary:hover { background: #636362; transform: translateY(-2px); }
+.modal-btn.primary:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
 .modal-btn.secondary { background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); color: #ffffff; }
-.modal-btn.secondary:hover { background: #d8d8d8; }
+.modal-btn.secondary:hover {  background: rgba(255,255,255,0.2); }
 
 .alert { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 10001; }
 .alert.show { display: flex; animation: fadeIn 0.3s; }
