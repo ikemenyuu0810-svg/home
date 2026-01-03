@@ -991,18 +991,21 @@ function checkVis() {
 checkVis();
 setInterval(checkVis, 1000);
 
-document.getElementById("fullscreenBtn").onclick = () => {
+const fsBtn = document.getElementById("fullscreenBtn");
+const label = fsBtn.querySelector(".nav-label");
+
+fsBtn.onclick = () => {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen();
   } else {
     document.exitFullscreen();
   }
 };
-document.addEventListener('fullscreen', () => {
-  const fsBtn = document.getElementById("fullscreenBtn");
+
+document.addEventListener('fullscreenchange', () => {
   if (document.fullscreenElement) {
-    fsBtn.textContent = 'Exit Fullscreen';
+    label.textContent = "Exit Fullscreen";
   } else {
-    fsBtn.textContent = 'Fullscreen';
+    label.textContent = "Fullscreen";
   }
 });
