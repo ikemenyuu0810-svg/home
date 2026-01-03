@@ -938,6 +938,7 @@ function toggleTimer() {
         timerRun = false;
         $('start').textContent = 'Start';
         updateQuickPlayIcon(false);
+        
         if (isWork) {
           cycles++;
           stats.sessions++;
@@ -946,20 +947,23 @@ function toggleTimer() {
           updateStats();
           play('snd-pomo');
           showAlert('作業完了！', '休憩時間です');
-          // 常に自動で休憩を開始（3秒後）
-          setTimeout(() => { 
+          
+          // 3秒後に自動でアラートを閉じて次のフェーズ開始
+          setTimeout(() => {
             hideAlert();
-            switchTimer('short'); 
-            toggleTimer(); 
+            switchTimer('short');
+            toggleTimer();
           }, 3000);
+          
         } else {
           play('snd-timer');
           showAlert('休憩終了！', '次の作業を始めましょう');
-          // 常に自動で作業を開始（3秒後）
-          setTimeout(() => { 
+          
+          // 3秒後に自動でアラートを閉じて次のフェーズ開始
+          setTimeout(() => {
             hideAlert();
-            switchTimer('pomodoro'); 
-            toggleTimer(); 
+            switchTimer('pomodoro');
+            toggleTimer();
           }, 3000);
         }
       }
