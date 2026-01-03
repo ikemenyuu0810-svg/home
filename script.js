@@ -849,13 +849,29 @@ function loadYoutubePlaylist() {
 function updateYoutubeControls() {
   const fixed = $('youtube-fixed-controls');
   
-  if (currentSection !== 'youtube' && ytPlayer && ytPlaylistId) {
-    fixed.classList.add('show');
+  // YouTubeタブ以外で、かつプレイヤーが存在する場合は常に表示
+  if (currentSection !== 'youtube' && ytPlayer) {
+    // プレイリストが読み込まれているか確認
+    try {
+      const playlist = ytPlayer.getPlaylist();
+      if (playlist && playlist.length > 0) {
+        fixed.classList.add('show');
+      } else {
+        fixed.classList.remove('show');
+      }
+    } catch(e) {
+      // プレイリストがない場合は再生中のみ表示
+      if (ytPlaying) {
+        fixed.classList.add('show');
+      } else {
+        fixed.classList.remove('show');
+      }
+    }
   } else {
+    // YouTubeタブ内では非表示
     fixed.classList.remove('show');
   }
 }
-
 function nextYoutube() {
   if (ytPlayer) ytPlayer.nextVideo();
 }
