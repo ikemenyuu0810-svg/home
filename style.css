@@ -82,7 +82,9 @@ body.home-active .search-wrap { top: calc(37.5% + 60px); width: 85%; }
 .section.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 .section-title { font-size: 24px; font-weight: 700; margin-bottom: 20px; text-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 1;}
-#section-home{ position: relative; height: 100%; display: flex; align-items: center; justify-content: center; }
+#section-home { position: relative; height: 100%; display: none; align-items: center; justify-content: center; }
+#section-home.active { display: flex; }
+
 
 .timer-hero { background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); border-radius: 12px; padding: 40px; text-align: center; margin-bottom: 24px; border: 1px solid var(--border); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
 .timer-tabs { display: inline-flex; gap: 6px; margin-bottom: 32px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 10px; }
