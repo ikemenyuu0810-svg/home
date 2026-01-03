@@ -990,22 +990,3 @@ function checkVis() {
 }
 checkVis();
 setInterval(checkVis, 1000);
-
-const fsBtn = document.getElementById("fullscreenBtn");
-const label = fsBtn.querySelector(".nav-label");
-
-fsBtn.onclick = () => {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen();
-  } else {
-    document.exitFullscreen();
-  }
-};
-
-document.addEventListener('fullscreenchange', () => {
-  if (document.fullscreenElement) {
-    label.textContent = "Exit Fullscreen";
-  } else {
-    label.textContent = "Fullscreen";
-  }
-});
