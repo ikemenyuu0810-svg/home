@@ -219,8 +219,8 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 .modal-content { background: rgba(255,255,255,0.15); backdrop-filter: blur(20px); border:1px solid var(--border); border-radius: 16px; padding: 32px; max-width: 520px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 24px 48px rgba(0,0,0,0.5); animation: slideUp 0.4s; color: #333; }
 .modal-title { font-size: 24px; font-weight: 800; margin-bottom: 24px; color: #ffffff; }
 .setting-item { margin-bottom: 20px; }
-.setting-label { display: block; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.12); backdrop-filter:blur(10px); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-.setting-input { width: 100%; padding: 12px 14px; backdrop-filter: blur(10px); border-radius: 8px; font-size: 15px; font-weight: 600; color: #333; background: rbg(255,255,255); transition: all 0.2s; }
+.setting-label { display: block; font-size: 13px; font-weight: 700; color: rgba(255,255,255);margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.setting-input { width: 100%; padding: 12px 14px; backdrop-filter: blur(10px); border-radius: 8px; font-size: 15px; font-weight: 600; color: #333; background: rbga(255,255,255,0.12); backdrop-filter:blur(10px); transition: all 0.2s; }
 .setting-input:focus { outline: none; border-color: #1264a3; box-shadow: 0 0 0 3px rgba(18,100,163,0.1); }
 .modal-btns { display: flex; gap: 10px; margin-top: 28px; }
 .modal-btn { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
