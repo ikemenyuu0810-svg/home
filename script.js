@@ -990,3 +990,19 @@ function checkVis() {
 }
 checkVis();
 setInterval(checkVis, 1000);
+
+document.getElementById("fullscreenBtn").onclick = () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+};
+document.addEventListener('fullscreenchange', () => {
+  const fsBtn = document.getElementById("fullscreenBtn");
+  if (document.fullscreenElement) {
+    fsBtn.textContent = 'Exit Fullscreen';
+  } else {
+    fsBtn.textContent = 'Fullscreen';
+  }
+});
