@@ -1055,24 +1055,25 @@ setInterval(checkVis, 1000);
 // Actions Ring
 let ringOpen = false;
 
-function toggleActionsRing() {
+function showActionsRing(x, y) {
   play('snd-click');
-  ringOpen = !ringOpen;
   const ring = $('actions-ring');
-  const trigger = $('ring-trigger');
   
-  if (ringOpen) {
-    ring.classList.add('active');
-    trigger.classList.add('active');
-  } else {
-    ring.classList.remove('active');
-    trigger.classList.remove('active');
-  }
+  ring.style.left = x + 'px';
+  ring.style.top = y + 'px';
+  ring.classList.add('active');
+  ringOpen = true;
+}
+
+function hideActionsRing() {
+  const ring = $('actions-ring');
+  ring.classList.remove('active');
+  ringOpen = false;
 }
 
 function ringAction(action) {
   play('snd-click');
-  toggleActionsRing();
+  hideActionsRing();
   
   switch(action) {
     case 'timer':
@@ -1102,10 +1103,23 @@ function ringAction(action) {
   }
 }
 
-// クリック外で閉じる
+// 右クリックで表示
+document.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  showActionsRing(e.clientX, e.clientY);
+});
+
+// 左クリックで閉じる
 document.addEventListener('click', (e) => {
   const ring = $('actions-ring');
-  if (ringOpen && !ring.contains(e.target)) {
-    toggleActionsRing();
+  if (ringOpen && !e.target.closest('.ring-item')) {
+    hideActionsRing();
+  }
+});
+
+// ESCキーで閉じる
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && ringOpen) {
+    hideActionsRing();
   }
 });
