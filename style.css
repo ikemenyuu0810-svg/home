@@ -169,7 +169,7 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 .notion-tab.active { background: #1264a3; }
 .notion-add { background: #2bac76; }
 .notion-add:hover { background: #25a06a; }
-.notion-tab-delete { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: rgba(255,0,0,0.7); border: none; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 12px; cursor: pointer; display: none; align-items: center; justify-content: center; line-height: 1; transition: all 0.2s; }
+.notion-tab-delete { background: rgba(255,0,0,0.7); border: none; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 11px; line-height: 1; cursor: pointer; display: none; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; padding: 0; margin-left: 4px; }
 .notion-tab-delete:hover { background: rgba(255,0,0,0.9); transform: translateY(-50%) scale(1.1); }
 
 .gemini-wrap { display: flex; align-items: flex-end; gap: 10px; }
