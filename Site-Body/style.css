@@ -267,7 +267,7 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 
 .youtube-fixed-controls { position: fixed; bottom: 90px; right: 24px; background: hsla(0, 0%, 0%, 0.55); backdrop-filter: blur(20px); border-radius: 12px; padding: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); display: none; z-index: 998; }
 .youtube-fixed-controls.show { display: flex; align-items: center; gap: 8px; }
-#home-clock { font-variant-numeric: tabular-nums; font-family: "MyFont"; font-weight: 400; font-style: normal; position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 22.5vh; letter-spacing: 0.2rem; color: #ffffff; font-variant-numeric: tabular-nums; }
+#home-clock { font-variant-numeric: tabular-nums; font-family: "apple-fonts"; font-weight: 400; font-style: normal; position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 22.5vh; letter-spacing: 0.2rem; color: #ffffff; font-variant-numeric: tabular-nums; }
 @media (max-width: 768px) { #home-clock { font-size: 3rem; } }
-@font-face { font-family: "MyFont"; src: url("../font/mathfonts.ttf") format("truetype"); font-display: swap;}
-@font-face { font-family: "MyFont"; src: url("../font/applefonts.woff2") format("woff2"); font-display: swap;}
+@font-face { font-family: "math-fonts"; src: url("../font/mathfonts.ttf") format("truetype"); font-display: swap;}
+@font-face { font-family: "apple-fonts"; src: url("../font/applefonts.woff2") format("woff2"); font-display: swap;}
