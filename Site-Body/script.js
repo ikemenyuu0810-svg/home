@@ -951,7 +951,18 @@ switchTimer('pomodoro');
 loadSettings();
 
 function switchTimer(type) {
+  // タイマーが動いている場合は停止
+  if (timerRun) {
+    clearInterval(timerInt);
+    timerRun = false;
+    $('start').textContent = 'Start';
+    updateQuickPlayIcon(false);
+  }
+  
   timerType = type;
+  document.body.className = type === 'short' ? 'short-break' : type === 'long' ? 'long-break' : '';
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-btn')[type === 'pomodoro' ? 0 : type === 'short' ? 1 : 2].classList.add('active');
   isWork = type === 'pomodoro';
   timeLeft = initialTime = type === 'pomodoro' ? pomoT * 60 : type === 'short' ? shortT * 60 : longT * 60;
   updateTimer();
