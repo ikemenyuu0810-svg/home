@@ -483,792 +483,283 @@ function updateCalcHistory() {
   });
 }
 
- const icons = {
-    star: '<svg class="icon" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
-    pin: '<svg class="icon" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>',
-    trash: '<svg class="icon" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
-};
+// Memo
+const memo = $('memo');
+const memoFiles = {};
+if (localStorage.memo) memo.innerHTML = localStorage.memo;
+if (localStorage.memoFiles) {
+  try {
+    Object.assign(memoFiles, JSON.parse(localStorage.memoFiles));
+  } catch(e) {}
+}
 
-let memos = [];
-let currentMemoId = null;
-let nextId = 1;
-let currentFilter = 'all';
-let currentView = 'list';
-let currentSort = 'updated';
-let currentEditorMode = 'edit';
-let contextMenuMemoId = null;
-let currentColorFilter = '';
-let currentTagFilter = '';
+function saveMemo() {
+  localStorage.memo = memo.innerHTML;
+}
 
-function escapeHtml(text) {
+function clearMemo() {
+  if (confirm('Clear all notes?')) {
+    memo.innerHTML = '';
+    localStorage.removeItem('memo');
+    Object.keys(memoFiles).forEach(k => delete memoFiles[k]);
+    localStorage.removeItem('memoFiles');
+    renderMemoFiles();
+  }
+}
+
+function handleMemoFile(e) {
+  const files = e.target.files;
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const id = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+      memoFiles[id] = {
+        name: file.name,
+        type: file.type,
+        data: ev.target.result
+      };
+      localStorage.memoFiles = JSON.stringify(memoFiles);
+      renderMemoFiles();
+      
+      if (file.type.startsWith('image/')) {
+        const img = document.createElement('img');
+        img.src = ev.target.result;
+        img.className = 'memo-image';
+        img.onclick = () => window.open(ev.target.result, '_blank');
+        memo.appendChild(img);
+        saveMemo();
+      } else if (file.type === 'text/plain') {
+        const reader2 = new FileReader();
+        reader2.onload = e2 => {
+          const div = document.createElement('div');
+          div.style.cssText = 'background:rgba(255,255,255,0.1);padding:10px;border-radius:6px;margin:8px 0;';
+          div.textContent = e2.target.result;
+          memo.appendChild(div);
+          saveMemo();
+        };
+        reader2.readAsText(file);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+}
+
+function renderMemoFiles() {
+  const container = $('memo-files');
+  container.innerHTML = '';
+  Object.entries(memoFiles).forEach(([id, file]) => {
     const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function initData() {
-    try {
-        const storedData = localStorage.getItem('memos-data');
-        if (storedData) {
-            memos = JSON.parse(storedData);
-            nextId = Math.max(...memos.map(m => m.id), 0) + 1;
-            return;
-        }
-    } catch (e) {
-        console.log('Loading from localStorage failed, using default data');
-    }
-    
-    memos = [
-        {
-            id: nextId++,
-            title: 'ようこそ！',
-            content: '# Claft風メモアプリへようこそ！\n\n## 主な機能\n\n- リッチテキスト編集\n- ピン留め機能\n- お気に入り\n- 色分け\n- 右クリックメニュー\n- タグ削除機能\n- localStorageでデータ永続化\n\n**右クリック**でメモの操作メニューを表示！',
-            tags: ['ideas'],
-            favorite: false,
-            pinned: true,
-            archived: false,
-            color: 'blue',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        }
-    ];
-    saveToStorage();
-}
-
-function saveToStorage() {
-    try {
-        localStorage.setItem('memos-data', JSON.stringify(memos));
-    } catch (e) {
-        console.error('Failed to save to localStorage:', e);
-    }
-}
-
-const searchBox = document.getElementById('searchBox');
-const newMemoBtn = document.getElementById('newMemoBtn');
-const memoList = document.getElementById('memoList');
-const mainEditor = document.getElementById('mainEditor');
-const helpBtn = document.getElementById('helpBtn');
-const helpModal = document.getElementById('helpModal');
-const closeHelpBtn = document.getElementById('closeHelpBtn');
-const sortSelect = document.getElementById('sortSelect');
-const contextMenu = document.getElementById('contextMenu');
-const colorFilter = document.getElementById('colorFilter');
-const tagFilter = document.getElementById('tagFilter');
-
-function showToast(message) {
-    const toast = document.getElementById('toast');
-    toast.textContent = message;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
-}
-
-function getFilteredMemos(filter = '') {
-    let filtered = memos.filter(memo => {
-        const matchesSearch = memo.title.toLowerCase().includes(filter.toLowerCase()) ||
-                            memo.content.toLowerCase().includes(filter.toLowerCase());
-        const matchesFilter = 
-            (currentFilter === 'all' && !memo.archived) ||
-            (currentFilter === 'favorites' && memo.favorite && !memo.archived) ||
-            (currentFilter === 'pinned' && memo.pinned && !memo.archived) ||
-            (currentFilter === 'archived' && memo.archived);
-        const matchesColor = !currentColorFilter || memo.color === currentColorFilter;
-        const matchesTag = !currentTagFilter || memo.tags.includes(currentTagFilter);
-        return matchesSearch && matchesFilter && matchesColor && matchesTag;
-    });
-
-    filtered.sort((a, b) => {
-        if (a.pinned && !b.pinned) return -1;
-        if (!a.pinned && b.pinned) return 1;
-        
-        if (currentSort === 'updated') {
-            return new Date(b.updatedAt) - new Date(a.updatedAt);
-        } else if (currentSort === 'created') {
-            return new Date(b.createdAt) - new Date(a.createdAt);
-        } else if (currentSort === 'title') {
-            return a.title.localeCompare(b.title);
-        }
-    });
-
-    return filtered;
-}
-
-function renderMemoList(filter = '') {
-    const filteredMemos = getFilteredMemos(filter);
-    memoList.className = currentView === 'grid' ? 'memo-list grid-view' : 'memo-list';
-
-    memoList.innerHTML = filteredMemos.map(memo => {
-        const date = new Date(memo.updatedAt);
-        const dateStr = date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
-        const safeTitle = escapeHtml(memo.title || '無題のメモ');
-        const safeContent = escapeHtml(memo.content.substring(0, 100) || 'メモを書く...');
-        
-        return `
-            <div class="memo-item ${currentMemoId === memo.id ? 'active' : ''} ${memo.pinned ? 'pinned' : ''}" 
-                 data-id="${memo.id}" data-color="${memo.color || ''}">
-                <div class="memo-item-header">
-                    <div class="memo-item-title">${safeTitle}</div>
-                    <div class="memo-item-actions">
-                        <button class="memo-action-btn pinned ${memo.pinned ? 'active' : ''}" data-id="${memo.id}" title="ピン留め">${icons.pin}</button>
-                        <button class="memo-action-btn favorite ${memo.favorite ? 'active' : ''}" data-id="${memo.id}" title="お気に入り">${icons.star}</button>
-                        <button class="memo-action-btn delete" data-id="${memo.id}" title="削除">${icons.trash}</button>
-                    </div>
-                </div>
-                <div class="memo-item-meta">
-                    <span>${dateStr}</span>
-                    <span>${memo.content.length}文字</span>
-                </div>
-                <div class="memo-item-preview">${safeContent}</div>
-                <div class="memo-item-tags">
-                    ${memo.tags.map(tag => `<span class="tag tag-${tag}">${tag}</span>`).join('')}
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    attachMemoListeners();
-}
-
-function attachMemoListeners() {
-    document.querySelectorAll('.memo-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            if (!e.target.closest('.memo-action-btn')) {
-                selectMemo(parseInt(item.dataset.id));
-            }
-        });
-
-        item.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            contextMenuMemoId = parseInt(item.dataset.id);
-            showContextMenu(e.clientX, e.clientY);
-        });
-    });
-
-    document.querySelectorAll('.pinned').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            togglePin(parseInt(btn.dataset.id));
-        });
-    });
-
-    document.querySelectorAll('.favorite').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleFavorite(parseInt(btn.dataset.id));
-        });
-    });
-
-    document.querySelectorAll('.delete').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            deleteMemo(parseInt(btn.dataset.id));
-        });
-    });
-}
-
-function showContextMenu(x, y) {
-    contextMenu.style.left = x + 'px';
-    contextMenu.style.top = y + 'px';
-    contextMenu.classList.add('show');
-
-    setTimeout(() => {
-        const rect = contextMenu.getBoundingClientRect();
-        if (rect.right > window.innerWidth) {
-            contextMenu.style.left = (x - rect.width) + 'px';
-        }
-        if (rect.bottom > window.innerHeight) {
-            contextMenu.style.top = (y - rect.height) + 'px';
-        }
-    }, 0);
-}
-
-function hideContextMenu() {
-    contextMenu.classList.remove('show');
-    contextMenuMemoId = null;
-}
-
-document.querySelectorAll('.context-menu-item[data-action]').forEach(item => {
-    item.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const action = item.dataset.action;
-        const color = item.dataset.color;
-
-        if (!contextMenuMemoId) return;
-
-        switch(action) {
-            case 'edit':
-                selectMemo(contextMenuMemoId);
-                break;
-            case 'duplicate':
-                duplicateMemo(contextMenuMemoId);
-                break;
-            case 'favorite':
-                toggleFavorite(contextMenuMemoId);
-                break;
-            case 'pin':
-                togglePin(contextMenuMemoId);
-                break;
-            case 'color':
-                changeColor(contextMenuMemoId, color);
-                break;
-            case 'archive':
-                toggleArchive(contextMenuMemoId);
-                break;
-            case 'export':
-                exportMemo(contextMenuMemoId);
-                break;
-            case 'delete':
-                deleteMemo(contextMenuMemoId);
-                break;
-        }
-
-        hideContextMenu();
-    });
-});
-
-document.addEventListener('click', hideContextMenu);
-contextMenu.addEventListener('click', (e) => e.stopPropagation());
-
-function parseMarkdown(text) {
-    let html = text
-        .replace(/!\[([^\]]*)\]\(data:image\/[^;]+;base64,[^\)]+\)/g, (match) => {
-            return `<img src="${match.match(/\((data:image[^\)]+)\)/)[1]}" alt="uploaded image">`;
-        })
-        .replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-        .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-        .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-        .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/`(.*?)`/g, '<code>$1</code>')
-        .replace(/^---$/gm, '<hr>')
-        .replace(/@date\(([^\)]+)\)/g, '<span class="memo-date">$1</span>')
-        .replace(/^- (.*$)/gm, '<li>$1</li>')
-        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-        .replace(/\n\n/g, '</p><p>')
-        .replace(/^(?!<[hul])/gm, '<p>')
-        .replace(/(?<![>])$/gm, '</p>');
-    
-    return html;
-}
-
-function renderEditor(memoId) {
-    const memo = memos.find(m => m.id === memoId);
-    if (!memo) {
-        mainEditor.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state-text">メモを選択するか、新しいメモを作成してください</div>
-                <div class="empty-state-hint">ショートカット: Ctrl+N で新規メモ</div>
-            </div>
-        `;
-        return;
-    }
-
-    const stats = {
-        chars: memo.content.length,
-        words: memo.content.split(/\s+/).filter(w => w).length,
-        lines: memo.content.split('\n').length
-    };
-
-    const safeTitle = escapeHtml(memo.title);
-    const safeContent = escapeHtml(memo.content);
-
-    mainEditor.innerHTML = `
-        <div class="editor-header">
-            <input type="text" class="editor-title" id="editorTitle" placeholder="タイトルを入力..." value="${safeTitle}">
-            <div class="editor-tabs">
-                <button class="editor-tab active" data-mode="edit">
-                    <svg class="icon" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                    </svg>
-                    編集
-                </button>
-                <button class="editor-tab" data-mode="preview">
-                    <svg class="icon" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                    プレビュー
-                </button>
-            </div>
-            <div class="editor-toolbar">
-                <div class="toolbar-group">
-                    <button class="icon-btn" id="uploadBtn" title="画像をアップロード">
-                        <svg class="icon" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                            <circle cx="8.5" cy="8.5" r="1.5"/>
-                            <polyline points="21 15 16 10 5 21"/>
-                        </svg>
-                    </button>
-                    <input type="file" id="fileInput" class="file-input-hidden" accept="image/*">
-                    <button class="icon-btn" id="linkBtn" title="リンクを挿入">
-                        <svg class="icon" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2">
-                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                        </svg>
-                    </button>
-                    <button class="icon-btn" id="dateBtn" title="日付を挿入">
-                        <svg class="icon" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                            <line x1="16" y1="2" x2="16" y2="6"/>
-                            <line x1="8" y1="2" x2="8" y2="6"/>
-                            <line x1="3" y1="10" x2="21" y2="10"/>
-                        </svg>
-                    </button>
-                    <button class="icon-btn" id="lineBtn" title="ラインを挿入">
-                        <svg class="icon" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2">
-                            <line x1="3" y1="12" x2="21" y2="12"/>
-                        </svg>
-                    </button>
-                </div>
-                <div class="toolbar-divider"></div>
-                <div class="toolbar-group">
-                    <select class="tag-select" id="tagSelect">
-                        <option value="">タグを追加...</option>
-                        <option value="work">work</option>
-                        <option value="personal">personal</option>
-                        <option value="ideas">ideas</option>
-                        <option value="todo">todo</option>
-                    </select>
-                    <div class="memo-item-tags" id="currentTags">
-                        ${memo.tags.map(tag => `
-                            <span class="tag tag-${tag}">
-                                ${tag}
-                                <span class="tag-remove" data-tag="${tag}">×</span>
-                            </span>
-                        `).join('')}
-                    </div>
-                </div>
-                <div class="toolbar-divider"></div>
-                <div class="toolbar-group">
-                    <select class="color-select" id="colorSelect">
-                        <option value="">色を選択...</option>
-                        <option value="red">赤</option>
-                        <option value="orange">オレンジ</option>
-                        <option value="yellow">黄色</option>
-                        <option value="green">緑</option>
-                        <option value="blue">青</option>
-                        <option value="purple">紫</option>
-                        <option value="pink">ピンク</option>
-                    </select>
-                </div>
-                <div class="toolbar-divider"></div>
-                <div class="toolbar-group">
-                    <button class="icon-btn" id="duplicateBtn" title="複製">
-                        <svg class="icon" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                        </svg>
-                    </button>
-                    <button class="icon-btn" id="exportBtn" title="エクスポート">
-                        <svg class="icon" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                    </button>
-                    <button class="icon-btn" id="archiveBtn" title="${memo.archived ? 'アーカイブ解除' : 'アーカイブ'}">
-                        <svg class="icon" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2">
-                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            <div class="editor-stats">
-                <span>${stats.chars} 文字</span>
-                <span>${stats.words} 単語</span>
-                <span>${stats.lines} 行</span>
-            </div>
-        </div>
-        <div class="editor-content" id="editorContent">
-            <textarea class="editor-textarea" id="editorTextarea" placeholder="ここにメモを書く...">${safeContent}</textarea>
-        </div>
+    div.className = 'memo-file';
+    div.innerHTML = `
+      <span>${file.name}</span>
+      <button class="memo-file-remove" onclick="removeMemoFile('${id}')">×</button>
     `;
-
-    attachEditorListeners(memo);
-}
-
-function attachEditorListeners(memo) {
-    const titleInput = document.getElementById('editorTitle');
-    const contentInput = document.getElementById('editorTextarea');
-    const tagSelect = document.getElementById('tagSelect');
-    const colorSelect = document.getElementById('colorSelect');
-    const duplicateBtn = document.getElementById('duplicateBtn');
-    const exportBtn = document.getElementById('exportBtn');
-    const archiveBtn = document.getElementById('archiveBtn');
-    const editorTabs = document.querySelectorAll('.editor-tab');
-    const uploadBtn = document.getElementById('uploadBtn');
-    const fileInput = document.getElementById('fileInput');
-    const linkBtn = document.getElementById('linkBtn');
-    const dateBtn = document.getElementById('dateBtn');
-    const lineBtn = document.getElementById('lineBtn');
-
-    if (memo.color) {
-        colorSelect.value = memo.color;
-    }
-
-    titleInput.addEventListener('input', (e) => {
-        memo.title = e.target.value;
-        memo.updatedAt = new Date().toISOString();
-        saveToStorage();
-        renderMemoList(searchBox.value);
-    });
-
-    contentInput.addEventListener('input', (e) => {
-        memo.content = e.target.value;
-        memo.updatedAt = new Date().toISOString();
-        saveToStorage();
-        renderMemoList(searchBox.value);
-        updateStats();
-    });
-
-    uploadBtn.addEventListener('click', () => {
-        fileInput.click();
-    });
-
-    fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file && file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const base64 = event.target.result;
-                const cursorPos = contentInput.selectionStart;
-                const textBefore = contentInput.value.substring(0, cursorPos);
-                const textAfter = contentInput.value.substring(cursorPos);
-                contentInput.value = textBefore + `![uploaded image](${base64})` + textAfter;
-                memo.content = contentInput.value;
-                memo.updatedAt = new Date().toISOString();
-                saveToStorage();
-                renderMemoList(searchBox.value);
-                showToast('画像を挿入しました');
-            };
-            reader.readAsDataURL(file);
+    div.onclick = e => {
+      if (e.target.tagName !== 'BUTTON') {
+        if (file.type.startsWith('image/')) {
+          window.open(file.data, '_blank');
+        } else {
+          const a = document.createElement('a');
+          a.href = file.data;
+          a.download = file.name;
+          a.click();
         }
-        fileInput.value = '';
-    });
-
-    linkBtn.addEventListener('click', () => {
-        const url = prompt('リンクのURLを入力してください:');
-        if (url) {
-            const text = prompt('リンクのテキストを入力してください:', url);
-            if (text !== null) {
-                const cursorPos = contentInput.selectionStart;
-                const textBefore = contentInput.value.substring(0, cursorPos);
-                const textAfter = contentInput.value.substring(cursorPos);
-                contentInput.value = textBefore + `[${text}](${url})` + textAfter;
-                memo.content = contentInput.value;
-                memo.updatedAt = new Date().toISOString();
-                saveToStorage();
-                showToast('リンクを挿入しました');
-            }
-        }
-    });
-
-    dateBtn.addEventListener('click', () => {
-        const now = new Date();
-        const dateStr = now.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
-        const cursorPos = contentInput.selectionStart;
-        const textBefore = contentInput.value.substring(0, cursorPos);
-        const textAfter = contentInput.value.substring(cursorPos);
-        contentInput.value = textBefore + `@date(${dateStr})` + textAfter;
-        memo.content = contentInput.value;
-        memo.updatedAt = new Date().toISOString();
-        saveToStorage();
-        showToast('日付を挿入しました');
-    });
-
-    lineBtn.addEventListener('click', () => {
-        const cursorPos = contentInput.selectionStart;
-        const textBefore = contentInput.value.substring(0, cursorPos);
-        const textAfter = contentInput.value.substring(cursorPos);
-        contentInput.value = textBefore + '\n---\n' + textAfter;
-        memo.content = contentInput.value;
-        memo.updatedAt = new Date().toISOString();
-        saveToStorage();
-        showToast('ラインを挿入しました');
-    });
-
-    tagSelect.addEventListener('change', (e) => {
-        if (e.target.value && !memo.tags.includes(e.target.value)) {
-            memo.tags.push(e.target.value);
-            memo.updatedAt = new Date().toISOString();
-            saveToStorage();
-            renderEditor(memo.id);
-            renderMemoList(searchBox.value);
-        }
-        e.target.value = '';
-    });
-
-    document.querySelectorAll('.tag-remove').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const tagToRemove = btn.dataset.tag;
-            memo.tags = memo.tags.filter(tag => tag !== tagToRemove);
-            memo.updatedAt = new Date().toISOString();
-            saveToStorage();
-            renderEditor(memo.id);
-            renderMemoList(searchBox.value);
-            showToast('タグを削除しました');
-        });
-    });
-
-    colorSelect.addEventListener('change', (e) => {
-        memo.color = e.target.value;
-        memo.updatedAt = new Date().toISOString();
-        saveToStorage();
-        renderMemoList(searchBox.value);
-        showToast('色を変更しました');
-    });
-
-    duplicateBtn.addEventListener('click', () => duplicateMemo(memo.id));
-    exportBtn.addEventListener('click', () => exportMemo(memo.id));
-    archiveBtn.addEventListener('click', () => toggleArchive(memo.id));
-
-    editorTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            editorTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            toggleEditorMode(tab.dataset.mode);
-        });
-    });
-
-    function updateStats() {
-        const stats = {
-            chars: memo.content.length,
-            words: memo.content.split(/\s+/).filter(w => w).length,
-            lines: memo.content.split('\n').length
-        };
-        document.querySelector('.editor-stats').innerHTML = `
-            <span>${stats.chars} 文字</span>
-            <span>${stats.words} 単語</span>
-            <span>${stats.lines} 行</span>
-        `;
-    }
-}
-
-function toggleEditorMode(mode) {
-    currentEditorMode = mode;
-    const content = document.getElementById('editorContent');
-    const textarea = document.getElementById('editorTextarea');
-    
-    if (mode === 'preview') {
-        const currentContent = memos.find(m => m.id === currentMemoId)?.content || '';
-        content.innerHTML = `<div class="markdown-preview">${parseMarkdown(currentContent)}</div>`;
-    } else {
-        const currentContent = memos.find(m => m.id === currentMemoId)?.content || '';
-        const safeContent = escapeHtml(currentContent);
-        content.innerHTML = `<textarea class="editor-textarea" id="editorTextarea" placeholder="ここにメモを書く...">${safeContent}</textarea>`;
-        attachEditorListeners(memos.find(m => m.id === currentMemoId));
-    }
-}
-
-function selectMemo(id) {
-    currentMemoId = id;
-    renderEditor(id);
-    renderMemoList(searchBox.value);
-}
-
-function createNewMemo() {
-    const newMemo = {
-        id: nextId++,
-        title: '',
-        content: '',
-        tags: [],
-        favorite: false,
-        pinned: false,
-        archived: false,
-        color: '',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+      }
     };
-    memos.unshift(newMemo);
-    saveToStorage();
-    selectMemo(newMemo.id);
-    showToast('新しいメモを作成しました');
+    container.appendChild(div);
+  });
 }
 
-function togglePin(id) {
-    const memo = memos.find(m => m.id === id);
-    if (memo) {
-        memo.pinned = !memo.pinned;
-        memo.updatedAt = new Date().toISOString();
-        saveToStorage();
-        renderMemoList(searchBox.value);
-        showToast(memo.pinned ? 'ピン留めしました' : 'ピン留めを解除しました');
-    }
+function removeMemoFile(id) {
+  delete memoFiles[id];
+  localStorage.memoFiles = JSON.stringify(memoFiles);
+  renderMemoFiles();
 }
 
-function toggleFavorite(id) {
-    const memo = memos.find(m => m.id === id);
-    if (memo) {
-        memo.favorite = !memo.favorite;
-        memo.updatedAt = new Date().toISOString();
-        saveToStorage();
-        renderMemoList(searchBox.value);
-        showToast(memo.favorite ? 'お気に入りに追加しました' : 'お気に入りから削除しました');
-    }
+function insertLink() {
+  const url = prompt('Enter URL:');
+  if (url) {
+    const name = prompt('Enter link name:') || url;
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.textContent = name;
+    a.style.cssText = 'color:#2bac76;text-decoration:underline;';
+    memo.appendChild(a);
+    memo.appendChild(document.createTextNode(' '));
+    saveMemo();
+  }
 }
 
-function toggleArchive(id) {
-    const memo = memos.find(m => m.id === id);
-    if (memo) {
-        memo.archived = !memo.archived;
-        memo.updatedAt = new Date().toISOString();
-        saveToStorage();
-        if (memo.archived) {
-            currentMemoId = null;
-            renderEditor(null);
-        }
-        renderMemoList(searchBox.value);
-        showToast(memo.archived ? 'アーカイブしました' : 'アーカイブを解除しました');
-    }
+renderMemoFiles();
+
+// Clock
+function updateClocks() {
+  const now = new Date();
+  const t = fmtTime3(now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds());
+  $('time').textContent = t;
+  $('float-clock-time').textContent = t;
+  const wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][now.getDay()];
+  $('date').textContent = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} (${wd})`;
+  
+  const getTZ = tz => {
+    const d = new Date(now.toLocaleString('en-US', {timeZone: tz}));
+    return fmtTime3(d.getHours()*3600+d.getMinutes()*60+d.getSeconds());
+  };
+  
+  $('tokyo').textContent = getTZ('Asia/Tokyo');
+  $('ny').textContent = getTZ('America/New_York');
+  $('london').textContent = getTZ('Europe/London');
+}
+updateClocks();
+setInterval(updateClocks, 1000);
+
+function updateHomeClock() {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const homeClockEl = $('home-clock');
+  if (homeClockEl) {
+    homeClockEl.textContent = `${hours}:${minutes}:${seconds}`;
+  }
+}
+updateHomeClock();
+setInterval(updateHomeClock, 1000);
+// Weather
+function loadWeather() {
+  fetch(`https://api.openweathermap.org/data/2.5/weather?lat=35.85272206403399&lon=136.28673448772105&appid=8eb6dc5492a964ea79dd0ef92f1ae01c&units=metric&lang=ja`)
+    .then(r => r.json())
+    .then(d => {
+      $('w-icon').src = `./weather-svg/${d.weather[0].icon}.svg`;
+      $('w-icon').style.display = 'block';
+      $('w-desc').textContent = d.weather[0].description;
+      $('w-temp').textContent = Math.round(d.main.temp) + '°';
+      $('w-max').textContent = Math.round(d.main.temp_max);
+      $('w-min').textContent = Math.round(d.main.temp_min);
+      $('w-loc').textContent = d.name || '指定地点';
+    })
+    .catch(e => { $('w-desc').textContent = 'Error loading weather'; });
 }
 
-function changeColor(id, color) {
-    const memo = memos.find(m => m.id === id);
-    if (memo) {
-        memo.color = color;
-        memo.updatedAt = new Date().toISOString();
-        saveToStorage();
-        renderMemoList(searchBox.value);
-        if (currentMemoId === id) {
-            renderEditor(id);
-        }
-        showToast('色を変更しました');
-    }
+function reloadWeather() {
+  play('snd-click');
+  loadWeather();
+  const iframe = $('weather-iframe');
+  iframe.src = iframe.src;
 }
 
-function deleteMemo(id) {
-    if (confirm('このメモを削除しますか？')) {
-        memos = memos.filter(m => m.id !== id);
-        saveToStorage();
-        if (currentMemoId === id) {
-            currentMemoId = null;
-            renderEditor(null);
-        }
-        renderMemoList(searchBox.value);
-        showToast('メモを削除しました');
-    }
+loadWeather();
+setInterval(loadWeather, 1800000);
+
+// Gemini
+function sendGemini() {
+  const msg = $('gemini').textContent.trim();
+  if (!msg) return;
+  $('gemini').textContent = '';
+  console.log('Message sent to Gemini:', msg);
 }
 
-function duplicateMemo(id) {
-    const memo = memos.find(m => m.id === id);
-    if (memo) {
-        const newMemo = {
-            ...memo,
-            id: nextId++,
-            title: memo.title + ' (コピー)',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-        memos.unshift(newMemo);
-        saveToStorage();
-        selectMemo(newMemo.id);
-        showToast('メモを複製しました');
-    }
+// Quick Links
+let quickLinks = JSON.parse(localStorage.getItem('quick-links') || JSON.stringify([
+  {name:'GitHub',url:'https://github.com',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.840 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.430.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>'},
+  {name:'ChatGPT',url:'https://chat.openai.com',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>'},
+  {name:'Claude',url:'https://claude.ai',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M12 0C5.37258 0 0 5.37258 0 12C0 18.6274 5.37258 24 12 24C18.6274 24 24 18.6274 24 12C24 5.37258 18.6274 0 12 0ZM12 22.1538C6.15385 22.1538 1.84615 17.8462 1.84615 12C1.84615 6.15385 6.15385 1.84615 12 1.84615C17.8462 1.84615 22.1538 6.15385 22.1538 12C22.1538 17.8462 17.8462 22.1538 12 22.1538Z"/><path d="M16.6154 7.38462H7.38462C6.56769 7.38462 5.96154 8.00769 5.96154 8.76923V15.2308C5.96154 15.9923 6.56769 16.6154 7.38462 16.6154H16.6154C17.4323 16.6154 18.0385 15.9923 18.0385 15.2308V8.76923C18.0385 8.00769 17.4323 7.38462 16.6154 7.38462ZM16.6154 15.2308H7.38462V8.76923H16.6154V15.2308Z"/></svg>'},
+  {name:'VS Code',url:'https://vscode.dev',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.942-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/></svg>'},
+  {name:'Notion',url:'https://notion.so',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.933zm14.336.653c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z"/></svg>'},
+  {name:'Drive',url:'https://drive.google.com',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M7.71 3.5L1.15 15l3.43 5.5h13.71L22 15l-6.56-11.5H7.71zM8.73 5.5h6.54L19.21 15h-3.09l-3.43-5.5-4.63 8H4.03L8.73 5.5zm-.42 11.5h6.54l-3.26 5.5h-6.54l3.26-5.5z"/></svg>'}
+]));
+
+function renderQuickLinksSidebar() {
+  const container = $('quick-links-sidebar');
+  container.innerHTML = '';
+  quickLinks.forEach(link => {
+    const a = document.createElement('a');
+    a.className = 'quick-link-sidebar-item';
+    a.href = link.url;
+    a.target = '_blank';
+    a.innerHTML = `<div class="quick-link-sidebar-icon">${link.icon}</div>`;
+    a.title = link.name;
+    container.appendChild(a);
+  });
 }
 
-function exportMemo(id) {
-    const memo = memos.find(m => m.id === id);
-    if (memo) {
-        const content = `# ${memo.title}\n\n${memo.content}`;
-        const blob = new Blob([content], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${memo.title || 'memo'}.txt`;
-        a.click();
-        URL.revokeObjectURL(url);
-        showToast('メモをエクスポートしました');
-    }
-}
+function showAppSettings() {
+  play('snd-click');
+  const edit = $('quick-links-edit');
+  edit.innerHTML = '';
 
-searchBox.addEventListener('input', (e) => {
-    renderMemoList(e.target.value);
-});
+  quickLinks.forEach((link, idx) => {
+    const container = document.createElement('div');
+    container.style.cssText = 'margin-bottom:15px;padding:15px;background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);border-radius:8px;';
 
-colorFilter.addEventListener('change', (e) => {
-    currentColorFilter = e.target.value;
-    renderMemoList(searchBox.value);
-});
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.placeholder = 'Name';
+    nameInput.value = link.name;
+    nameInput.style.cssText = 'width:100%;padding:8px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;';
+    nameInput.addEventListener('input', (e) => { link.name = e.target.value; });
 
-tagFilter.addEventListener('change', (e) => {
-    currentTagFilter = e.target.value;
-    renderMemoList(searchBox.value);
-});
+    const urlInput = document.createElement('input');
+    urlInput.type = 'text';
+    urlInput.placeholder = 'URL';
+    urlInput.value = link.url;
+    urlInput.style.cssText = 'width:100%;padding:8px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;';
+    urlInput.addEventListener('input', (e) => { link.url = e.target.value; });
 
-newMemoBtn.addEventListener('click', createNewMemo);
-helpBtn.addEventListener('click', () => {
-    helpModal.classList.add('show');
-});
+    const label = document.createElement('label');
+    label.style.cssText = 'display:block;padding:8px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.1);color:white;backdrop-filter:blur(10px);border-radius:8px;cursor:pointer;text-align:center;margin-bottom:8px;';
+    label.textContent = 'Upload Icon';
+    
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    fileInput.addEventListener('change', (e) => uploadQuickLinkIcon(idx, e));
+    label.appendChild(fileInput);
 
-closeHelpBtn.addEventListener('click', () => {
-    helpModal.classList.remove('show');
-});
-
-helpModal.addEventListener('click', (e) => {
-    if (e.target === helpModal) {
-        helpModal.classList.remove('show');
-    }
-});
-
-document.querySelectorAll('.filter-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        currentFilter = tab.dataset.filter;
-        renderMemoList(searchBox.value);
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = 'Remove';
+    removeBtn.style.cssText = 'padding:8px 16px;background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);color:white;border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;width:100%;';
+    removeBtn.addEventListener('click', () => {
+      quickLinks.splice(idx, 1);
+      showAppSettings();
     });
-});
 
-document.querySelectorAll('.control-btn[data-view]').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.control-btn[data-view]').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentView = btn.dataset.view;
-        renderMemoList(searchBox.value);
-    });
-});
+    container.append(nameInput, urlInput, label, removeBtn);
+    edit.appendChild(container);
+  });
 
-sortSelect.addEventListener('change', (e) => {
-    currentSort = e.target.value;
-    renderMemoList(searchBox.value);
-});
+  $('app-settings').classList.add('show');
+}
 
-document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey || e.metaKey) {
-        if (e.key === 'n') {
-            e.preventDefault();
-            createNewMemo();
-        } else if (e.key === 's') {
-            e.preventDefault();
-            saveToStorage();
-            showToast('保存しました');
-        } else if (e.key === 'f') {
-            e.preventDefault();
-            searchBox.focus();
-        } else if (e.key === 'd') {
-            e.preventDefault();
-            if (currentMemoId) {
-                deleteMemo(currentMemoId);
-            }
-        } else if (e.key === 'b') {
-            e.preventDefault();
-            if (currentMemoId) {
-                toggleFavorite(currentMemoId);
-            }
-        }
-    }
-});
+function hideAppSettings() {
+  play('snd-click');
+  localStorage.setItem('quick-links', JSON.stringify(quickLinks));
+  renderQuickLinksSidebar();
+  $('app-settings').classList.remove('show');
+}
 
-initData();
-renderMemoList();
+function addQuickLink() {
+  quickLinks.push({name:'New Link',url:'https://example.com',icon:'<svg viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="10"/></svg>'});
+  showAppSettings();
+}
 
-setInterval(() => {
-    if (memos.length > 0) {
-        saveToStorage();
-    }
-}, 5000);
+function uploadQuickLinkIcon(idx, e) {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      quickLinks[idx].icon = `<img src="${ev.target.result}">`;
+      showAppSettings();
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+renderQuickLinksSidebar();
+
 // Notion
 let notionPages = JSON.parse(localStorage.getItem('notion-pages') || JSON.stringify([
   {name:'Tasks',url:'https://todolist-home.notion.site/ebd//2c9ee93cc3e4800aba3ef91a7b2b0a31?v=2c9ee93cc3e480868d75000c8bfe4b7d'},
