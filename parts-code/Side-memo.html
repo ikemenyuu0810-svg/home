@@ -85,33 +85,54 @@
     let isDragging = false;
     let startX, startY;
 
+    // --- 1. データの読み込み (ページロード時) ---
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedData = JSON.parse(localStorage.getItem('glassMemoData'));
+        if (savedData) {
+            container.style.left = savedData.left + 'px';
+            container.style.top = savedData.top + 'px';
+            textarea.value = savedData.text || "";
+        }
+    });
+
+    // --- 2. データの保存関数 ---
+    function saveData() {
+        const data = {
+            left: container.offsetLeft,
+            top: container.offsetTop,
+            text: textarea.value
+        };
+        localStorage.setItem('glassMemoData', JSON.stringify(data));
+    }
+
     // ドラッグ開始
     container.addEventListener('mousedown', (e) => {
-        // テキストエリア自体のクリックや、スクロールバー操作時はドラッグしない
         if (e.target === textarea) return;
-
         isDragging = true;
         startX = e.clientX - container.offsetLeft;
         startY = e.clientY - container.offsetTop;
-        
-        container.style.opacity = "0.8"; // 移動中に少し透けさせる演出
+        container.style.opacity = "0.8";
         document.body.style.userSelect = 'none';
     });
 
-    // マウス移動中
     document.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
-        
         container.style.left = (e.clientX - startX) + 'px';
         container.style.top = (e.clientY - startY) + 'px';
     });
 
-    // ドラッグ終了
+    // ドラッグ終了時に保存
     document.addEventListener('mouseup', () => {
-        isDragging = false;
-        container.style.opacity = "1.0";
-        document.body.style.userSelect = 'auto';
+        if (isDragging) {
+            isDragging = false;
+            container.style.opacity = "1.0";
+            document.body.style.userSelect = 'auto';
+            saveData(); // 位置を保存
+        }
     });
+
+    // テキスト入力時に保存
+    textarea.addEventListener('input', saveData);
 </script>
 
 </body>
