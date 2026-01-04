@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Logicool Actions Ring</title>
+  <style>
+    body {
+  height: 200vh;
+  background: #111;
+}
+
+.ring {
+  position: fixed;
+  width: 240px;
+  height: 240px;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.7);
+  transition: 0.15s ease;
+  z-index: 9999;
+}
+
+.ring.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.center {
+  position: absolute;
+  inset: 50%;
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.action {
+  --r: 95px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  font-size: 22px;
+  cursor: pointer;
+
+  transform:
+    translate(-50%, -50%)
+    translate(
+      calc(cos(var(--a) * 1deg) * var(--r)),
+      calc(sin(var(--a) * 1deg) * var(--r))
+    )
+    scale(0.8);
+
+  opacity: 0.6;
+  transition: 0.12s ease;
+}
+
+.action.active {
+  background: #00d084;
+  color: #000;
+  opacity: 1;
+  transform:
+    translate(-50%, -50%)
+    translate(
+      calc(cos(var(--a) * 1deg) * var(--r)),
+      calc(sin(var(--a) * 1deg) * var(--r))
+    )
+    scale(1.2);
+}
+
+  </style>
+</head>
+<body>
+
+<div id="actions-ring" class="ring">
+  <div class="center"></div>
+
+  <button class="action" data-action="home" style="--a:0">🏠</button>
+  <button class="action" data-action="timer" style="--a:45">⏱</button>
+  <button class="action" data-action="clock" style="--a:90">🕒</button>
+  <button class="action" data-action="weather" style="--a:135">☁</button>
+  <button class="action" data-action="memo" style="--a:180">📝</button>
+  <button class="action" data-action="calc" style="--a:225">🧮</button>
+  <button class="action" data-action="stats" style="--a:270">📊</button>
+  <button class="action" data-action="settings" style="--a:315">⚙</button>
+</div>
+
+<script>
+    const ring = document.getElementById('actions-ring');
+const actions = [...ring.querySelectorAll('.action')];
+
+let origin = { x: 0, y: 0 };
+let active = false;
+let current = null;
+
+document.addEventListener('contextmenu', e => {
+  e.preventDefault();
+  openRing(e.clientX, e.clientY);
+});
+
+document.addEventListener('mousemove', e => {
+  if (!active) return;
+  updateSelection(e.clientX, e.clientY);
+});
+
+document.addEventListener('mouseup', () => {
+  if (active && current) {
+    alert(`Action: ${current.dataset.action}`);
+  }
+  closeRing();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeRing();
+});
+
+function openRing(x, y) {
+  active = true;
+  origin = { x, y };
+
+  ring.style.left = `${x - 120}px`;
+  ring.style.top  = `${y - 120}px`;
+  ring.classList.add('active');
+}
+
+function closeRing() {
+  active = false;
+  current = null;
+  ring.classList.remove('active');
+  actions.forEach(a => a.classList.remove('active'));
+}
+
+function updateSelection(x, y) {
+  const dx = x - origin.x;
+  const dy = y - origin.y;
+  const angle = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+
+  let best = null;
+  let min = 999;
+
+  actions.forEach(btn => {
+    const a = parseFloat(btn.style.getPropertyValue('--a'));
+    const d = Math.abs(((angle - a + 540) % 360) - 180);
+    if (d < min) {
+      min = d;
+      best = btn;
+    }
+  });
+
+  actions.forEach(b => b.classList.remove('active'));
+  best.classList.add('active');
+  current = best;
+}
+
+</script>
+</body>
+</html>
