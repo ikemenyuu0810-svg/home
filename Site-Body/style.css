@@ -5,7 +5,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; }
   --sidebar: 300px;
   --sidebar-collapsed: 60px;
   --header: 56px;
-  --bg-overlay: rgba(0,0,0,0.9);
+  --bg-overlay: rgba(0,0,0,0.4);
   --card-bg: rgba(255,255,255,0.12);
   --card-hover: rgba(255,255,255,0.18);
   --sidebar-bg: rgba(255, 255, 255, 0.125);
@@ -15,8 +15,8 @@ html, body { width: 100%; height: 100%; overflow: hidden; }
 }
 
 body { font-family: 'Inter', sans-serif; color: var(--text); display: flex; }
-body.short-break { --bg-overlay: rgba(43,172,118,0.15); }
-body.long-break { --bg-overlay: rgba(18,100,163,0.15); }
+body.short-break { --bg-overlay: rgba(0, 0, 0, 0.2); }
+body.long-break { --bg-overlay: rgba(18,100,163,0.1); }
 body.home-active .header { background: transparent; backdrop-filter: none; border-bottom: none; }
 body.home-active .header-actions { opacity: 0; transform: translateY(-20px); pointer-events: none; }
 body.home-active .search-wrap { position: relative; align-items: center; justify-content: center; transform: translateX(-50%); max-width: 600px; width: 90%; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100; margin: 0; }
