@@ -632,7 +632,7 @@ function loadWeather() {
   fetch(`https://api.openweathermap.org/data/2.5/weather?lat=35.85272206403399&lon=136.28673448772105&appid=8eb6dc5492a964ea79dd0ef92f1ae01c&units=metric&lang=ja`)
     .then(r => r.json())
     .then(d => {
-      $('w-icon').src = `../SVG-IMG/weather-svg/${d.weather[0].icon}.svg`;
+      $('w-icon').src = `/SVG-IMG/weather-svg/${d.weather[0].icon}.svg`;
       $('w-icon').style.display = 'block';
       $('w-desc').textContent = d.weather[0].description;
       $('w-temp').textContent = Math.round(d.main.temp) + '°';
