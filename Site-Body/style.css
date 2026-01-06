@@ -14,7 +14,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; }
   --border: rgba(255,255,255,0.1);
 }
 
-body { font-family: "SmileySans-font"; color: var(--text); display: flex; }
+body { font-family: "HarmonyOS-font-thin"; color: var(--text); display: flex; }
 body.short-break { --bg-overlay: rgba(0, 0, 0, 0.2); }
 body.long-break { --bg-overlay: rgba(18,100,163,0.1); }
 body.home-active .header { background: transparent; backdrop-filter: none; border-bottom: none; }
@@ -147,7 +147,7 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 .lap-item { display: flex; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.1); border-radius: 6px; margin-bottom: 6px; font-size: 13px; font-weight: 600; transition: all 0.2s; }
 .lap-item:hover { background: rgba(255,255,255,0.15); }
 
-.memo { width: 100%; flex: 1; border: 1px solid var(--border); border-radius: 10px; padding: 14px; font-size: 14px; font-family: "SmileySans-font"; background: rgba(255,255,255,0.15); color: var(--text); line-height: 1.7; overflow-y: auto; transition: all 0.2s; }
+.memo { width: 100%; flex: 1; border: 1px solid var(--border); border-radius: 10px; padding: 14px; font-size: 14px; font-family: "HarmonyOS-font-thin"; background: rgba(255,255,255,0.15); color: var(--text); line-height: 1.7; overflow-y: auto; transition: all 0.2s; }
 .memo:focus { outline: none; border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.2); box-shadow: 0 0 0 3px rgba(255,255,255,0.1); }
 .memo:empty:before { content: attr(data-placeholder); color: var(--text-dim); }
 .toolbar { display: flex; gap: 5px; margin-bottom: 10px; padding: 6px; background: rgba(255,255,255,0.1); border-radius: 6px; flex-wrap: wrap; }
@@ -267,8 +267,10 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 
 .youtube-fixed-controls { position: fixed; bottom: 90px; right: 24px; background: hsla(0, 0%, 0%, 0.55); backdrop-filter: blur(20px); border-radius: 12px; padding: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); display: none; z-index: 998; }
 .youtube-fixed-controls.show { display: flex; align-items: center; gap: 8px; }
-#home-clock { font-variant-numeric: tabular-nums; font-family: "SmileySans-font"; font-weight: 400; font-style: normal; position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 22.5vh; letter-spacing: 0.2rem; color: #ffffff; font-variant-numeric: tabular-nums; }
+#home-clock { font-variant-numeric: tabular-nums; font-family: "HarmonyOS-font-bold"; font-weight: 400; font-style: normal; position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 22.5vh; letter-spacing: 0.2rem; color: #ffffff; font-variant-numeric: tabular-nums; }
 @media (max-width: 768px) { #home-clock { font-size: 3rem; } }
 @font-face { font-family: "HigureGothic-font"; src: url("../font/HigureGothic-Regular.ttf") format("truetype"); font-display: swap;}
-@font-face { font-family: "SmileySans-font"; src: url("../font/HarmonyOS_Sans_Thin.woff") format("woff"); font-display: swap;}
+@font-face { font-family: "HarmonyOS-font-thin"; src: url("../font/HarmonyOS_Sans_Thin.woff") format("woff"); font-display: swap;}
+@font-face { font-family: "HarmonyOS-font-bold"; src: url("../font/HarmonyOS_Sans_Bold.woff") format("woff"); font-display: swap;}
+@font-face { font-family: "HarmonyOS-font-medium"; src: url("../font/HarmonyOS_Sans_Medium.woff") format("woff"); font-display: swap;}
 @font-face { font-family: "apple-font"; src: url("../font/applefonts.woff2") format("woff2"); font-display: swap;}
