@@ -271,7 +271,7 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 .icon-picker-item.selected { 
   background: rgba(43,172,118,0.3); 
   border-color: #2bac76; 
-  box-shadow: 0 0 0 3px rgba(43,172,118,0.2); 
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.15); 
 }
 .icon-picker-item img, .icon-picker-item svg { 
   width: 100%; 
