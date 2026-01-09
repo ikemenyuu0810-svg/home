@@ -229,12 +229,6 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 .modal-btn.secondary { background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); color: #ffffff; border:1px solid var(--border); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
 .modal-btn.secondary:hover {  background: rgba(255,255,255,0.2); transform: translateY(-2px); }
 
-.modal-btn.secondary:hover {  
-  background: rgba(255,255,255,0.2); 
-  transform: translateY(-2px); 
-}
-
-/* ↓↓↓ ここに追加 ↓↓↓ */
 .icon-picker-grid { 
   display: grid; 
   grid-template-columns: repeat(4, 1fr); 
