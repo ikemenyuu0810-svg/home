@@ -696,7 +696,7 @@ function showIconPicker(idx) {
   for (let i = 1; i <= 16; i++) {
     const item = document.createElement('div');
     item.className = 'icon-picker-item';
-    const iconPath = `./SVG-IMG/Icon-SVG/${String(i).padStart(2, '0')}.svg`;
+    const iconPath = `./SVG-IMG/Quick-Link-SVG/${String(i).padStart(2, '0')}.svg`;
     item.innerHTML = `<img src="${iconPath}" alt="Icon ${i}">`;
     item.onclick = () => selectIcon(iconPath);
     grid.appendChild(item);
