@@ -670,6 +670,8 @@ let quickLinks = JSON.parse(localStorage.getItem('quick-links') || JSON.stringif
   {name:'Drive',url:'https://drive.google.com',icon:'<svg viewBox="0 0 24 24" fill="white"><path d="M7.71 3.5L1.15 15l3.43 5.5h13.71L22 15l-6.56-11.5H7.71zM8.73 5.5h6.54L19.21 15h-3.09l-3.43-5.5-4.63 8H4.03L8.73 5.5zm-.42 11.5h6.54l-3.26 5.5h-6.54l3.26-5.5z"/></svg>'}
 ]));
 
+let currentIconIndex = 0;
+
 function renderQuickLinksSidebar() {
   const container = $('quick-links-sidebar');
   container.innerHTML = '';
@@ -682,6 +684,38 @@ function renderQuickLinksSidebar() {
     a.title = link.name;
     container.appendChild(a);
   });
+}
+
+function showIconPicker(idx) {
+  currentIconIndex = idx;
+  const modal = $('icon-picker-modal');
+  const grid = $('icon-picker-grid');
+  grid.innerHTML = '';
+  
+  // 01.svg ~ 16.svgまでのアイコンを表示
+  for (let i = 1; i <= 16; i++) {
+    const item = document.createElement('div');
+    item.className = 'icon-picker-item';
+    const iconPath = `./SVG-IMG/Icon-SVG/${String(i).padStart(2, '0')}.svg`;
+    item.innerHTML = `<img src="${iconPath}" alt="Icon ${i}">`;
+    item.onclick = () => selectIcon(iconPath);
+    grid.appendChild(item);
+  }
+  
+  modal.classList.add('show');
+  play('snd-click');
+}
+
+function hideIconPicker() {
+  $('icon-picker-modal').classList.remove('show');
+  play('snd-click');
+}
+
+function selectIcon(iconPath) {
+  quickLinks[currentIconIndex].icon = `<img src="${iconPath}">`;
+  hideIconPicker();
+  showAppSettings();
+  play('snd-click');
 }
 
 function showAppSettings() {
@@ -697,36 +731,41 @@ function showAppSettings() {
     nameInput.type = 'text';
     nameInput.placeholder = 'Name';
     nameInput.value = link.name;
-    nameInput.style.cssText = 'width:100%;padding:8px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;';
+    nameInput.style.cssText = 'width:100%;padding:8px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;background:rgba(255,255,255,0.1);color:white;';
     nameInput.addEventListener('input', (e) => { link.name = e.target.value; });
 
     const urlInput = document.createElement('input');
     urlInput.type = 'text';
     urlInput.placeholder = 'URL';
     urlInput.value = link.url;
-    urlInput.style.cssText = 'width:100%;padding:8px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;';
+    urlInput.style.cssText = 'width:100%;padding:8px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;background:rgba(255,255,255,0.1);color:white;';
     urlInput.addEventListener('input', (e) => { link.url = e.target.value; });
 
-    const label = document.createElement('label');
-    label.style.cssText = 'display:block;padding:8px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.1);color:white;backdrop-filter:blur(10px);border-radius:8px;cursor:pointer;text-align:center;margin-bottom:8px;';
-    label.textContent = 'Upload Icon';
-    
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    fileInput.style.display = 'none';
-    fileInput.addEventListener('change', (e) => uploadQuickLinkIcon(idx, e));
-    label.appendChild(fileInput);
+    const iconPreview = document.createElement('div');
+    iconPreview.style.cssText = 'width:100%;padding:20px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);border-radius:8px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;';
+    iconPreview.innerHTML = `<div style="width:48px;height:48px;">${link.icon}</div>`;
+    iconPreview.onclick = () => showIconPicker(idx);
+    iconPreview.onmouseenter = () => { iconPreview.style.background = 'rgba(255,255,255,0.15)'; };
+    iconPreview.onmouseleave = () => { iconPreview.style.background = 'rgba(255,255,255,0.08)'; };
+
+    const iconBtn = document.createElement('button');
+    iconBtn.textContent = 'Change Icon';
+    iconBtn.style.cssText = 'width:100%;padding:8px 16px;background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);color:white;border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;margin-bottom:8px;transition:all 0.2s;';
+    iconBtn.addEventListener('mouseenter', () => { iconBtn.style.background = 'rgba(255,255,255,0.2)'; });
+    iconBtn.addEventListener('mouseleave', () => { iconBtn.style.background = 'rgba(255,255,255,0.12)'; });
+    iconBtn.addEventListener('click', () => showIconPicker(idx));
 
     const removeBtn = document.createElement('button');
     removeBtn.textContent = 'Remove';
-    removeBtn.style.cssText = 'padding:8px 16px;background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);color:white;border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;width:100%;';
+    removeBtn.style.cssText = 'padding:8px 16px;background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);color:white;border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;width:100%;transition:all 0.2s;';
+    removeBtn.addEventListener('mouseenter', () => { removeBtn.style.background = 'rgba(255,0,0,0.3)'; });
+    removeBtn.addEventListener('mouseleave', () => { removeBtn.style.background = 'rgba(255,255,255,0.12)'; });
     removeBtn.addEventListener('click', () => {
       quickLinks.splice(idx, 1);
       showAppSettings();
     });
 
-    container.append(nameInput, urlInput, label, removeBtn);
+    container.append(nameInput, urlInput, iconPreview, iconBtn, removeBtn);
     edit.appendChild(container);
   });
 
@@ -743,18 +782,6 @@ function hideAppSettings() {
 function addQuickLink() {
   quickLinks.push({name:'New Link',url:'https://example.com',icon:'<svg viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="10"/></svg>'});
   showAppSettings();
-}
-
-function uploadQuickLinkIcon(idx, e) {
-  const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = ev => {
-      quickLinks[idx].icon = `<img src="${ev.target.result}">`;
-      showAppSettings();
-    };
-    reader.readAsDataURL(file);
-  }
 }
 
 renderQuickLinksSidebar();
