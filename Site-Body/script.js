@@ -696,7 +696,7 @@ function showIconPicker(idx) {
   for (let i = 1; i <= 16; i++) {
     const item = document.createElement('div');
     item.className = 'icon-picker-item';
-    const iconPath = `./SVG-IMG/Icon-SVG/${String(i).padStart(2, '0')}.svg`;
+    const iconPath = `./SVG-IMG/Quick-Link-SVG/${String(i).padStart(2, '0')}.svg`;
     item.innerHTML = `<img src="${iconPath}" alt="Icon ${i}">`;
     item.onclick = () => selectIcon(iconPath);
     grid.appendChild(item);
@@ -743,17 +743,7 @@ function showAppSettings() {
 
     const iconPreview = document.createElement('div');
     iconPreview.style.cssText = 'width:100%;padding:20px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);border-radius:8px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;';
-    iconPreview.innerHTML = `<div style="width:48px;height:48px;display:flex;align-items:center;justify-content:center;">${link.icon}</div>`;
-    
-    // アイコンのサイズを制限
-    const iconContainer = iconPreview.querySelector('div');
-    const iconElement = iconContainer.querySelector('img, svg');
-    if (iconElement) {
-      iconElement.style.width = '48px';
-      iconElement.style.height = '48px';
-      iconElement.style.objectFit = 'contain';
-    }
-    
+    iconPreview.innerHTML = `<div style="width:48px;height:48px;">${link.icon}</div>`;
     iconPreview.onclick = () => showIconPicker(idx);
     iconPreview.onmouseenter = () => { iconPreview.style.background = 'rgba(255,255,255,0.15)'; };
     iconPreview.onmouseleave = () => { iconPreview.style.background = 'rgba(255,255,255,0.08)'; };
@@ -781,6 +771,20 @@ function showAppSettings() {
 
   $('app-settings').classList.add('show');
 }
+
+function hideAppSettings() {
+  play('snd-click');
+  localStorage.setItem('quick-links', JSON.stringify(quickLinks));
+  renderQuickLinksSidebar();
+  $('app-settings').classList.remove('show');
+}
+
+function addQuickLink() {
+  quickLinks.push({name:'New Link',url:'https://example.com',icon:'<svg viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="10"/></svg>'});
+  showAppSettings();
+}
+
+renderQuickLinksSidebar();
 
 // Notion
 let notionPages = JSON.parse(localStorage.getItem('notion-pages') || JSON.stringify([
