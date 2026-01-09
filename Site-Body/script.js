@@ -117,14 +117,218 @@ function fmt(a) {
 }
 
 // Search
+let searchLinks = JSON.parse(localStorage.getItem('search-links') || '[]');
+let selectedSuggestionIndex = -1;
+
 function doSearch() {
   const q = $('search').value.trim();
   if (q) {
-    window.open('https://www.google.com/search?q=' + encodeURIComponent(q), '_blank');
+    // 選択された候補があればそれを開く
+    const suggestions = $('search-suggestions');
+    if (suggestions.classList.contains('show') && selectedSuggestionIndex >= 0) {
+      const items = suggestions.querySelectorAll('.search-suggestion-item');
+      if (items[selectedSuggestionIndex]) {
+        items[selectedSuggestionIndex].click();
+        return;
+      }
+    }
+    
+    // カスタム検索リンクをチェック
+    const matchedLink = searchLinks.find(link => 
+      link.keywords.some(keyword => keyword.toLowerCase() === q.toLowerCase())
+    );
+    
+    if (matchedLink) {
+      window.open(matchedLink.url, '_blank');
+    } else {
+      window.open('https://www.google.com/search?q=' + encodeURIComponent(q), '_blank');
+    }
     $('search').value = '';
+    hideSearchSuggestions();
   }
 }
 
+function handleSearchInput(e) {
+  const query = e.target.value.trim().toLowerCase();
+  const suggestions = $('search-suggestions');
+  
+  // 矢印キーの処理
+  if (e.inputType === undefined && suggestions.classList.contains('show')) {
+    const items = suggestions.querySelectorAll('.search-suggestion-item');
+    if (items.length > 0) {
+      // 前の選択を解除
+      items.forEach(item => item.classList.remove('selected'));
+      
+      if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < items.length) {
+        items[selectedSuggestionIndex].classList.add('selected');
+        items[selectedSuggestionIndex].scrollIntoView({ block: 'nearest' });
+      }
+    }
+    return;
+  }
+  
+  selectedSuggestionIndex = -1;
+  
+  if (!query) {
+    hideSearchSuggestions();
+    return;
+  }
+  
+  // キーワードにマッチする検索リンクを探す
+  const matches = searchLinks.filter(link =>
+    link.keywords.some(keyword => keyword.toLowerCase().includes(query))
+  );
+  
+  if (matches.length > 0) {
+    showSearchSuggestions(matches, query);
+  } else {
+    hideSearchSuggestions();
+  }
+}
+
+// 検索ボックスのキーボード操作
+$('search').addEventListener('keydown', (e) => {
+  const suggestions = $('search-suggestions');
+  if (!suggestions.classList.contains('show')) return;
+  
+  const items = suggestions.querySelectorAll('.search-suggestion-item');
+  if (items.length === 0) return;
+  
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    selectedSuggestionIndex = Math.min(selectedSuggestionIndex + 1, items.length - 1);
+    handleSearchInput({ target: e.target });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, -1);
+    handleSearchInput({ target: e.target });
+  } else if (e.key === 'Escape') {
+    hideSearchSuggestions();
+    selectedSuggestionIndex = -1;
+  }
+});
+
+function showSearchSuggestions(matches, query) {
+  const suggestions = $('search-suggestions');
+  suggestions.innerHTML = '';
+  
+  matches.forEach((match, index) => {
+    const item = document.createElement('div');
+    item.className = 'search-suggestion-item';
+    if (index === selectedSuggestionIndex) {
+      item.classList.add('selected');
+    }
+    
+    // マッチしたキーワードを取得
+    const matchedKeywords = match.keywords.filter(kw => 
+      kw.toLowerCase().includes(query)
+    ).join(', ');
+    
+    item.innerHTML = `
+      <svg class="search-suggestion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <div class="search-suggestion-text">
+        <div class="search-suggestion-title">${match.name}</div>
+        <div class="search-suggestion-keyword">${matchedKeywords}</div>
+      </div>
+    `;
+    
+    item.onclick = () => {
+      window.open(match.url, '_blank');
+      $('search').value = '';
+      hideSearchSuggestions();
+    };
+    
+    suggestions.appendChild(item);
+  });
+  
+  suggestions.classList.add('show');
+}
+
+function hideSearchSuggestions() {
+  const suggestions = $('search-suggestions');
+  suggestions.classList.remove('show');
+  selectedSuggestionIndex = -1;
+}
+
+// 検索ボックス外をクリックしたら候補を非表示
+document.addEventListener('click', (e) => {
+  const searchWrap = document.querySelector('.search-wrap');
+  if (searchWrap && !searchWrap.contains(e.target)) {
+    hideSearchSuggestions();
+  }
+});
+
+// Search Settings
+function showSearchSettings() {
+  play('snd-click');
+  renderSearchLinks();
+  $('search-settings').classList.add('show');
+}
+
+function hideSearchSettings() {
+  play('snd-click');
+  localStorage.setItem('search-links', JSON.stringify(searchLinks));
+  $('search-settings').classList.remove('show');
+}
+
+function renderSearchLinks() {
+  const edit = $('search-links-edit');
+  edit.innerHTML = '';
+  
+  searchLinks.forEach((link, idx) => {
+    const container = document.createElement('div');
+    container.style.cssText = 'margin-bottom:15px;padding:15px;background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);border-radius:8px;';
+    
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.placeholder = 'Name (e.g., YouTube)';
+    nameInput.value = link.name;
+    nameInput.style.cssText = 'width:100%;padding:8px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;background:rgba(255,255,255,0.1);color:white;';
+    nameInput.addEventListener('input', (e) => { link.name = e.target.value; });
+    
+    const urlInput = document.createElement('input');
+    urlInput.type = 'text';
+    urlInput.placeholder = 'URL (e.g., https://youtube.com)';
+    urlInput.value = link.url;
+    urlInput.style.cssText = 'width:100%;padding:8px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;background:rgba(255,255,255,0.1);color:white;';
+    urlInput.addEventListener('input', (e) => { link.url = e.target.value; });
+    
+    const keywordsInput = document.createElement('input');
+    keywordsInput.type = 'text';
+    keywordsInput.placeholder = 'Keywords (comma separated, e.g., youtube, yt, video)';
+    keywordsInput.value = link.keywords.join(', ');
+    keywordsInput.style.cssText = 'width:100%;padding:8px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;background:rgba(255,255,255,0.1);color:white;';
+    keywordsInput.addEventListener('input', (e) => {
+      link.keywords = e.target.value.split(',').map(k => k.trim()).filter(k => k);
+    });
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = 'Remove';
+    removeBtn.style.cssText = 'padding:8px 16px;background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);color:white;border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;width:100%;transition:all 0.2s;';
+    removeBtn.addEventListener('mouseenter', () => { removeBtn.style.background = 'rgba(255,0,0,0.3)'; });
+    removeBtn.addEventListener('mouseleave', () => { removeBtn.style.background = 'rgba(255,255,255,0.12)'; });
+    removeBtn.addEventListener('click', () => {
+      searchLinks.splice(idx, 1);
+      renderSearchLinks();
+    });
+    
+    container.append(nameInput, urlInput, keywordsInput, removeBtn);
+    edit.appendChild(container);
+  });
+}
+
+function addSearchLink() {
+  searchLinks.push({
+    name: 'New Link',
+    url: 'https://example.com',
+    keywords: []
+  });
+  renderSearchLinks();
+}
 // Alert
 function showAlert(title, msg) {
   $('alert-title').textContent = title;
