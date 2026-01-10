@@ -132,6 +132,7 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 
 /* 検索候補のドロップダウン */
 .search-suggestions {
+  z-index: 10;
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
