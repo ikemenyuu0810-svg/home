@@ -144,7 +144,7 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
   overflow-y: auto;
   z-index: 1001;
   display: none;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(30px);
 }
 
