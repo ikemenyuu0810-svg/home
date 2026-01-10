@@ -117,13 +117,11 @@ function fmt(a) {
 }
 
 // Search
-// ===== script.js に追加するコード =====
+// ===== script.js の // Search コメントの後に追加・置き換え =====
 
-// 検索リンクの管理
 let searchLinks = JSON.parse(localStorage.getItem('search-links') || '[]');
 let selectedSuggestionIndex = -1;
 
-// 検索実行
 function doSearch() {
   const q = $('search').value.trim();
   if (q) {
@@ -152,7 +150,6 @@ function doSearch() {
   }
 }
 
-// 検索入力のハンドリング
 function handleSearchInput(e) {
   const query = e.target.value.trim().toLowerCase();
   const suggestions = $('search-suggestions');
@@ -192,30 +189,38 @@ function handleSearchInput(e) {
 }
 
 // 検索ボックスのキーボード操作
-$('search').addEventListener('keydown', (e) => {
-  const suggestions = $('search-suggestions');
-  if (!suggestions.classList.contains('show')) return;
-  
-  const items = suggestions.querySelectorAll('.search-suggestion-item');
-  if (items.length === 0) return;
-  
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    selectedSuggestionIndex = Math.min(selectedSuggestionIndex + 1, items.length - 1);
-    handleSearchInput({ target: e.target });
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, -1);
-    handleSearchInput({ target: e.target });
-  } else if (e.key === 'Escape') {
-    hideSearchSuggestions();
-    selectedSuggestionIndex = -1;
+document.addEventListener('DOMContentLoaded', () => {
+  const searchInput = $('search');
+  if (searchInput) {
+    searchInput.addEventListener('input', handleSearchInput);
+    
+    searchInput.addEventListener('keydown', (e) => {
+      const suggestions = $('search-suggestions');
+      if (!suggestions || !suggestions.classList.contains('show')) return;
+      
+      const items = suggestions.querySelectorAll('.search-suggestion-item');
+      if (items.length === 0) return;
+      
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedSuggestionIndex = Math.min(selectedSuggestionIndex + 1, items.length - 1);
+        handleSearchInput({ target: e.target });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, -1);
+        handleSearchInput({ target: e.target });
+      } else if (e.key === 'Escape') {
+        hideSearchSuggestions();
+        selectedSuggestionIndex = -1;
+      }
+    });
   }
 });
 
-// 検索候補を表示
 function showSearchSuggestions(matches, query) {
   const suggestions = $('search-suggestions');
+  if (!suggestions) return;
+  
   suggestions.innerHTML = '';
   
   matches.forEach((match, index) => {
@@ -242,10 +247,11 @@ function showSearchSuggestions(matches, query) {
   suggestions.classList.add('show');
 }
 
-// 検索候補を非表示
 function hideSearchSuggestions() {
   const suggestions = $('search-suggestions');
-  suggestions.classList.remove('show');
+  if (suggestions) {
+    suggestions.classList.remove('show');
+  }
   selectedSuggestionIndex = -1;
 }
 
@@ -257,21 +263,19 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Search Settings の表示
+// Search Settings
 function showSearchSettings() {
   play('snd-click');
   renderSearchLinks();
   $('search-settings').classList.add('show');
 }
 
-// Search Settings の非表示
 function hideSearchSettings() {
   play('snd-click');
   localStorage.setItem('search-links', JSON.stringify(searchLinks));
   $('search-settings').classList.remove('show');
 }
 
-// 検索リンクの一覧を表示
 function renderSearchLinks() {
   const edit = $('search-links-edit');
   edit.innerHTML = '';
@@ -318,7 +322,6 @@ function renderSearchLinks() {
   });
 }
 
-// 新しい検索リンクを追加
 function addSearchLink() {
   searchLinks.push({
     name: 'New Link',
@@ -328,8 +331,6 @@ function addSearchLink() {
   renderSearchLinks();
 }
 
-// 検索ボックスにイベントリスナーを追加
-$('search').addEventListener('input', handleSearchInput);
 // Alert
 function showAlert(title, msg) {
   $('alert-title').textContent = title;
