@@ -152,6 +152,7 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 .search-suggestions.show {
   display: block;
   animation: slideDown 0.2s ease;
+  z-index: 1001;
 }
 
 @keyframes slideDown {
