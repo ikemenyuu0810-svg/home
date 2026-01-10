@@ -234,7 +234,7 @@ body.home-active .search-wrap {
 }
 
 body.home-active .search-suggestions {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(30px);
 }
 
@@ -254,6 +254,7 @@ body.home-active .search-suggestions {
   
   .search-suggestions {
     max-height: 300px;
+    z-index: 10;
   }
   
   .search-suggestion-item {
