@@ -63,22 +63,126 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .header { height: var(--header); padding: 0 24px; display: flex; align-items: center; gap: 16px; backdrop-filter: blur(10px); background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); transition: all 0.6s ease; }
 .header-actions { transition: opacity 0.6s ease, transform 0.6s ease; }
-.search-wrap { max-width: 900px; width: 900px; position: absolute; left: 50%; transform: translateX(-50%); transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
-.search-box { width: 100%; padding: 10px 40px 10px 36px; border: 1px solid var(--border); border-radius: 20px; font-size: 13px; background: rgba(255,255,255,0.15); color: var(--text); backdrop-filter: blur(10px); transition: all 0.3s; }
-.search-box::placeholder { color: var(--text-dim); }
-.search-box:focus { outline: none; background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.4); box-shadow: 0 0 0 3px rgba(255,255,255,0.1); }
-.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-dim); pointer-events: none; }
-.search-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; cursor: pointer; padding: 6px; color: var(--text); border-radius: 100vh; transition: all 0.2s; }
-.search-btn:hover { background: rgba(255,255,255,0.3); }
-.search-suggestions { position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); max-height: 400px; overflow-y: auto; display: none; z-index: 1000; }
-.search-suggestions.show { display: block; }
-.search-suggestion-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; cursor: pointer; transition: all 0.2s; border-bottom: 1px solid rgba(0,0,0,0.05); }
-.search-suggestion-item:last-child { border-bottom: none; }
-.search-suggestion-item:hover, .search-suggestion-item.selected { background: rgba(18,100,163,0.1); }
-.search-suggestion-icon { width: 20px; height: 20px; color: #1264a3; flex-shrink: 0; }
-.search-suggestion-text { flex: 1; }
-.search-suggestion-title { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 2px; }
-.search-suggestion-keyword { font-size: 12px; color: #666; }
+/* 検索候補のスタイル */
+.search-wrap {
+  position: relative;
+}
+
+.search-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 8px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.search-suggestions.show {
+  display: block;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.search-suggestions::-webkit-scrollbar {
+  width: 6px;
+}
+
+.search-suggestions::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.search-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.search-suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.search-suggestion-item:hover,
+.search-suggestion-item.selected {
+  background: rgba(18, 100, 163, 0.1);
+}
+
+.search-suggestion-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: #1264a3;
+}
+
+.search-suggestion-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-suggestion-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-suggestion-keyword {
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Home アクティブ時の検索候補の調整 */
+body.home-active .search-suggestions {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(30px);
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+  .search-suggestions {
+    max-height: 300px;
+  }
+  
+  .search-suggestion-item {
+    padding: 10px 12px;
+  }
+  
+  .search-suggestion-title {
+    font-size: 13px;
+  }
+  
+  .search-suggestion-keyword {
+    font-size: 11px;
+  }
+}
 .header-actions { display: flex; gap: 10px; align-items: center; margin-left: auto; }
 .header-btn { width: 36px; height: 36px; background: rgba(255,255,255,0.15); border: none; border-radius: 6px; color: var(--text); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; position: relative; }
 .header-btn:hover { background: rgba(255,255,255,0.25); }

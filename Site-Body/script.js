@@ -117,9 +117,13 @@ function fmt(a) {
 }
 
 // Search
+// ===== script.js に追加するコード =====
+
+// 検索リンクの管理
 let searchLinks = JSON.parse(localStorage.getItem('search-links') || '[]');
 let selectedSuggestionIndex = -1;
 
+// 検索実行
 function doSearch() {
   const q = $('search').value.trim();
   if (q) {
@@ -148,6 +152,7 @@ function doSearch() {
   }
 }
 
+// 検索入力のハンドリング
 function handleSearchInput(e) {
   const query = e.target.value.trim().toLowerCase();
   const suggestions = $('search-suggestions');
@@ -208,6 +213,7 @@ $('search').addEventListener('keydown', (e) => {
   }
 });
 
+// 検索候補を表示
 function showSearchSuggestions(matches, query) {
   const suggestions = $('search-suggestions');
   suggestions.innerHTML = '';
@@ -248,6 +254,7 @@ function showSearchSuggestions(matches, query) {
   suggestions.classList.add('show');
 }
 
+// 検索候補を非表示
 function hideSearchSuggestions() {
   const suggestions = $('search-suggestions');
   suggestions.classList.remove('show');
@@ -262,19 +269,21 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Search Settings
+// Search Settings の表示
 function showSearchSettings() {
   play('snd-click');
   renderSearchLinks();
   $('search-settings').classList.add('show');
 }
 
+// Search Settings の非表示
 function hideSearchSettings() {
   play('snd-click');
   localStorage.setItem('search-links', JSON.stringify(searchLinks));
   $('search-settings').classList.remove('show');
 }
 
+// 検索リンクの一覧を表示
 function renderSearchLinks() {
   const edit = $('search-links-edit');
   edit.innerHTML = '';
@@ -321,6 +330,7 @@ function renderSearchLinks() {
   });
 }
 
+// 新しい検索リンクを追加
 function addSearchLink() {
   searchLinks.push({
     name: 'New Link',
@@ -329,6 +339,9 @@ function addSearchLink() {
   });
   renderSearchLinks();
 }
+
+// 検索ボックスにイベントリスナーを追加
+$('search').addEventListener('input', handleSearchInput);
 // Alert
 function showAlert(title, msg) {
   $('alert-title').textContent = title;
