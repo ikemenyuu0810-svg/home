@@ -143,7 +143,7 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
   box-shadow: 0 2px 5px rgba(255, 255, 255, 1);
   max-height: 400px;
   overflow-y: auto;
-  z-index: 1001;
+  z-index: 10000000;
   display: none;
   border: 1px solid rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(30px);
@@ -152,7 +152,7 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 .search-suggestions.show {
   display: block;
   animation: slideDown 0.2s ease;
-  z-index: 1001;
+  z-index: 10000000;
 }
 
 @keyframes slideDown {
