@@ -1302,8 +1302,20 @@ let globeTargetRotationX = 0, globeTargetRotationY = 0;
 let globeCurrentRotationX = 0, globeCurrentRotationY = 0;
 
 function initGlobe() {
+  console.log('地球儀の初期化を開始');
   const container = document.getElementById('globe-container');
-  if (!container) return;
+  if (!container) {
+    console.error('globe-containerが見つかりません');
+    return;
+  }
+
+  // THREE.jsが読み込まれているか確認
+  if (typeof THREE === 'undefined') {
+    console.error('THREE.jsが読み込まれていません');
+    const loadingEl = document.getElementById('globe-loading');
+    if (loadingEl) loadingEl.textContent = 'THREE.jsの読み込みエラー';
+    return;
+  }
 
   globeScene = new THREE.Scene();
   
@@ -1321,26 +1333,32 @@ function initGlobe() {
   const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.3);
   globeScene.add(ambientLight);
 
-  loadGlobeSVGTexture('/earth.svg');
+  console.log('SVGテクスチャの読み込みを開始');
+  loadGlobeSVGTexture('earth.svg');
 }
 
 function loadGlobeSVGTexture(url) {
+  console.log('SVG読み込み開始:', url);
+  
   fetch(url)
     .then(response => {
+      console.log('Fetchレスポンス:', response.status);
       if (!response.ok) {
-        throw new Error('earth.svgが見つかりません');
+        throw new Error(`earth.svgが見つかりません (${response.status})`);
       }
       return response.text();
     })
     .then(svgText => {
+      console.log('SVGテキスト取得成功、長さ:', svgText.length);
       const img = new Image();
-      const svg = new Blob([svgText], { type: 'image/svg+xml' });
+      const svg = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
       const svgUrl = URL.createObjectURL(svg);
       
       img.onload = function() {
+        console.log('画像読み込み成功');
         const canvas = document.createElement('canvas');
-        const targetWidth = 4096;
-        const targetHeight = 2048;
+        const targetWidth = 2048;  // サイズを小さくして読み込み速度を改善
+        const targetHeight = 1024;
         canvas.width = targetWidth;
         canvas.height = targetHeight;
         
@@ -1360,22 +1378,27 @@ function loadGlobeSVGTexture(url) {
         const loadingEl = document.getElementById('globe-loading');
         if (loadingEl) loadingEl.style.display = 'none';
         
+        console.log('地球儀オブジェクト作成開始');
         createGlobeObject(texture);
         setupGlobeEventListeners();
         animateGlobe();
+        console.log('地球儀の初期化完了');
       };
       
-      img.onerror = function() {
+      img.onerror = function(e) {
+        console.error('画像読み込みエラー:', e);
         const loadingEl = document.getElementById('globe-loading');
-        if (loadingEl) loadingEl.textContent = 'テクスチャの読み込みに失敗しました';
+        if (loadingEl) loadingEl.textContent = '画像の読み込みに失敗しました';
       };
       
       img.src = svgUrl;
     })
     .catch(error => {
-      console.error('エラー:', error);
+      console.error('SVG読み込みエラー:', error);
       const loadingEl = document.getElementById('globe-loading');
-      if (loadingEl) loadingEl.textContent = 'earth.svgが見つかりません。';
+      if (loadingEl) {
+        loadingEl.textContent = `エラー: ${error.message}`;
+      }
     });
 }
 
