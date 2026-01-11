@@ -493,9 +493,11 @@ body.home-active .search-suggestions {
 .float { position: fixed; top: 70px; background: rgba(57, 57, 55,0.95); backdrop-filter: blur(20px); border-radius: 10px; padding: 12px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); cursor: pointer; z-index: 1000; opacity: 0; transform: translateY(-20px); pointer-events: none; transition: all 0.4s; }
 .float.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
 .float:hover { transform: translateY(-2px) scale(1.05); }
-.float-timer { right: 24px;  min-width: 160px; }
+.float-timer { right: 24px; min-width: 180px; }
 .float-timer-type { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-.float-clock { right: 180px; transition: right 0.3s, opacity 0.4s, transform 0.4s; }
+.float-timer-progress-wrap { width: 100%; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+.float-timer-progress-bar { height: 100%; background: #ffffff; transition: width 1s; border-radius: 3px; }
+.float-clock { right: 220px; transition: right 0.3s, opacity 0.4s, transform 0.4s; }
 .float-time { font-size: 18px; font-weight: 800; color: #ffffff; font-variant-numeric: tabular-nums; }
 
 .quick-actions { position: fixed; bottom: 24px; right: 24px; display: flex; gap: 10px; z-index: 999; }
@@ -505,7 +507,8 @@ body.home-active .search-suggestions {
 @media (max-width: 1024px) {
   .sidebar { position: fixed; z-index: 1000; transform: translateX(-100%); }
   .sidebar.open { transform: translateX(0); }
-  .float-clock { right: 180px !important; }
+  .float-clock { right: 220px !important; }
+  .float-timer { right: 24px !important; }
   .cards { grid-template-columns: 1fr; }
   .card.wide, .card.tall { grid-column: auto; grid-row: auto; }
   .quick-actions { bottom: 16px; right: 16px; }

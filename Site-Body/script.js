@@ -57,10 +57,11 @@ function switchSection(section) {
     $('sidebar').classList.remove('open');
     $('mobile-overlay').classList.remove('show');
   }
+  
+  // セクション切り替え時にフロート表示を更新
   checkVis();
   updateYoutubeControls();
 }
-
 // Keyboard
 document.addEventListener('keydown', e => {
   if (e.target.tagName !== 'INPUT' && e.target.contentEditable !== 'true' && !e.target.classList.contains('calc-btn')) {
@@ -424,9 +425,19 @@ function updateTimer() {
   
   const progress = (timeLeft / initialTime) * 100;
   $('progress-bar').style.width = progress + '%';
+  
+  // フロートタイマーのプログレスバーも更新
+  const floatProgress = $('float-timer-progress');
+  if (floatProgress) {
+    floatProgress.style.width = progress + '%';
+  }
+  
   $('current-session').textContent = cycles;
   $('total-today').textContent = stats.today;
   $('next-break').textContent = isWork ? fmtTime(shortT * 60) : fmtTime(pomoT * 60);
+  
+  // フロート表示の更新
+  checkVis();
 }
 
 function switchTimer(type) {
@@ -509,16 +520,23 @@ function updateQuickPlayIcon(playing) {
 
 // Float visibility
 function checkVis() {
-  const scrollTop = document.querySelector('.content').scrollTop;
-  const shouldShow = scrollTop > 200;
-  
   // タイマーが動いている かつ timerタブ以外にいる場合に表示
   const showTimer = currentSection !== 'timer' && timerRun;
-  const showClock = shouldShow && currentSection !== 'clock';
+  // Clock タブと Home タブ以外にいる場合に時計を表示
+  const showClock = currentSection !== 'clock' && currentSection !== 'home';
   
   $('float-timer').classList.toggle('show', showTimer);
   $('float-clock').classList.toggle('show', showClock);
+  
+  // フロートタイマーのプログレスバーを更新
+  if (showTimer) {
+    const progress = (timeLeft / initialTime) * 100;
+    $('float-timer-progress').style.width = progress + '%';
+  }
 }
+
+document.querySelector('.content').addEventListener('scroll', checkVis);
+window.addEventListener('resize', checkVis);
 
 document.querySelector('.content').addEventListener('scroll', checkVis);
 window.addEventListener('resize', checkVis);
