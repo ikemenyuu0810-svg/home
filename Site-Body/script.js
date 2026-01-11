@@ -1294,3 +1294,302 @@ function checkVis() {
 }
 checkVis();
 setInterval(checkVis, 1000);
+// ===== 地球儀の初期化 =====
+let globeScene, globeCamera, globeRenderer, globeObject;
+let globeMouseDown = false;
+let globeMouseX = 0, globeMouseY = 0;
+let globeTargetRotationX = 0, globeTargetRotationY = 0;
+let globeCurrentRotationX = 0, globeCurrentRotationY = 0;
+
+function initGlobe() {
+  const container = document.getElementById('globe-container');
+  if (!container) return;
+
+  globeScene = new THREE.Scene();
+  
+  globeCamera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
+  globeCamera.position.z = 2.5;
+
+  globeRenderer = new THREE.WebGLRenderer({ 
+    antialias: true,
+    alpha: true
+  });
+  globeRenderer.setSize(container.offsetWidth, container.offsetHeight);
+  globeRenderer.setPixelRatio(window.devicePixelRatio);
+  container.appendChild(globeRenderer.domElement);
+
+  const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.3);
+  globeScene.add(ambientLight);
+
+  loadGlobeSVGTexture('./earth.svg');
+}
+
+function loadGlobeSVGTexture(url) {
+  fetch(url)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('earth.svgが見つかりません');
+      }
+      return response.text();
+    })
+    .then(svgText => {
+      const img = new Image();
+      const svg = new Blob([svgText], { type: 'image/svg+xml' });
+      const svgUrl = URL.createObjectURL(svg);
+      
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const targetWidth = 4096;
+        const targetHeight = 2048;
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+        
+        URL.revokeObjectURL(svgUrl);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.anisotropy = globeRenderer.capabilities.getMaxAnisotropy();
+        texture.needsUpdate = true;
+        
+        const loadingEl = document.getElementById('globe-loading');
+        if (loadingEl) loadingEl.style.display = 'none';
+        
+        createGlobeObject(texture);
+        setupGlobeEventListeners();
+        animateGlobe();
+      };
+      
+      img.onerror = function() {
+        const loadingEl = document.getElementById('globe-loading');
+        if (loadingEl) loadingEl.textContent = 'テクスチャの読み込みに失敗しました';
+      };
+      
+      img.src = svgUrl;
+    })
+    .catch(error => {
+      console.error('エラー:', error);
+      const loadingEl = document.getElementById('globe-loading');
+      if (loadingEl) loadingEl.textContent = 'earth.svgが見つかりません。';
+    });
+}
+
+function createGlobeObject(texture) {
+  const geometry = new THREE.SphereGeometry(1, 128, 128);
+
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      earthTexture: { value: texture },
+      sunDirection: { value: new THREE.Vector3() },
+      time: { value: 0 }
+    },
+    vertexShader: `
+      varying vec3 vNormal;
+      varying vec3 vPosition;
+      varying vec2 vUv;
+      
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        vPosition = position;
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform sampler2D earthTexture;
+      uniform vec3 sunDirection;
+      uniform float time;
+      varying vec3 vNormal;
+      varying vec3 vPosition;
+      varying vec2 vUv;
+      
+      void main() {
+        vec4 texColor = texture2D(earthTexture, vUv);
+        float brightness = (texColor.r + texColor.g + texColor.b) / 3.0;
+        
+        vec3 normal = normalize(vNormal);
+        float sunDot = dot(normal, normalize(sunDirection));
+        float dayNight = smoothstep(-0.05, 0.05, sunDot);
+        
+        vec3 dayColor = vec3(brightness);
+        vec3 nightColor = vec3(1.0 - brightness);
+        vec3 color = mix(nightColor, dayColor, dayNight);
+        
+        float fresnel = pow(1.0 - abs(dot(normal, normalize(vec3(0, 0, 1)))), 1.5);
+        color *= 1.0 - fresnel * 0.2;
+        
+        if(sunDot > -0.2 && sunDot < 0.2) {
+          float twilightFactor = 1.0 - abs(sunDot) / 0.2;
+          vec3 twilightColor = vec3(0.4, 0.5, 0.7) * twilightFactor * 0.3;
+          color += twilightColor;
+        }
+        
+        gl_FragColor = vec4(color, 1.0);
+      }
+    `
+  });
+
+  globeObject = new THREE.Mesh(geometry, material);
+  globeScene.add(globeObject);
+}
+
+function updateGlobeSunDirection() {
+  if (!globeObject) return;
+  
+  const now = new Date();
+  const hours = now.getUTCHours();
+  const minutes = now.getUTCMinutes();
+  const seconds = now.getUTCSeconds();
+  
+  const timeInHours = hours + minutes / 60 + seconds / 3600;
+  const angle = (timeInHours / 24) * Math.PI * 2 - Math.PI;
+  
+  const sunDirection = new THREE.Vector3(
+    Math.cos(angle),
+    0,
+    Math.sin(angle)
+  );
+  
+  globeObject.material.uniforms.sunDirection.value = sunDirection;
+}
+
+function setupGlobeEventListeners() {
+  const canvas = globeRenderer.domElement;
+  
+  canvas.addEventListener('mousedown', onGlobeMouseDown);
+  canvas.addEventListener('mousemove', onGlobeMouseMove);
+  canvas.addEventListener('mouseup', onGlobeMouseUp);
+  canvas.addEventListener('mouseleave', onGlobeMouseUp);
+  canvas.addEventListener('wheel', onGlobeWheel);
+  canvas.addEventListener('touchstart', onGlobeTouchStart);
+  canvas.addEventListener('touchmove', onGlobeTouchMove);
+  canvas.addEventListener('touchend', onGlobeTouchEnd);
+  
+  window.addEventListener('resize', onGlobeWindowResize);
+}
+
+function onGlobeMouseDown(e) {
+  globeMouseDown = true;
+  globeMouseX = e.clientX;
+  globeMouseY = e.clientY;
+}
+
+function onGlobeMouseMove(e) {
+  if (globeMouseDown) {
+    const deltaX = e.clientX - globeMouseX;
+    const deltaY = e.clientY - globeMouseY;
+    
+    globeTargetRotationY += deltaX * 0.005;
+    globeTargetRotationX += deltaY * 0.005;
+    globeTargetRotationX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, globeTargetRotationX));
+    
+    globeMouseX = e.clientX;
+    globeMouseY = e.clientY;
+  }
+}
+
+function onGlobeMouseUp() {
+  globeMouseDown = false;
+}
+
+function onGlobeWheel(e) {
+  e.preventDefault();
+  globeCamera.position.z += e.deltaY * 0.002;
+  globeCamera.position.z = Math.max(1.5, Math.min(6, globeCamera.position.z));
+}
+
+let globeLastTouchX = 0, globeLastTouchY = 0;
+let globeLastTouchDistance = 0;
+
+function onGlobeTouchStart(e) {
+  e.preventDefault();
+  if (e.touches.length === 1) {
+    globeLastTouchX = e.touches[0].clientX;
+    globeLastTouchY = e.touches[0].clientY;
+  } else if (e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    globeLastTouchDistance = Math.sqrt(dx * dx + dy * dy);
+  }
+}
+
+function onGlobeTouchMove(e) {
+  e.preventDefault();
+  if (e.touches.length === 1) {
+    const deltaX = e.touches[0].clientX - globeLastTouchX;
+    const deltaY = e.touches[0].clientY - globeLastTouchY;
+    
+    globeTargetRotationY += deltaX * 0.005;
+    globeTargetRotationX += deltaY * 0.005;
+    globeTargetRotationX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, globeTargetRotationX));
+    
+    globeLastTouchX = e.touches[0].clientX;
+    globeLastTouchY = e.touches[0].clientY;
+  } else if (e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    const delta = distance - globeLastTouchDistance;
+    globeCamera.position.z -= delta * 0.01;
+    globeCamera.position.z = Math.max(1.5, Math.min(6, globeCamera.position.z));
+    
+    globeLastTouchDistance = distance;
+  }
+}
+
+function onGlobeTouchEnd() {
+  globeLastTouchDistance = 0;
+}
+
+function onGlobeWindowResize() {
+  const container = document.getElementById('globe-container');
+  if (!container || !globeCamera || !globeRenderer) return;
+  
+  globeCamera.aspect = container.offsetWidth / container.offsetHeight;
+  globeCamera.updateProjectionMatrix();
+  globeRenderer.setSize(container.offsetWidth, container.offsetHeight);
+  globeRenderer.setPixelRatio(window.devicePixelRatio);
+}
+
+function animateGlobe() {
+  requestAnimationFrame(animateGlobe);
+  
+  if (!globeObject) return;
+  
+  updateGlobeSunDirection();
+  
+  if (!globeMouseDown) {
+    globeTargetRotationY += 0.001;
+  }
+  
+  globeCurrentRotationX += (globeTargetRotationX - globeCurrentRotationX) * 0.1;
+  globeCurrentRotationY += (globeTargetRotationY - globeCurrentRotationY) * 0.1;
+  
+  globeObject.rotation.x = globeCurrentRotationX;
+  globeObject.rotation.y = globeCurrentRotationY;
+  
+  globeRenderer.render(globeScene, globeCamera);
+}
+
+// Clock セクションがアクティブになったら地球儀を初期化
+const originalSwitchSection = switchSection;
+switchSection = function(section) {
+  originalSwitchSection(section);
+  
+  if (section === 'clock' && !globeObject) {
+    setTimeout(initGlobe, 100);
+  }
+};
+
+// ページ読み込み時に Clock セクションがアクティブなら初期化
+window.addEventListener('load', () => {
+  if (document.getElementById('section-clock').classList.contains('active')) {
+    setTimeout(initGlobe, 100);
+  }
+});

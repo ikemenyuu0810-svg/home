@@ -527,3 +527,6 @@ body.home-active .search-suggestions {
 @font-face { font-family: "HarmonyOS-font-bold"; src: url("../font/HarmonyOS_Sans_Bold.woff") format("woff"); font-display: swap;}
 @font-face { font-family: "HarmonyOS-font-medium"; src: url("../font/HarmonyOS_Sans_Medium.woff") format("woff"); font-display: swap;}
 @font-face { font-family: "apple-font"; src: url("../font/applefonts.woff2") format("woff2"); font-display: swap;}
+
+#globe-container canvas { display: block; border-radius: 10px; cursor: grab; }
+#globe-container canvas:active { cursor: grabbing; }
