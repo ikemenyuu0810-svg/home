@@ -1321,7 +1321,7 @@ function initGlobe() {
   const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.3);
   globeScene.add(ambientLight);
 
-  loadGlobeSVGTexture('./earth.svg');
+  loadGlobeSVGTexture('./SVG-IMG/earth-SVG/earth.svg');
 }
 
 function loadGlobeSVGTexture(url) {
