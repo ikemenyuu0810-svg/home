@@ -1334,7 +1334,7 @@ function initGlobe() {
   globeScene.add(ambientLight);
 
   console.log('SVGテクスチャの読み込みを開始');
-  loadGlobeSVGTexture('earth.svg');
+  loadGlobeSVGTexture('/earth.svg');
 }
 
 function loadGlobeSVGTexture(url) {
