@@ -1294,7 +1294,7 @@ function checkVis() {
 }
 checkVis();
 setInterval(checkVis, 1000);
-// ===== 地球儀の初期化 =====
+
 let globeScene, globeCamera, globeRenderer, globeObject;
 let globeMouseDown = false;
 let globeMouseX = 0, globeMouseY = 0;
