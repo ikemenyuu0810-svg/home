@@ -538,9 +538,6 @@ function checkVis() {
 document.querySelector('.content').addEventListener('scroll', checkVis);
 window.addEventListener('resize', checkVis);
 
-document.querySelector('.content').addEventListener('scroll', checkVis);
-window.addEventListener('resize', checkVis);
-
 // Custom Timer
 let ctTime = 0, ctInt = null, ctRun = false, ctInitial = 0;
 function updateCT() {
