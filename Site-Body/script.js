@@ -1195,7 +1195,6 @@ function updateYoutubeControls() {
 window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
 setInterval(updateYoutubeControls, 1000);
 switchTimer('pomodoro');
-loadSettings();
 
 function switchTimer(type) {
   // タイマーが動いている場合は停止
