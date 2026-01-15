@@ -423,7 +423,7 @@ function updateTimer() {
     floatTypeEl.textContent = typeNames[timerType] || 'Timer';
   }
   
-  const progress = (timeLeft / initialTime) * 100;
+  const progress = ((initialTime - timeLeft) / initialTime) * 100;
   $('progress-bar').style.width = progress + '%';
   
   // フロートタイマーのプログレスバーも更新
@@ -520,17 +520,14 @@ function updateQuickPlayIcon(playing) {
 
 // Float visibility
 function checkVis() {
-  // タイマーが動いている かつ timerタブ以外にいる場合に表示
   const showTimer = currentSection !== 'timer' && timerRun;
-  // Clock タブと Home タブ以外にいる場合に時計を表示
   const showClock = currentSection !== 'clock' && currentSection !== 'home';
   
   $('float-timer').classList.toggle('show', showTimer);
   $('float-clock').classList.toggle('show', showClock);
   
-  // フロートタイマーのプログレスバーを更新
   if (showTimer) {
-    const progress = (timeLeft / initialTime) * 100;
+    const progress = ((initialTime - timeLeft) / initialTime) * 100;
     $('float-timer-progress').style.width = progress + '%';
   }
 }
@@ -1348,7 +1345,7 @@ function initGlobe() {
   globeScene.add(ambientLight);
 
   console.log('SVGテクスチャの読み込みを開始');
-  loadGlobeSVGTexture('/earth.svg');
+  loadGlobeSVGTexture('./earth.svg'); 
 }
 
 function loadGlobeSVGTexture(url) {
