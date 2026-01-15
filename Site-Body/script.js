@@ -1211,15 +1211,6 @@ function switchTimer(type) {
   updateTimer();
 }
 
-function updateTimer() {
-  const min = Math.floor(timeLeft / 60);
-  const sec = timeLeft % 60;
-  document.getElementById('timer').textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-  document.getElementById('float-timer-time').textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-  const progress = ((initialTime - timeLeft) / initialTime) * 100;
-  document.getElementById('timer-progress').style.width = progress + '%';
-}
-
 
 function toggleTimer() {
   play('snd-click');
