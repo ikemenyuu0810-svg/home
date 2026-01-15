@@ -63,220 +63,41 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .header { height: var(--header); padding: 0 24px; display: flex; align-items: center; gap: 16px; backdrop-filter: blur(10px); background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); transition: all 0.6s ease; }
 .header-actions { transition: opacity 0.6s ease, transform 0.6s ease; }
-/* style.css の .search-wrap セクションを以下に置き換えてください */
-/* ===== style.css に追加 ===== */
 
-/* 検索ラッパー */
-.search-wrap { 
-  max-width: 900px; 
-  width: 900px; 
-  position: absolute; 
-  left: 50%; 
-  transform: translateX(-50%); 
-  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); 
-  z-index: 100;
-}
+.search-wrap { max-width: 900px; width: 900px; position: absolute; left: 50%; transform: translateX(-50%); transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100; }
+.search-box { width: 100%; padding: 10px 40px 10px 36px; border: 1px solid var(--border); border-radius: 20px; font-size: 13px; background: rgba(255,255,255,0.15); color: var(--text); backdrop-filter: blur(10px); transition: all 0.3s ease; }
+.search-box::placeholder { color: var(--text-dim); }
+.search-box:focus { outline: none; background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.4); box-shadow: 0 0 0 3px rgba(255,255,255,0.1); }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-dim); pointer-events: none; z-index: 1; }
+.search-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; cursor: pointer; padding: 6px; color: var(--text); border-radius: 100vh; transition: all 0.2s; z-index: 1; }
+.search-btn:hover { background: rgba(255,255,255,0.3); }
+.search-suggestions { z-index: 10; position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(20px); border-radius: 12px; box-shadow: 0 2px 5px rgba(255, 255, 255, 1); max-height: 400px; overflow-y: auto; z-index: 10000000; display: none; border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(30px); }
+.search-suggestions.show { display: block; animation: slideDown 0.2s ease; z-index: 10000000; }
 
-/* 検索ボックスのスタイルは既存のものを使用 */
-.search-box { 
-  width: 100%; 
-  padding: 10px 40px 10px 36px; 
-  border: 1px solid var(--border); 
-  border-radius: 20px; 
-  font-size: 13px; 
-  background: rgba(255,255,255,0.15); 
-  color: var(--text); 
-  backdrop-filter: blur(10px); 
-  transition: all 0.3s ease; 
-}
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-.search-box::placeholder { 
-  color: var(--text-dim); 
-}
-
-.search-box:focus { 
-  outline: none; 
-  background: rgba(255,255,255,0.25); 
-  border-color: rgba(255,255,255,0.4); 
-  box-shadow: 0 0 0 3px rgba(255,255,255,0.1); 
-}
-
-.search-icon { 
-  position: absolute; 
-  left: 12px; 
-  top: 50%; 
-  transform: translateY(-50%); 
-  color: var(--text-dim); 
-  pointer-events: none; 
-  z-index: 1;
-}
-
-.search-btn { 
-  position: absolute; 
-  right: 6px; 
-  top: 50%; 
-  transform: translateY(-50%); 
-  background: rgba(255,255,255,0.2); 
-  border: none; 
-  cursor: pointer; 
-  padding: 6px; 
-  color: var(--text); 
-  border-radius: 100vh; 
-  transition: all 0.2s; 
-  z-index: 1;
-}
-
-.search-btn:hover { 
-  background: rgba(255,255,255,0.3); 
-}
-
-/* 検索候補のドロップダウン */
-.search-suggestions {
-  z-index: 10;
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  right: 0;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(20px);
-  border-radius: 12px;
-  box-shadow: 0 2px 5px rgba(255, 255, 255, 1);
-  max-height: 400px;
-  overflow-y: auto;
-  z-index: 10000000;
-  display: none;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(30px);
-}
-
-.search-suggestions.show {
-  display: block;
-  animation: slideDown 0.2s ease;
-  z-index: 10000000;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.search-suggestions::-webkit-scrollbar {
-  width: 6px;
-}
-
-.search-suggestions::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
-}
-
-.search-suggestion-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 16px;
-  cursor: pointer;
-  transition: all 0.2s;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.search-suggestion-item:first-child {
-  border-radius: 12px 12px 0 0;
-}
-
-.search-suggestion-item:last-child {
-  border-bottom: none;
-  border-radius: 0 0 12px 12px;
-}
-
+.search-suggestions::-webkit-scrollbar { width: 6px;}
+.search-suggestions::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); border-radius: 3px; }
+.search-suggestion-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; cursor: pointer; transition: all 0.2s; border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+.search-suggestion-item:first-child { border-radius: 12px 12px 0 0; }
+.search-suggestion-item:last-child { border-bottom: none; border-radius: 0 0 12px 12px; }
 .search-suggestion-item:hover,
-.search-suggestion-item.selected {
-  background: rgba(18, 100, 163, 0.1);
-}
+.search-suggestion-item.selected {background: rgba(18, 100, 163, 0.1); }
+.search-suggestion-name { font-size: 14px; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; min-width: 120px; }
+.search-suggestion-url { font-size: 12px; color: rgba(255, 255, 255, 0.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; flex: 1; min-width: 0; }
 
-.search-suggestion-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #ffffff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex-shrink: 0;
-  min-width: 120px;
-}
+body.home-active .search-wrap {  position: relative;  align-items: center;  justify-content: center;  transform: translateX(-50%);  max-width: 600px;  width: 90%;  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);  z-index: 100;  margin: 0;  }
+body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(30px); }
 
-.search-suggestion-url {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-align: right;
-  flex: 1;
-  min-width: 0;
-}
-
-/* Home アクティブ時の調整 */
-body.home-active .search-wrap { 
-  position: relative; 
-  align-items: center; 
-  justify-content: center; 
-  transform: translateX(-50%); 
-  max-width: 600px; 
-  width: 90%; 
-  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); 
-  z-index: 100; 
-  margin: 0; 
-}
-
-body.home-active .search-suggestions {
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(30px);
-}
-
-/* モバイル対応 */
 @media (max-width: 1024px) {
-  .search-wrap {
-    max-width: 600px;
-    width: calc(100% - 100px);
-  }
+  .search-wrap { max-width: 600px; width: calc(100% - 100px); }
 }
-
 @media (max-width: 768px) {
-  .search-wrap {
-    max-width: 500px;
-    width: calc(100% - 80px);
-  }
-  
-  .search-suggestions {
-    max-height: 300px;
-    z-index: 10;
-  }
-  
-  .search-suggestion-item {
-    padding: 10px 12px;
-    gap: 12px;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .search-suggestion-name {
-    font-size: 13px;
-    min-width: unset;
-    width: 100%;
-  }
-  
-  .search-suggestion-url {
-    font-size: 11px;
-    text-align: left;
-    width: 100%;
-  }
+  .search-wrap { max-width: 500px; width: calc(100% - 80px); }
+  .search-suggestions { max-height: 300px; z-index: 10; }
+  .search-suggestion-item { padding: 10px 12px; gap: 12px; flex-direction: column; align-items: flex-start; }
+  .search-suggestion-name { font-size: 13px; min-width: unset; width: 100%; }
+  .search-suggestion-url { font-size: 11px; text-align: left; width: 100%; }
 }
 
 .header-actions { display: flex; gap: 10px; align-items: center; margin-left: auto; }
@@ -439,50 +260,14 @@ body.home-active .search-suggestions {
 .modal-btn.secondary { background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); color: #ffffff; border:1px solid var(--border); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
 .modal-btn.secondary:hover {  background: rgba(255,255,255,0.2); transform: translateY(-2px); }
 
-.icon-picker-grid { 
-  display: grid; 
-  grid-template-columns: repeat(4, 1fr); 
-  gap: 12px; 
-  margin-bottom: 20px; 
-  max-height: 400px; 
-  overflow-y: auto; 
-  padding: 8px; 
-}
+.icon-picker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; max-height: 400px; overflow-y: auto; padding: 8px; }
 .icon-picker-grid::-webkit-scrollbar { width: 5px; }
-.icon-picker-grid::-webkit-scrollbar-thumb { 
-  background: rgba(255,255,255,0.3); 
-  border-radius: 3px; 
-}
-.icon-picker-item { 
-  aspect-ratio: 1; 
-  background: rgba(255,255,255,0.1); 
-  backdrop-filter: blur(10px); 
-  border: 2px solid rgba(255,255,255,0.15); 
-  border-radius: 12px; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  cursor: pointer; 
-  transition: all 0.3s ease; 
-  padding: 16px; 
-}
-.icon-picker-item:hover { 
-  background: rgba(255,255,255,0.2); 
-  border-color: rgba(255,255,255,0.4); 
-  transform: translateY(-3px); 
-  box-shadow: 0 8px 20px rgba(0,0,0,0.3); 
-}
-.icon-picker-item.selected { 
-  background: rgba(43,172,118,0.3); 
-  border-color: #2bac76; 
-  box-shadow: 0 0 0 3px rgba(43,172,118,0.2); 
-}
-.icon-picker-item img, .icon-picker-item svg { 
-  width: 100%; 
-  height: 100%; 
-  object-fit: contain; 
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2)); 
-}
+.icon-picker-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
+.icon-picker-item { aspect-ratio: 1; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; padding: 16px; }
+.icon-picker-item:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.4); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+.icon-picker-item.selected { background: rgba(43,172,118,0.3); border-color: #2bac76; box-shadow: 0 0 0 3px rgba(43,172,118,0.2); }
+.icon-picker-item img, .icon-picker-item svg {  width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2)); }
+
 .alert { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 10001; }
 .alert.show { display: flex; animation: fadeIn 0.3s; }
 .alert-wrap { text-align: center; animation: slideUp 0.4s; }
