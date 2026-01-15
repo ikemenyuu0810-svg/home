@@ -491,8 +491,8 @@ body.home-active .search-suggestions {
 .alert-close { padding: 14px 40px; background: rbga(255,255,255,0.12); backdrop-filter:blur(10px); color: #333; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
 .alert-close:hover { transform: scale(1.05); }
 
-.float { position: fixed; top: 70px; background: rgba(57, 57, 55,0.95); backdrop-filter: blur(20px); border-radius: 10px; padding: 12px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); cursor: pointer; z-index: 1000; opacity: 0; transform: translateY(-20px); pointer-events: none; transition: all 0.4s; }
-.float.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.float { position: fixed; top: 70px; background: rgba(255,255,255,0.0012); backdrop-filter: blur(15px);  transition: all 0.4s ease; border-radius: 10px; border: 2px solid rgba(255,255,255,0.15);  padding: 12px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); cursor: pointer; z-index: 1000; opacity: 0; transform: translateY(-20px); pointer-events: none; }
+.float.show { opacity: 1; transform: translateY(0); pointer-events: auto;  transform: scale(1.005); }
 .float:hover { transform: translateY(-2px) scale(1.05); }
 .float-timer { right: 24px; min-width: 180px; }
 .float-timer-type { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
