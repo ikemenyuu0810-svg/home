@@ -1136,6 +1136,18 @@ window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
 setInterval(updateYoutubeControls, 1000);
 switchTimer('pomodoro');
 
+// script.js に追加
+function toggleYoutubePlay() {
+  if (ytPlayer && ytPlayer.getPlayerState) {
+    const state = ytPlayer.getPlayerState();
+    if (state === YT.PlayerState.PLAYING) {
+      ytPlayer.pauseVideo();
+    } else {
+      ytPlayer.playVideo();
+    }
+  }
+}
+
 function switchTimer(type) {
   // タイマーが動いている場合は停止
   if (timerRun) {
