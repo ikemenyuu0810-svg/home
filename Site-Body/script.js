@@ -440,49 +440,6 @@ function updateTimer() {
   checkVis();
 }
 
-
-
-function toggleTimer() {
-  play('snd-click');
-  if (timerRun) {
-    clearInterval(timerInt);
-    timerRun = false;
-    $('start').textContent = 'Start';
-    updateQuickPlayIcon(false);
-  } else {
-    timerRun = true;
-    $('start').textContent = 'Pause';
-    updateQuickPlayIcon(true);
-    timerInt = setInterval(() => {
-      if (--timeLeft <= 0) {
-        clearInterval(timerInt);
-        timerRun = false;
-        $('start').textContent = 'Start';
-        updateQuickPlayIcon(false);
-        if (isWork) {
-          cycles++;
-          stats.sessions++;
-          stats.today++;
-          stats.minutes += pomoT;
-          updateStats();
-          play('snd-pomo');
-          showAlert('作業完了！', '休憩時間です');
-          if (sets.repeat === 0 || cycles < sets.repeat) {
-            setTimeout(() => { switchTimer('short'); toggleTimer(); }, 3000);
-          }
-        } else {
-          play('snd-timer');
-          showAlert('休憩終了！', '次の作業を始めましょう');
-          if (sets.repeat === 0 || cycles < sets.repeat) {
-            setTimeout(() => { switchTimer('pomodoro'); toggleTimer(); }, 3000);
-          }
-        }
-      }
-      updateTimer();
-    }, 1000);
-  }
-}
-
 function resetTimer() {
   play('snd-click');
   if (timerRun) {
@@ -1268,18 +1225,6 @@ function resetTimer() {
   updateTimer();
 }
 
-function checkVis() {
-  const shouldShow = localStorage.getItem('float-timer') === 'true';
-  if (!shouldShow) return;
-  
-  const content = document.querySelector('.content');
-  const timerRect = $('timer-section').getBoundingClientRect();
-  const contentRect = content.getBoundingClientRect();
-  
-  const isVisible = timerRect.top < contentRect.bottom && timerRect.bottom > contentRect.top;
-  
-  $('float-timer').classList.toggle('visible', !isVisible);
-}
 checkVis();
 setInterval(checkVis, 1000);
 
