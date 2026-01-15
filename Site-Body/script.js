@@ -38,6 +38,9 @@ function switchSection(section) {
   play('snd-click');
   currentSection = section;
   
+  // 現在のセクションを保存
+  localStorage.setItem('current-section', section);
+  
   // Home タブの特別処理
   if (section === 'home') {
     document.body.classList.add('home-active');
@@ -1561,5 +1564,13 @@ switchSection = function(section) {
 window.addEventListener('load', () => {
   if (document.getElementById('section-clock').classList.contains('active')) {
     setTimeout(initGlobe, 100);
+  }
+});
+
+// ページ読み込み時に前回のセクションを復元
+window.addEventListener('DOMContentLoaded', () => {
+  const lastSection = localStorage.getItem('current-section');
+  if (lastSection && lastSection !== 'timer') {
+    switchSection(lastSection);
   }
 });
