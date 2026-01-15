@@ -783,7 +783,7 @@ function updateHomeClock() {
   const seconds = String(now.getSeconds()).padStart(2, '0');
   const homeClockEl = $('home-clock');
   if (homeClockEl) {
-    homeClockEl.textContent = `${hours}:${minutes}:${seconds}`;
+    homeClockEl.textContent = `${hours}:${minutes}`;
   }
 }
 updateHomeClock();
