@@ -310,7 +310,7 @@ body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); bac
 .youtube-fixed-controls { position: fixed; bottom: 90px; right: 24px; background: hsla(0, 0%, 0%, 0.55); backdrop-filter: blur(20px); border-radius: 12px; padding: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); display: none; z-index: 998; }
 .youtube-fixed-controls.show { display: flex; align-items: center; gap: 8px; }
 #home-clock { font-variant-numeric: tabular-nums; position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 22.5vh; letter-spacing: 0.2rem; color: #ffffff; font-variant-numeric: tabular-nums; }
-text { font-family: "HarmonyOS-font-medium"; font-weight: 400; letter-spacing: 0.08em; fill: none; stroke: white; stroke-width: 0.35; vector-effect: non-scaling-stroke; stroke-linejoin: round;}
+text { font-family: "HarmonyOS-font-medium"; font-weight: 400; letter-spacing: 0.08em; fill: none; stroke: white; stroke-width: 0.5; vector-effect: non-scaling-stroke; stroke-linejoin: round;}
 @media (max-width: 768px) { #home-clock { font-size: 3rem; } }
 @font-face { font-family: "HigureGothic-font"; src: url("../font/HigureGothic-Regular.ttf") format("truetype"); font-display: swap;}
 @font-face { font-family: "HarmonyOS-font-thin"; src: url("../font/HarmonyOS_Sans_Thin.woff") format("woff"); font-display: swap;}
