@@ -295,7 +295,7 @@ body.home-active .search-suggestions {
 
 
 .timer-hero { background: rgba(255,255,255,0.0012); backdrop-filter: blur(7.5px); border-radius: 12px; padding: 40px; text-align: center; margin-bottom: 24px; border: 1px solid var(--border); box-shadow: 0 8px 32px rgba(0,0,0,0.3); transition:all 0.3s ease; }
-.timer-hero:hover { transform: scale(1.0045); }
+.timer-hero:hover { backdrop-filter: blur(15px); transform: scale(1.0045); }
 .timer-tabs { display: inline-flex; gap: 6px; margin-bottom: 32px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 10px; }
 .tab-btn { padding: 10px 24px; background: transparent; border: none; color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 7px; transition: all 0.2s; opacity: 0.6; }
 .tab-btn:hover { opacity: 0.8; background: rgba(255,255,255,0.05); }
