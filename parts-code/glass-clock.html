@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Glass Text Clock</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: url("https://picsum.photos/1400/900") center / cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  svg {
+    width: 720px;
+    height: 260px;
+  }
+
+  /* 文字内側のガラス */
+  .glass {
+    fill: rgba(255, 255, 255, 0.0015);
+    backdrop-filter: blur(10000px);
+    -webkit-backdrop-filter: blur(10000px);
+  }
+
+  /* 枠線 */
+  .outline {
+    fill: none;
+    stroke: white;
+    stroke-width: 0.1225;
+    vector-effect: non-scaling-stroke;
+    stroke-linejoin: round;
+  }
+
+  text {
+    font-family:
+      "Noto Sans JP Black",
+      "Hiragino Sans W8",
+      "Arial Black",
+      sans-serif;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+  }
+</style>
+</head>
+<body>
+
+<svg viewBox="0 0 720 260">
+  <defs>
+    <!-- 文字マスク -->
+    <mask id="text-mask">
+      <rect width="100%" height="100%" fill="black"/>
+      <text
+        id="mask-text"
+        x="50%"
+        y="55%"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        font-size="130"
+        fill="white"
+      >
+        00:00:00
+      </text>
+    </mask>
+  </defs>
+
+  <!-- 文字の内側だけ背景をぼかす -->
+  <rect
+    width="100%"
+    height="100%"
+    class="glass"
+    mask="url(#text-mask)"
+  />
+
+  <!-- 枠線 -->
+  <text
+    id="outline-text"
+    x="50%"
+    y="55%"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    font-size="130"
+    class="outline"
+  >
+    00:00:00
+  </text>
+</svg>
+
+<script>
+  function updateClock() {
+    const now = new Date();
+
+    const h = String(now.getHours()).padStart(2, "0");
+    const m = String(now.getMinutes()).padStart(2, "0");
+    const s = String(now.getSeconds()).padStart(2, "0");
+
+    const time = `${h}:${m}:${s}`;
+
+    document.getElementById("mask-text").textContent = time;
+    document.getElementById("outline-text").textContent = time;
+  }
+
+  updateClock();
+  setInterval(updateClock, 1000);
+</script>
+
+</body>
+</html>
