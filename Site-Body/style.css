@@ -71,8 +71,8 @@ body.home-active .search-wrap { position: relative; align-items: center; justify
 .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-dim); pointer-events: none; z-index: 1; }
 .search-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; cursor: pointer; padding: 6px; color: var(--text); border-radius: 100vh; transition: all 0.2s; z-index: 1; }
 .search-btn:hover { background: rgba(255,255,255,0.3); }
-.search-suggestions { z-index: 10; position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(20px); border-radius: 12px; box-shadow: 0 2px 5px rgba(255, 255, 255, 1); max-height: 400px; overflow-y: auto; z-index: 10000000; display: none; border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(30px); }
-.search-suggestions.show { display: block; animation: slideDown 0.2s ease; z-index: 10000000; }
+.search-suggestions { position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(20px); border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); max-height: 400px; overflow-y: auto; z-index: 10000; display: none; border: 1px solid rgba(255, 255, 255, 0.2); }
+.search-suggestions.show { display: block; animation: slideDown 0.2s ease; }
 
 @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
