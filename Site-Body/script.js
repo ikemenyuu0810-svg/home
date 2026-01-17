@@ -818,7 +818,7 @@ function reloadWeather() {
 
 loadWeather();
 setInterval(loadWeather, 1800000);
-// Gemini
+
 // Gemini
 let geminiHistory = [];
 
@@ -853,21 +853,31 @@ function sendGemini() {
   })
   .then(res => res.json())
   .then(data => {
-    // ローディングを削除
-    const loadingElement = document.getElementById(loadingId);
-    if (loadingElement) loadingElement.remove();
-    
-    // レスポンスを取得
-    const response = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response';
-    
-    // アシスタントメッセージを履歴に追加
-    geminiHistory.push({
-      role: 'assistant',
-      message: response
-    });
-    
-    // レスポンスを表示
-    displayGeminiMessage('assistant', response);
+    console.log("RAW Gemini response:", data);
+
+    document.getElementById(loadingId)?.remove();
+
+    if (data.error) {
+      displayGeminiMessage('assistant', 'API Error: ' + data.error.message);
+      return;
+    }
+
+    if (data.promptFeedback?.blockReason) {
+      displayGeminiMessage(
+        'assistant',
+        'Blocked: ' + data.promptFeedback.blockReason
+      );
+      return;
+    }
+
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) {
+      displayGeminiMessage('assistant', 'No response (empty)');
+      return;
+    }
+
+    displayGeminiMessage('assistant', text);
   })
   .catch(error => {
     // ローディングを削除
