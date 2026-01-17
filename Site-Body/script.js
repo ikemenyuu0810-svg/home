@@ -819,11 +819,104 @@ function reloadWeather() {
 loadWeather();
 setInterval(loadWeather, 1800000);
 // Gemini
+// Gemini
+let geminiHistory = [];
+
 function sendGemini() {
   const msg = $('gemini').textContent.trim();
   if (!msg) return;
+  
+  // ユーザーメッセージを履歴に追加
+  geminiHistory.push({
+    role: 'user',
+    message: msg
+  });
+  
+  // 入力欄をクリア
   $('gemini').textContent = '';
-  console.log('Message sent to Gemini:', msg);
+  
+  // ユーザーメッセージを表示
+  displayGeminiMessage('user', msg);
+  
+  // ローディング表示
+  const loadingId = displayGeminiMessage('assistant', 'Thinking...');
+  
+  // Gemini APIにリクエスト
+  fetch("https://steep-heart-f7f8.ikemenyuu0810.workers.dev/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [
+        { parts: [{ text: msg }] }
+      ]
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    // ローディングを削除
+    const loadingElement = document.getElementById(loadingId);
+    if (loadingElement) loadingElement.remove();
+    
+    // レスポンスを取得
+    const response = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response';
+    
+    // アシスタントメッセージを履歴に追加
+    geminiHistory.push({
+      role: 'assistant',
+      message: response
+    });
+    
+    // レスポンスを表示
+    displayGeminiMessage('assistant', response);
+  })
+  .catch(error => {
+    // ローディングを削除
+    const loadingElement = document.getElementById(loadingId);
+    if (loadingElement) loadingElement.remove();
+    
+    // エラーメッセージを表示
+    displayGeminiMessage('assistant', 'Error: ' + error.message);
+    console.error('Gemini API Error:', error);
+  });
+}
+
+function displayGeminiMessage(role, message) {
+  const geminiWrap = document.querySelector('#section-gemini .card-content');
+  const messagesContainer = geminiWrap.querySelector('.gemini-messages') || createMessagesContainer();
+  
+  const messageId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+  const messageDiv = document.createElement('div');
+  messageDiv.id = messageId;
+  messageDiv.className = 'gemini-message gemini-message-' + role;
+  messageDiv.innerHTML = `
+    <div class="gemini-message-header">${role === 'user' ? 'You' : 'Gemini'}</div>
+    <div class="gemini-message-content">${message.replace(/\n/g, '<br>')}</div>
+  `;
+  
+  messagesContainer.appendChild(messageDiv);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  
+  return messageId;
+}
+
+function createMessagesContainer() {
+  const geminiWrap = document.querySelector('#section-gemini .card-content');
+  const existingWrap = geminiWrap.querySelector('.gemini-wrap');
+  
+  const messagesContainer = document.createElement('div');
+  messagesContainer.className = 'gemini-messages';
+  messagesContainer.style.cssText = 'flex: 1; overflow-y: auto; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px;';
+  
+  geminiWrap.insertBefore(messagesContainer, existingWrap);
+  return messagesContainer;
+}
+
+function clearGeminiChat() {
+  const messagesContainer = document.querySelector('.gemini-messages');
+  if (messagesContainer) {
+    messagesContainer.innerHTML = '';
+  }
+  geminiHistory = [];
 }
 
 // Quick Links
