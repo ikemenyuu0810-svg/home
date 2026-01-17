@@ -329,29 +329,29 @@ body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); bac
 #globe-container canvas { display: block; border-radius: 10px; cursor: grab; }
 #globe-container canvas:active { cursor: grabbing; }
 
-/* ===== Work Hub メモ統合スタイル ===== */
+/* ===== Work Memo 統合スタイル (既存デザイン維持) ===== */
 
 /* フィルタータブ */
 .work-filter-tab {
   padding: 6px 12px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.15);
   border: 1px solid var(--border);
   border-radius: 6px;
   color: rgba(255,255,255,0.7);
   font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .work-filter-tab:hover {
-  background: rgba(255,255,255,0.15);
-  color: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.25);
 }
 
 .work-filter-tab.active {
-  background: #2bac76;
+  background: rgba(255,255,255,0.2);
   color: white;
-  border-color: #2bac76;
+  border-color: rgba(255,255,255,0.3);
 }
 
 /* 表示切替ボタン */
@@ -361,7 +361,7 @@ body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); bac
   border-radius: 4px;
   color: rgba(255,255,255,0.5);
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 6px;
   transition: all 0.2s;
   display: flex;
   align-items: center;
@@ -369,33 +369,23 @@ body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); bac
 
 .work-view-btn:hover {
   background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.9);
 }
 
 .work-view-btn.active {
   background: rgba(255,255,255,0.15);
-  color: #2bac76;
+  color: white;
 }
 
-.work-view-btn .icon {
-  width: 16px;
-  height: 16px;
-}
-
-/* セレクトボックス */
+/* セレクト */
 .work-select {
-  padding: 6px 12px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.15);
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--text);
+  padding: 6px 10px;
   font-size: 13px;
   cursor: pointer;
   outline: none;
-}
-
-.work-select:focus {
-  border-color: #2bac76;
 }
 
 .work-select option {
@@ -404,26 +394,25 @@ body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); bac
 }
 
 /* メモリスト */
-.memo-list-normal,
-.memo-list-grid {
+.work-memo-list-normal,
+.work-memo-list-grid {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.3) transparent;
 }
 
-.memo-list-normal::-webkit-scrollbar,
-.memo-list-grid::-webkit-scrollbar {
+.work-memo-list-normal::-webkit-scrollbar,
+.work-memo-list-grid::-webkit-scrollbar {
   width: 5px;
 }
 
-.memo-list-normal::-webkit-scrollbar-thumb,
-.memo-list-grid::-webkit-scrollbar-thumb {
+.work-memo-list-normal::-webkit-scrollbar-thumb,
+.work-memo-list-grid::-webkit-scrollbar-thumb {
   background: rgba(255,255,255,0.3);
   border-radius: 3px;
 }
 
-.memo-list-grid {
+.work-memo-list-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 8px;
 }
 
@@ -431,19 +420,17 @@ body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); bac
 .work-memo-item {
   padding: 12px;
   margin-bottom: 8px;
-  background: rgba(255,255,255,0.08);
+  background: var(--card-bg);
+  backdrop-filter: blur(7.5px);
   border: 1px solid var(--border);
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   position: relative;
 }
 
-.memo-list-grid .work-memo-item {
+.work-memo-list-grid .work-memo-item {
   margin-bottom: 0;
-  aspect-ratio: 1;
-  display: flex;
-  flex-direction: column;
 }
 
 .work-memo-item.pinned::before {
@@ -453,19 +440,21 @@ body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); bac
   right: 8px;
   width: 8px;
   height: 8px;
-  background: #2bac76;
+  background: white;
   border-radius: 50%;
+  opacity: 0.8;
 }
 
 .work-memo-item:hover {
-  background: rgba(255,255,255,0.12);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transform: scale(1.005);
+  box-shadow: 0 6px 25px rgba(255,255,255,0.0075);
+  background: var(--card-hover);
+  backdrop-filter: blur(15px);
 }
 
 .work-memo-item.active {
-  background: rgba(255,255,255,0.15);
-  border-color: #2bac76;
+  background: var(--card-hover);
+  border-color: rgba(255,255,255,0.3);
 }
 
 /* カラーボーダー */
@@ -501,7 +490,6 @@ body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); bac
   gap: 4px;
   opacity: 0;
   transition: opacity 0.2s;
-  flex-shrink: 0;
 }
 
 .work-memo-item:hover .work-memo-actions {
@@ -509,36 +497,33 @@ body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); bac
 }
 
 .work-memo-btn {
-  background: none;
+  background: rgba(255,255,255,0.1);
   border: none;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.6);
   cursor: pointer;
   padding: 4px;
+  border-radius: 4px;
   transition: all 0.2s;
   display: flex;
   align-items: center;
-  border-radius: 4px;
 }
 
 .work-memo-btn:hover {
-  color: var(--text);
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.2);
+  color: white;
 }
 
-.work-memo-btn.active {
+.work-memo-btn.active,
+.work-memo-btn.favorite.active {
   color: #fab005;
 }
 
 .work-memo-btn.delete:hover {
   color: #fa5252;
+  background: rgba(255,0,0,0.2);
 }
 
-.work-memo-btn .icon {
-  width: 14px;
-  height: 14px;
-}
-
-/* メモメタ情報 */
+/* メモメタ */
 .work-memo-meta {
   display: flex;
   justify-content: space-between;
@@ -616,54 +601,40 @@ body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); bac
 }
 
 .work-memo-tab {
-  padding: 6px 14px;
-  background: transparent;
-  border: 1px solid transparent;
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid var(--border);
   border-radius: 6px;
   color: rgba(255,255,255,0.7);
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
 .work-memo-tab:hover {
-  background: rgba(255,255,255,0.08);
-  color: var(--text);
+  background: rgba(255,255,255,0.25);
 }
 
 .work-memo-tab.active {
-  background: rgba(255,255,255,0.12);
-  color: #2bac76;
-  border-color: var(--border);
-}
-
-.work-memo-tab .icon {
-  width: 16px;
-  height: 16px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border-color: rgba(255,255,255,0.3);
 }
 
 /* ツールバー */
 .work-memo-toolbar {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
   flex-wrap: wrap;
   margin-bottom: 12px;
 }
 
-.toolbar-group {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
 .toolbar-btn {
   min-width: 32px;
   height: 32px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.15);
   border: none;
   border-radius: 4px;
   color: var(--text);
@@ -672,16 +643,11 @@ body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); bac
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 8px;
+  font-size: 16px;
 }
 
 .toolbar-btn:hover {
-  background: rgba(255,255,255,0.2);
-}
-
-.toolbar-btn .icon {
-  width: 16px;
-  height: 16px;
+  background: rgba(255,255,255,0.25);
 }
 
 /* 統計 */
@@ -727,73 +693,30 @@ body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); bac
   color: rgba(255,255,255,0.3);
 }
 
-/* マークダウンプレビュー */
+/* プレビュー */
 .work-memo-preview {
   color: var(--text);
   line-height: 1.8;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
   padding: 20px;
   overflow-y: auto;
 }
 
-.work-memo-preview h1,
-.work-memo-preview h2,
-.work-memo-preview h3 {
-  margin: 16px 0 8px;
-}
-
-.work-memo-preview p {
-  margin: 8px 0;
-}
-
-.work-memo-preview ul,
-.work-memo-preview ol {
-  margin: 8px 0 8px 20px;
-}
-
-.work-memo-preview a {
-  color: #2bac76;
-  text-decoration: underline;
-}
-
-.work-memo-preview img {
-  max-width: 100%;
-  border-radius: 8px;
-  margin: 8px 0;
-}
-
 /* Geminiアクション */
-.gemini-actions {
+.gemini-memo-actions {
   margin-top: 8px;
   display: flex;
   gap: 8px;
 }
 
-.gemini-actions .btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.gemini-actions .btn svg {
-  width: 14px;
-  height: 14px;
-}
-
 /* レスポンシブ */
 @media (max-width: 1024px) {
-  .cards1 {
-    flex-direction: column !important;
-  }
-  
-  .card[style*="width:350px"] {
+  .cards1 > .card[style*="width:320px"] {
     width: 100% !important;
     max-width: 100% !important;
     max-height: 300px;
   }
   
-  .memo-list-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  .work-memo-list-grid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
   }
 }

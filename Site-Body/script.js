@@ -1707,36 +1707,44 @@ window.addEventListener('DOMContentLoaded', () => {
     switchSection(lastSection);
   }
 });
-// ===== Memoアプリの統合機能 =====
-// 既存のscript.jsに追加するコード
+// ===== 既存のscript.jsの最後に追加 =====
+// Memoの既存コード(memo変数など)との競合を避けるため、変数名を変更
 
-// メモデータの初期化
-let memoData = [];
-let currentMemoId = null;
-let nextMemoId = 1;
-let currentMemoFilter = 'all';
-let currentMemoView = 'list';
-let currentMemoSort = 'updated';
-let currentColorFilter = '';
-let currentTagFilter = '';
+// メモアプリ統合用の変数
+let workMemos = [];
+let workCurrentMemoId = null;
+let workNextMemoId = 1;
+let workMemoFilter = 'all';
+let workMemoView = 'list';
+let workMemoSort = 'updated';
+let workColorFilter = '';
+let workTagFilter = '';
 
-// メモデータの初期化
-function initMemoData() {
+// HTMLエスケープ関数
+function escapeHtmlMemo(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// メモデータ初期化
+function initWorkMemoData() {
   try {
-    const storedData = localStorage.getItem('work-hub-memos');
-    if (storedData) {
-      memoData = JSON.parse(storedData);
-      nextMemoId = Math.max(...memoData.map(m => m.id), 0) + 1;
+    const stored = localStorage.getItem('work-hub-memos-data');
+    if (stored) {
+      workMemos = JSON.parse(stored);
+      workNextMemoId = Math.max(...workMemos.map(m => m.id), 0) + 1;
       return;
     }
   } catch (e) {
-    console.log('メモデータの読み込みに失敗しました');
+    console.log('メモデータ読み込みエラー:', e);
   }
   
-  memoData = [{
-    id: nextMemoId++,
+  // デフォルトメモ
+  workMemos = [{
+    id: workNextMemoId++,
     title: 'ようこそ！',
-    content: '# Work Hub メモ機能へようこそ！\n\n## 主な機能\n\n- リッチテキスト編集\n- ピン留め機能\n- お気に入り\n- 色分け\n- タグ管理\n\n**右クリック**でメモの操作メニューを表示！',
+    content: '# Work Hub メモへようこそ！\n\n## 主な機能\n\n- マークダウン対応\n- 画像アップロード\n- タグ管理\n- 色分け\n- ピン留め・お気に入り\n\n**メモを作成して始めましょう！**',
     tags: ['ideas'],
     favorite: false,
     pinned: true,
@@ -1745,34 +1753,28 @@ function initMemoData() {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   }];
-  saveMemoData();
+  saveWorkMemoData();
 }
 
-function saveMemoData() {
+function saveWorkMemoData() {
   try {
-    localStorage.setItem('work-hub-memos', JSON.stringify(memoData));
+    localStorage.setItem('work-hub-memos-data', JSON.stringify(workMemos));
   } catch (e) {
-    console.error('メモの保存に失敗しました:', e);
+    console.error('メモ保存エラー:', e);
   }
 }
 
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-function getFilteredMemos(searchText = '') {
-  let filtered = memoData.filter(memo => {
+function getFilteredWorkMemos(searchText = '') {
+  let filtered = workMemos.filter(memo => {
     const matchesSearch = memo.title.toLowerCase().includes(searchText.toLowerCase()) ||
                          memo.content.toLowerCase().includes(searchText.toLowerCase());
     const matchesFilter = 
-      (currentMemoFilter === 'all' && !memo.archived) ||
-      (currentMemoFilter === 'favorites' && memo.favorite && !memo.archived) ||
-      (currentMemoFilter === 'pinned' && memo.pinned && !memo.archived) ||
-      (currentMemoFilter === 'archived' && memo.archived);
-    const matchesColor = !currentColorFilter || memo.color === currentColorFilter;
-    const matchesTag = !currentTagFilter || memo.tags.includes(currentTagFilter);
+      (workMemoFilter === 'all' && !memo.archived) ||
+      (workMemoFilter === 'favorites' && memo.favorite && !memo.archived) ||
+      (workMemoFilter === 'pinned' && memo.pinned && !memo.archived) ||
+      (workMemoFilter === 'archived' && memo.archived);
+    const matchesColor = !workColorFilter || memo.color === workColorFilter;
+    const matchesTag = !workTagFilter || memo.tags.includes(workTagFilter);
     return matchesSearch && matchesFilter && matchesColor && matchesTag;
   });
 
@@ -1780,49 +1782,55 @@ function getFilteredMemos(searchText = '') {
     if (a.pinned && !b.pinned) return -1;
     if (!a.pinned && b.pinned) return 1;
     
-    if (currentMemoSort === 'updated') {
+    if (workMemoSort === 'updated') {
       return new Date(b.updatedAt) - new Date(a.updatedAt);
-    } else if (currentMemoSort === 'created') {
+    } else if (workMemoSort === 'created') {
       return new Date(b.createdAt) - new Date(a.createdAt);
-    } else if (currentMemoSort === 'title') {
+    } else if (workMemoSort === 'title') {
       return a.title.localeCompare(b.title);
     }
+    return 0;
   });
 
   return filtered;
 }
 
-function renderMemoList(searchText = '') {
-  const memoListEl = $('memo-list-container');
-  if (!memoListEl) return;
+function renderWorkMemoList(searchText = '') {
+  const listEl = $('work-memo-list-container');
+  if (!listEl) return;
   
-  const filteredMemos = getFilteredMemos(searchText);
-  memoListEl.className = currentMemoView === 'grid' ? 'memo-list-grid' : 'memo-list-normal';
+  const filtered = getFilteredWorkMemos(searchText);
+  listEl.className = workMemoView === 'grid' ? 'work-memo-list-grid' : 'work-memo-list-normal';
 
-  memoListEl.innerHTML = filteredMemos.map(memo => {
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(255,255,255,0.5);">メモがありません</div>';
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(memo => {
     const date = new Date(memo.updatedAt);
     const dateStr = date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
-    const safeTitle = escapeHtml(memo.title || '無題のメモ');
-    const safeContent = escapeHtml(memo.content.substring(0, 100) || 'メモを書く...');
+    const safeTitle = escapeHtmlMemo(memo.title || '無題のメモ');
+    const safeContent = escapeHtmlMemo(memo.content.substring(0, 100) || '');
     
     return `
-      <div class="work-memo-item ${currentMemoId === memo.id ? 'active' : ''} ${memo.pinned ? 'pinned' : ''}" 
+      <div class="work-memo-item ${workCurrentMemoId === memo.id ? 'active' : ''} ${memo.pinned ? 'pinned' : ''}" 
            data-id="${memo.id}" data-color="${memo.color || ''}" onclick="selectWorkMemo(${memo.id})">
         <div class="work-memo-header">
           <div class="work-memo-title">${safeTitle}</div>
           <div class="work-memo-actions">
-            <button class="work-memo-btn ${memo.pinned ? 'active' : ''}" onclick="event.stopPropagation(); toggleMemoPin(${memo.id})" title="ピン留め">
-              <svg class="icon" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+            <button class="work-memo-btn ${memo.pinned ? 'active' : ''}" onclick="event.stopPropagation(); toggleWorkMemoPin(${memo.id})" title="ピン留め">
+              <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
               </svg>
             </button>
-            <button class="work-memo-btn ${memo.favorite ? 'active' : ''}" onclick="event.stopPropagation(); toggleMemoFavorite(${memo.id})" title="お気に入り">
-              <svg class="icon" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+            <button class="work-memo-btn favorite ${memo.favorite ? 'active' : ''}" onclick="event.stopPropagation(); toggleWorkMemoFavorite(${memo.id})" title="お気に入り">
+              <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="currentColor">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
               </svg>
             </button>
             <button class="work-memo-btn delete" onclick="event.stopPropagation(); deleteWorkMemo(${memo.id})" title="削除">
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="3 6 5 6 21 6"/>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
               </svg>
@@ -1842,39 +1850,38 @@ function renderMemoList(searchText = '') {
   }).join('');
 }
 
-function parseMarkdown(text) {
+function parseMarkdownMemo(text) {
   let html = text
     .replace(/!\[([^\]]*)\]\(data:image\/[^;]+;base64,[^\)]+\)/g, (match) => {
-      return `<img src="${match.match(/\((data:image[^\)]+)\)/)[1]}" alt="uploaded image" style="max-width:100%;border-radius:8px;margin:8px 0;">`;
+      const src = match.match(/\((data:image[^\)]+)\)/);
+      return src ? `<img src="${src[1]}" alt="uploaded" style="max-width:100%;border-radius:8px;margin:8px 0;">` : '';
     })
     .replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" style="color:#2bac76;text-decoration:underline;">$1</a>')
     .replace(/^# (.*$)/gm, '<h1 style="font-size:24px;font-weight:700;margin:16px 0 8px;">$1</h1>')
-    .replace(/^## (.*$)/gm, '<h2 style="font-size:20px;font-weight:700;margin:12px 0 6px;">$2</h2>')
-    .replace(/^### (.*$)/gm, '<h3 style="font-size:18px;font-weight:600;margin:10px 0 5px;">$3</h3>')
+    .replace(/^## (.*$)/gm, '<h2 style="font-size:20px;font-weight:700;margin:12px 0 6px;">$1</h2>')
+    .replace(/^### (.*$)/gm, '<h3 style="font-size:18px;font-weight:600;margin:10px 0 5px;">$1</h3>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/`(.*?)`/g, '<code style="background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;">$1</code>')
     .replace(/^---$/gm, '<hr style="border:none;border-top:2px solid rgba(255,255,255,0.1);margin:16px 0;">')
     .replace(/@date\(([^\)]+)\)/g, '<span style="background:rgba(255,255,255,0.1);padding:4px 8px;border-radius:4px;font-size:13px;">$1</span>')
     .replace(/^- (.*$)/gm, '<li style="margin-left:20px;">$1</li>')
-    .replace(/(<li>.*<\/li>)/s, '<ul style="margin:8px 0;">$1</ul>')
     .replace(/\n\n/g, '</p><p style="margin:8px 0;">')
-    .replace(/^(?!<[hul])/gm, '<p style="margin:8px 0;">')
-    .replace(/(?<![>])$/gm, '</p>');
+    .replace(/\n/g, '<br>');
   
-  return html;
+  return '<p style="margin:8px 0;">' + html + '</p>';
 }
 
-function renderMemoEditor(memoId) {
-  const editorEl = $('memo-editor-container');
+function renderWorkMemoEditor(memoId) {
+  const editorEl = $('work-memo-editor-container');
   if (!editorEl) return;
   
-  const memo = memoData.find(m => m.id === memoId);
+  const memo = workMemos.find(m => m.id === memoId);
   if (!memo) {
     editorEl.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,0.5);text-align:center;padding:40px;">
         <div style="font-size:16px;margin-bottom:8px;">メモを選択するか、新しいメモを作成してください</div>
-        <div style="font-size:13px;">Ctrl+N で新規メモ</div>
+        <div style="font-size:13px;">+ 新規ボタンから作成</div>
       </div>
     `;
     return;
@@ -1886,125 +1893,84 @@ function renderMemoEditor(memoId) {
     lines: memo.content.split('\n').length
   };
 
-  const safeTitle = escapeHtml(memo.title);
-  const safeContent = escapeHtml(memo.content);
-
   editorEl.innerHTML = `
     <div class="work-memo-editor-header">
-      <input type="text" class="work-memo-title-input" id="memoTitleInput" placeholder="タイトルを入力..." value="${safeTitle}">
+      <input type="text" class="work-memo-title-input" id="workMemoTitleInput" placeholder="タイトルを入力..." value="${escapeHtmlMemo(memo.title)}">
       <div class="work-memo-editor-tabs">
-        <button class="work-memo-tab active" data-mode="edit">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-          </svg>
-          編集
-        </button>
-        <button class="work-memo-tab" data-mode="preview">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-          プレビュー
-        </button>
+        <button class="work-memo-tab active" data-mode="edit">編集</button>
+        <button class="work-memo-tab" data-mode="preview">プレビュー</button>
       </div>
       <div class="work-memo-toolbar">
-        <div class="toolbar-group">
-          <button class="toolbar-btn" id="memoUploadBtn" title="画像をアップロード">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-              <circle cx="8.5" cy="8.5" r="1.5"/>
-              <polyline points="21 15 16 10 5 21"/>
-            </svg>
-          </button>
-          <input type="file" id="memoFileInput" style="display:none;" accept="image/*">
-          <button class="toolbar-btn" id="memoLinkBtn" title="リンクを挿入">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-            </svg>
-          </button>
-          <button class="toolbar-btn" id="memoDateBtn" title="日付を挿入">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-              <line x1="16" y1="2" x2="16" y2="6"/>
-              <line x1="8" y1="2" x2="8" y2="6"/>
-              <line x1="3" y1="10" x2="21" y2="10"/>
-            </svg>
-          </button>
+        <button class="toolbar-btn" id="workMemoUploadBtn" title="画像">📷</button>
+        <input type="file" id="workMemoFileInput" style="display:none;" accept="image/*">
+        <button class="toolbar-btn" id="workMemoLinkBtn" title="リンク">🔗</button>
+        <button class="toolbar-btn" id="workMemoDateBtn" title="日付">📅</button>
+        <select class="work-select" id="workMemoTagSelect">
+          <option value="">タグ追加</option>
+          <option value="work">work</option>
+          <option value="personal">personal</option>
+          <option value="ideas">ideas</option>
+          <option value="todo">todo</option>
+        </select>
+        <div id="workMemoCurrentTags">
+          ${memo.tags.map(tag => `
+            <span class="work-tag work-tag-${tag}">
+              ${tag}
+              <span onclick="removeWorkMemoTag('${tag}')" style="cursor:pointer;margin-left:4px;">×</span>
+            </span>
+          `).join('')}
         </div>
-        <div style="width:1px;height:24px;background:rgba(255,255,255,0.1);"></div>
-        <div class="toolbar-group">
-          <select class="work-select" id="memoTagSelect">
-            <option value="">タグを追加...</option>
-            <option value="work">work</option>
-            <option value="personal">personal</option>
-            <option value="ideas">ideas</option>
-            <option value="todo">todo</option>
-          </select>
-          <div class="work-memo-tags" id="memoCurrentTags">
-            ${memo.tags.map(tag => `
-              <span class="work-tag work-tag-${tag}">
-                ${tag}
-                <span class="tag-remove" onclick="removeMemoTag('${tag}')" style="cursor:pointer;margin-left:4px;font-weight:700;">×</span>
-              </span>
-            `).join('')}
-          </div>
-        </div>
-        <div style="width:1px;height:24px;background:rgba(255,255,255,0.1);"></div>
-        <div class="toolbar-group">
-          <select class="work-select" id="memoColorSelect">
-            <option value="">色を選択...</option>
-            <option value="red">赤</option>
-            <option value="orange">オレンジ</option>
-            <option value="yellow">黄色</option>
-            <option value="green">緑</option>
-            <option value="blue">青</option>
-            <option value="purple">紫</option>
-            <option value="pink">ピンク</option>
-          </select>
-        </div>
+        <select class="work-select" id="workMemoColorSelect">
+          <option value="">色</option>
+          <option value="red">赤</option>
+          <option value="orange">オレンジ</option>
+          <option value="yellow">黄色</option>
+          <option value="green">緑</option>
+          <option value="blue">青</option>
+          <option value="purple">紫</option>
+          <option value="pink">ピンク</option>
+        </select>
       </div>
       <div class="work-memo-stats">
-        <span>${stats.chars} 文字</span>
-        <span>${stats.words} 単語</span>
-        <span>${stats.lines} 行</span>
+        <span>${stats.chars}文字</span>
+        <span>${stats.words}単語</span>
+        <span>${stats.lines}行</span>
       </div>
     </div>
-    <div class="work-memo-content" id="memoEditorContent">
-      <textarea class="work-memo-textarea" id="memoTextarea" placeholder="ここにメモを書く...">${safeContent}</textarea>
+    <div class="work-memo-content" id="workMemoEditorContent">
+      <textarea class="work-memo-textarea" id="workMemoTextarea" placeholder="ここにメモを書く...">${escapeHtmlMemo(memo.content)}</textarea>
     </div>
   `;
 
-  attachMemoEditorListeners(memo);
+  attachWorkMemoEditorListeners(memo);
 }
 
-function attachMemoEditorListeners(memo) {
-  const titleInput = $('memoTitleInput');
-  const contentInput = $('memoTextarea');
-  const tagSelect = $('memoTagSelect');
-  const colorSelect = $('memoColorSelect');
-  const uploadBtn = $('memoUploadBtn');
-  const fileInput = $('memoFileInput');
-  const linkBtn = $('memoLinkBtn');
-  const dateBtn = $('memoDateBtn');
-  const editorTabs = document.querySelectorAll('.work-memo-tab');
+function attachWorkMemoEditorListeners(memo) {
+  const titleInput = $('workMemoTitleInput');
+  const contentInput = $('workMemoTextarea');
+  const tagSelect = $('workMemoTagSelect');
+  const colorSelect = $('workMemoColorSelect');
+  const uploadBtn = $('workMemoUploadBtn');
+  const fileInput = $('workMemoFileInput');
+  const linkBtn = $('workMemoLinkBtn');
+  const dateBtn = $('workMemoDateBtn');
+  const tabs = document.querySelectorAll('.work-memo-tab');
 
   if (memo.color) colorSelect.value = memo.color;
 
   titleInput.addEventListener('input', (e) => {
     memo.title = e.target.value;
     memo.updatedAt = new Date().toISOString();
-    saveMemoData();
-    renderMemoList($('memo-search-input')?.value || '');
+    saveWorkMemoData();
+    renderWorkMemoList($('work-memo-search-input')?.value || '');
   });
 
   contentInput.addEventListener('input', (e) => {
     memo.content = e.target.value;
     memo.updatedAt = new Date().toISOString();
-    saveMemoData();
-    renderMemoList($('memo-search-input')?.value || '');
-    updateMemoStats(memo);
+    saveWorkMemoData();
+    renderWorkMemoList($('work-memo-search-input')?.value || '');
+    updateWorkMemoStats(memo);
   });
 
   uploadBtn.addEventListener('click', () => fileInput.click());
@@ -2013,16 +1979,15 @@ function attachMemoEditorListeners(memo) {
     const file = e.target.files[0];
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64 = event.target.result;
+      reader.onload = (ev) => {
         const cursorPos = contentInput.selectionStart;
         const before = contentInput.value.substring(0, cursorPos);
         const after = contentInput.value.substring(cursorPos);
-        contentInput.value = before + `![uploaded image](${base64})` + after;
+        contentInput.value = before + `![image](${ev.target.result})` + after;
         memo.content = contentInput.value;
         memo.updatedAt = new Date().toISOString();
-        saveMemoData();
-        showAlert('画像挿入', '画像を挿入しました');
+        saveWorkMemoData();
+        play('snd-click');
       };
       reader.readAsDataURL(file);
     }
@@ -2030,9 +1995,9 @@ function attachMemoEditorListeners(memo) {
   });
 
   linkBtn.addEventListener('click', () => {
-    const url = prompt('リンクのURLを入力してください:');
+    const url = prompt('リンクURL:');
     if (url) {
-      const text = prompt('リンクのテキストを入力してください:', url);
+      const text = prompt('リンクテキスト:', url);
       if (text !== null) {
         const cursorPos = contentInput.selectionStart;
         const before = contentInput.value.substring(0, cursorPos);
@@ -2040,30 +2005,29 @@ function attachMemoEditorListeners(memo) {
         contentInput.value = before + `[${text}](${url})` + after;
         memo.content = contentInput.value;
         memo.updatedAt = new Date().toISOString();
-        saveMemoData();
+        saveWorkMemoData();
       }
     }
   });
 
   dateBtn.addEventListener('click', () => {
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+    const dateStr = new Date().toLocaleDateString('ja-JP');
     const cursorPos = contentInput.selectionStart;
     const before = contentInput.value.substring(0, cursorPos);
     const after = contentInput.value.substring(cursorPos);
     contentInput.value = before + `@date(${dateStr})` + after;
     memo.content = contentInput.value;
     memo.updatedAt = new Date().toISOString();
-    saveMemoData();
+    saveWorkMemoData();
   });
 
   tagSelect.addEventListener('change', (e) => {
     if (e.target.value && !memo.tags.includes(e.target.value)) {
       memo.tags.push(e.target.value);
       memo.updatedAt = new Date().toISOString();
-      saveMemoData();
-      renderMemoEditor(memo.id);
-      renderMemoList($('memo-search-input')?.value || '');
+      saveWorkMemoData();
+      renderWorkMemoEditor(memo.id);
+      renderWorkMemoList($('work-memo-search-input')?.value || '');
     }
     e.target.value = '';
   });
@@ -2071,56 +2035,55 @@ function attachMemoEditorListeners(memo) {
   colorSelect.addEventListener('change', (e) => {
     memo.color = e.target.value;
     memo.updatedAt = new Date().toISOString();
-    saveMemoData();
-    renderMemoList($('memo-search-input')?.value || '');
+    saveWorkMemoData();
+    renderWorkMemoList($('work-memo-search-input')?.value || '');
   });
 
-  editorTabs.forEach(tab => {
+  tabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      editorTabs.forEach(t => t.classList.remove('active'));
+      tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      toggleMemoEditorMode(tab.dataset.mode, memo);
+      toggleWorkMemoEditorMode(tab.dataset.mode, memo);
     });
   });
+}
 
-  function updateMemoStats(memo) {
+function updateWorkMemoStats(memo) {
+  const statsEl = document.querySelector('.work-memo-stats');
+  if (statsEl) {
     const stats = {
       chars: memo.content.length,
       words: memo.content.split(/\s+/).filter(w => w).length,
       lines: memo.content.split('\n').length
     };
-    const statsEl = document.querySelector('.work-memo-stats');
-    if (statsEl) {
-      statsEl.innerHTML = `
-        <span>${stats.chars} 文字</span>
-        <span>${stats.words} 単語</span>
-        <span>${stats.lines} 行</span>
-      `;
-    }
+    statsEl.innerHTML = `
+      <span>${stats.chars}文字</span>
+      <span>${stats.words}単語</span>
+      <span>${stats.lines}行</span>
+    `;
   }
 }
 
-function toggleMemoEditorMode(mode, memo) {
-  const content = $('memoEditorContent');
-  
+function toggleWorkMemoEditorMode(mode, memo) {
+  const content = $('workMemoEditorContent');
   if (mode === 'preview') {
-    content.innerHTML = `<div class="work-memo-preview">${parseMarkdown(memo.content)}</div>`;
+    content.innerHTML = `<div class="work-memo-preview">${parseMarkdownMemo(memo.content)}</div>`;
   } else {
-    const safeContent = escapeHtml(memo.content);
-    content.innerHTML = `<textarea class="work-memo-textarea" id="memoTextarea" placeholder="ここにメモを書く...">${safeContent}</textarea>`;
-    attachMemoEditorListeners(memo);
+    content.innerHTML = `<textarea class="work-memo-textarea" id="workMemoTextarea" placeholder="ここにメモを書く...">${escapeHtmlMemo(memo.content)}</textarea>`;
+    attachWorkMemoEditorListeners(memo);
   }
 }
 
 function selectWorkMemo(id) {
-  currentMemoId = id;
-  renderMemoEditor(id);
-  renderMemoList($('memo-search-input')?.value || '');
+  workCurrentMemoId = id;
+  renderWorkMemoEditor(id);
+  renderWorkMemoList($('work-memo-search-input')?.value || '');
+  play('snd-click');
 }
 
 function createNewWorkMemo() {
   const newMemo = {
-    id: nextMemoId++,
+    id: workNextMemoId++,
     title: '',
     content: '',
     tags: [],
@@ -2131,107 +2094,125 @@ function createNewWorkMemo() {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
-  memoData.unshift(newMemo);
-  saveMemoData();
+  workMemos.unshift(newMemo);
+  saveWorkMemoData();
   selectWorkMemo(newMemo.id);
-  play('snd-click');
 }
 
-function toggleMemoPin(id) {
-  const memo = memoData.find(m => m.id === id);
+function toggleWorkMemoPin(id) {
+  const memo = workMemos.find(m => m.id === id);
   if (memo) {
     memo.pinned = !memo.pinned;
     memo.updatedAt = new Date().toISOString();
-    saveMemoData();
-    renderMemoList($('memo-search-input')?.value || '');
+    saveWorkMemoData();
+    renderWorkMemoList($('work-memo-search-input')?.value || '');
     play('snd-click');
   }
 }
 
-function toggleMemoFavorite(id) {
-  const memo = memoData.find(m => m.id === id);
+function toggleWorkMemoFavorite(id) {
+  const memo = workMemos.find(m => m.id === id);
   if (memo) {
     memo.favorite = !memo.favorite;
     memo.updatedAt = new Date().toISOString();
-    saveMemoData();
-    renderMemoList($('memo-search-input')?.value || '');
+    saveWorkMemoData();
+    renderWorkMemoList($('work-memo-search-input')?.value || '');
     play('snd-click');
   }
 }
 
 function deleteWorkMemo(id) {
-  if (confirm('このメモを削除しますか?')) {
-    memoData = memoData.filter(m => m.id !== id);
-    saveMemoData();
-    if (currentMemoId === id) {
-      currentMemoId = null;
-      renderMemoEditor(null);
+  if (confirm('このメモを削除しますか？')) {
+    workMemos = workMemos.filter(m => m.id !== id);
+    saveWorkMemoData();
+    if (workCurrentMemoId === id) {
+      workCurrentMemoId = null;
+      renderWorkMemoEditor(null);
     }
-    renderMemoList($('memo-search-input')?.value || '');
+    renderWorkMemoList($('work-memo-search-input')?.value || '');
     play('snd-click');
   }
 }
 
-function removeMemoTag(tag) {
-  const memo = memoData.find(m => m.id === currentMemoId);
+function removeWorkMemoTag(tag) {
+  const memo = workMemos.find(m => m.id === workCurrentMemoId);
   if (memo) {
     memo.tags = memo.tags.filter(t => t !== tag);
     memo.updatedAt = new Date().toISOString();
-    saveMemoData();
-    renderMemoEditor(memo.id);
-    renderMemoList($('memo-search-input')?.value || '');
-    play('snd-click');
+    saveWorkMemoData();
+    renderWorkMemoEditor(memo.id);
+    renderWorkMemoList($('work-memo-search-input')?.value || '');
   }
 }
 
-// Geminiチャットに「メモに追加」ボタンを追加する関数
-function addGeminiChatActions() {
-  document.addEventListener('click', (e) => {
-    if (e.target.closest('.gemini-message-assistant')) {
-      const messageEl = e.target.closest('.gemini-message-assistant');
-      if (!messageEl.querySelector('.gemini-actions')) {
-        const content = messageEl.querySelector('.gemini-message-content').textContent;
-        const actions = document.createElement('div');
-        actions.className = 'gemini-actions';
-        actions.style.cssText = 'margin-top:8px;display:flex;gap:8px;';
-        actions.innerHTML = `
-          <button class="btn" onclick="copyGeminiToClipboard(this)" style="padding:6px 12px;font-size:12px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-            </svg>
-            コピー
-          </button>
-          <button class="btn" onclick="addGeminiToMemo(this)" style="padding:6px 12px;font-size:12px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-            </svg>
-            メモに追加
-          </button>
-        `;
-        messageEl.appendChild(actions);
-      }
-    }
-  });
+function setWorkMemoFilter(btn, filter) {
+  document.querySelectorAll('.work-filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  workMemoFilter = filter;
+  renderWorkMemoList($('work-memo-search-input')?.value || '');
+  play('snd-click');
 }
 
-function copyGeminiToClipboard(btn) {
-  const messageEl = btn.closest('.gemini-message-assistant');
-  const content = messageEl.querySelector('.gemini-message-content').textContent;
+function setWorkMemoView(btn, view) {
+  document.querySelectorAll('.work-view-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  workMemoView = view;
+  renderWorkMemoList($('work-memo-search-input')?.value || '');
+  play('snd-click');
+}
+
+function setWorkMemoSort(sort) {
+  workMemoSort = sort;
+  renderWorkMemoList($('work-memo-search-input')?.value || '');
+  play('snd-click');
+}
+
+// Geminiチャットにボタン追加
+function addGeminiMemoButtons() {
+  const observer = new MutationObserver(() => {
+    document.querySelectorAll('.gemini-message-assistant').forEach(msg => {
+      if (!msg.querySelector('.gemini-memo-actions')) {
+        const content = msg.querySelector('.gemini-message-content');
+        if (content) {
+          const actions = document.createElement('div');
+          actions.className = 'gemini-memo-actions';
+          actions.style.cssText = 'margin-top:8px;display:flex;gap:8px;';
+          actions.innerHTML = `
+            <button class="btn" onclick="copyGeminiText(this)" style="padding:6px 12px;font-size:12px;background:rgba(255,255,255,0.15);">
+              📋 コピー
+            </button>
+            <button class="btn" onclick="addGeminiToWorkMemo(this)" style="padding:6px 12px;font-size:12px;background:rgba(255,255,255,0.15);">
+              📝 メモに追加
+            </button>
+          `;
+          msg.appendChild(actions);
+        }
+      }
+    });
+  });
+  
+  const geminiSection = $('section-gemini');
+  if (geminiSection) {
+    observer.observe(geminiSection, { childList: true, subtree: true });
+  }
+}
+
+function copyGeminiText(btn) {
+  const msg = btn.closest('.gemini-message-assistant');
+  const content = msg.querySelector('.gemini-message-content').textContent;
   navigator.clipboard.writeText(content).then(() => {
     showAlert('コピー完了', 'クリップボードにコピーしました');
     play('snd-click');
   });
 }
 
-function addGeminiToMemo(btn) {
-  const messageEl = btn.closest('.gemini-message-assistant');
-  const content = messageEl.querySelector('.gemini-message-content').textContent;
+function addGeminiToWorkMemo(btn) {
+  const msg = btn.closest('.gemini-message-assistant');
+  const content = msg.querySelector('.gemini-message-content').textContent;
   
   const newMemo = {
-    id: nextMemoId++,
-    title: 'Geminiからの回答 - ' + new Date().toLocaleString('ja-JP'),
+    id: workNextMemoId++,
+    title: 'Gemini - ' + new Date().toLocaleString('ja-JP'),
     content: content,
     tags: ['gemini'],
     favorite: false,
@@ -2242,19 +2223,30 @@ function addGeminiToMemo(btn) {
     updatedAt: new Date().toISOString()
   };
   
-  memoData.unshift(newMemo);
-  saveMemoData();
+  workMemos.unshift(newMemo);
+  saveWorkMemoData();
   showAlert('メモ追加', 'Geminiの回答をメモに追加しました');
   play('snd-click');
-  
-  // メモタブに切り替え
-  switchSection('memo');
-  renderMemoList();
-  selectWorkMemo(newMemo.id);
 }
 
 // 初期化
-window.addEventListener('DOMContentLoaded', () => {
-  initMemoData();
-  addGeminiChatActions();
-});
+setTimeout(() => {
+  initWorkMemoData();
+  addGeminiMemoButtons();
+  
+  // memoセクションに切り替わった時にレンダリング
+  const originalSwitch = window.switchSection;
+  window.switchSection = function(section) {
+    originalSwitch(section);
+    if (section === 'memo') {
+      setTimeout(() => {
+        renderWorkMemoList();
+        if (workCurrentMemoId) {
+          renderWorkMemoEditor(workCurrentMemoId);
+        } else {
+          renderWorkMemoEditor(null);
+        }
+      }, 100);
+    }
+  };
+}, 1000);
