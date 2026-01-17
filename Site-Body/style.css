@@ -328,3 +328,472 @@ body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); bac
 
 #globe-container canvas { display: block; border-radius: 10px; cursor: grab; }
 #globe-container canvas:active { cursor: grabbing; }
+
+/* ===== Work Hub メモ統合スタイル ===== */
+
+/* フィルタータブ */
+.work-filter-tab {
+  padding: 6px 12px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: rgba(255,255,255,0.7);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.work-filter-tab:hover {
+  background: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.9);
+}
+
+.work-filter-tab.active {
+  background: #2bac76;
+  color: white;
+  border-color: #2bac76;
+}
+
+/* 表示切替ボタン */
+.work-view-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.work-view-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.9);
+}
+
+.work-view-btn.active {
+  background: rgba(255,255,255,0.15);
+  color: #2bac76;
+}
+
+.work-view-btn .icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* セレクトボックス */
+.work-select {
+  padding: 6px 12px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+
+.work-select:focus {
+  border-color: #2bac76;
+}
+
+.work-select option {
+  background: #2a2a2a;
+  color: white;
+}
+
+/* メモリスト */
+.memo-list-normal,
+.memo-list-grid {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.3) transparent;
+}
+
+.memo-list-normal::-webkit-scrollbar,
+.memo-list-grid::-webkit-scrollbar {
+  width: 5px;
+}
+
+.memo-list-normal::-webkit-scrollbar-thumb,
+.memo-list-grid::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.3);
+  border-radius: 3px;
+}
+
+.memo-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+/* メモアイテム */
+.work-memo-item {
+  padding: 12px;
+  margin-bottom: 8px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.memo-list-grid .work-memo-item {
+  margin-bottom: 0;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.work-memo-item.pinned::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background: #2bac76;
+  border-radius: 50%;
+}
+
+.work-memo-item:hover {
+  background: rgba(255,255,255,0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.work-memo-item.active {
+  background: rgba(255,255,255,0.15);
+  border-color: #2bac76;
+}
+
+/* カラーボーダー */
+.work-memo-item[data-color="red"] { border-left: 3px solid #fa5252; }
+.work-memo-item[data-color="orange"] { border-left: 3px solid #fd7e14; }
+.work-memo-item[data-color="yellow"] { border-left: 3px solid #fab005; }
+.work-memo-item[data-color="green"] { border-left: 3px solid #40c057; }
+.work-memo-item[data-color="blue"] { border-left: 3px solid #1264a3; }
+.work-memo-item[data-color="purple"] { border-left: 3px solid #9775fa; }
+.work-memo-item[data-color="pink"] { border-left: 3px solid #f06595; }
+
+/* メモヘッダー */
+.work-memo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.work-memo-title {
+  color: var(--text);
+  font-weight: 600;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.work-memo-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.work-memo-item:hover .work-memo-actions {
+  opacity: 1;
+}
+
+.work-memo-btn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  padding: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+}
+
+.work-memo-btn:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.1);
+}
+
+.work-memo-btn.active {
+  color: #fab005;
+}
+
+.work-memo-btn.delete:hover {
+  color: #fa5252;
+}
+
+.work-memo-btn .icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* メモメタ情報 */
+.work-memo-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 8px;
+}
+
+/* メモプレビュー */
+.work-memo-preview {
+  color: rgba(255,255,255,0.7);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+/* タグ */
+.work-memo-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.work-tag {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.work-tag-work { background: #1264a3; }
+.work-tag-personal { background: #f06595; }
+.work-tag-ideas { background: #9775fa; }
+.work-tag-todo { background: #fd7e14; }
+.work-tag-gemini { background: #9775fa; }
+
+/* エディターヘッダー */
+.work-memo-editor-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.work-memo-title-input {
+  width: 100%;
+  padding: 8px 0;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 700;
+  outline: none;
+  margin-bottom: 12px;
+  font-family: "HarmonyOS-font-bold";
+}
+
+.work-memo-title-input::placeholder {
+  color: rgba(255,255,255,0.3);
+}
+
+/* エディタータブ */
+.work-memo-editor-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.work-memo-tab {
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: rgba(255,255,255,0.7);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.work-memo-tab:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+}
+
+.work-memo-tab.active {
+  background: rgba(255,255,255,0.12);
+  color: #2bac76;
+  border-color: var(--border);
+}
+
+.work-memo-tab .icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* ツールバー */
+.work-memo-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.toolbar-btn {
+  min-width: 32px;
+  height: 32px;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  border-radius: 4px;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+}
+
+.toolbar-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.toolbar-btn .icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* 統計 */
+.work-memo-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+}
+
+/* エディターコンテンツ */
+.work-memo-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.work-memo-content::-webkit-scrollbar {
+  width: 5px;
+}
+
+.work-memo-content::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.3);
+  border-radius: 3px;
+}
+
+.work-memo-textarea {
+  width: 100%;
+  min-height: 100%;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.8;
+  outline: none;
+  resize: none;
+  font-family: "HarmonyOS-font-thin";
+}
+
+.work-memo-textarea::placeholder {
+  color: rgba(255,255,255,0.3);
+}
+
+/* マークダウンプレビュー */
+.work-memo-preview {
+  color: var(--text);
+  line-height: 1.8;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.work-memo-preview h1,
+.work-memo-preview h2,
+.work-memo-preview h3 {
+  margin: 16px 0 8px;
+}
+
+.work-memo-preview p {
+  margin: 8px 0;
+}
+
+.work-memo-preview ul,
+.work-memo-preview ol {
+  margin: 8px 0 8px 20px;
+}
+
+.work-memo-preview a {
+  color: #2bac76;
+  text-decoration: underline;
+}
+
+.work-memo-preview img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+/* Geminiアクション */
+.gemini-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+.gemini-actions .btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gemini-actions .btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* レスポンシブ */
+@media (max-width: 1024px) {
+  .cards1 {
+    flex-direction: column !important;
+  }
+  
+  .card[style*="width:350px"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 300px;
+  }
+  
+  .memo-list-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
