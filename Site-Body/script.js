@@ -1064,9 +1064,39 @@ function onPlayerReady(event) {
 
 function onPlayerStateChange(event) {
   ytPlaying = event.data === YT.PlayerState.PLAYING;
+  updateYoutubePlayPauseIcon();
   updateYoutubeControls();
 }
 
+function updateYoutubePlayPauseIcon() {
+  // タブ内のアイコンを更新
+  const tabPlayIcon = document.querySelector('#section-youtube .youtube-btn svg polygon');
+  const tabPauseIcon1 = document.querySelector('#section-youtube .youtube-btn svg rect:nth-of-type(1)');
+  const tabPauseIcon2 = document.querySelector('#section-youtube .youtube-btn svg rect:nth-of-type(2)');
+  
+  // 固定コントロールのアイコンを更新
+  const fixedPlayIcon = document.querySelector('#youtube-fixed-controls svg polygon');
+  const fixedPauseIcon1 = document.querySelector('#youtube-fixed-controls svg rect:nth-of-type(1)');
+  const fixedPauseIcon2 = document.querySelector('#youtube-fixed-controls svg rect:nth-of-type(2)');
+  
+  if (ytPlaying) {
+    // 一時停止アイコンを表示
+    if (tabPlayIcon) tabPlayIcon.style.display = 'none';
+    if (tabPauseIcon1) tabPauseIcon1.style.display = 'block';
+    if (tabPauseIcon2) tabPauseIcon2.style.display = 'block';
+    if (fixedPlayIcon) fixedPlayIcon.style.display = 'none';
+    if (fixedPauseIcon1) fixedPauseIcon1.style.display = 'block';
+    if (fixedPauseIcon2) fixedPauseIcon2.style.display = 'block';
+  } else {
+    // 再生アイコンを表示
+    if (tabPlayIcon) tabPlayIcon.style.display = 'block';
+    if (tabPauseIcon1) tabPauseIcon1.style.display = 'none';
+    if (tabPauseIcon2) tabPauseIcon2.style.display = 'none';
+    if (fixedPlayIcon) fixedPlayIcon.style.display = 'block';
+    if (fixedPauseIcon1) fixedPauseIcon1.style.display = 'none';
+    if (fixedPauseIcon2) fixedPauseIcon2.style.display = 'none';
+  }
+}
 function loadYoutubePlaylist() {
   const url = $('yt-playlist').value.trim();
   if (!url) return alert('Please enter a playlist URL');
