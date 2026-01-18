@@ -711,7 +711,7 @@ body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); bac
   display: flex;
   align-items: center;
   gap: 4px;
-  font-family: "HarmonyOS-font-Medium";
+  font-family: "HarmonyOS_font_Medium";
 }
 
 .memo-site-tag-work { background: #1264a3; }
@@ -719,7 +719,7 @@ body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); bac
 .memo-site-tag-ideas { background: #9775fa; }
 .memo-site-tag-todo { background: #fd7e14; }
 .memo-site-tag-gemini { background: #9775fa; }
-.memo-site-tag-information { background: #12a320; }
+.memo-site-tag-information { background: #4f57c5; }
 
 .memo-site-tag-remove {
   cursor: pointer;
