@@ -2394,6 +2394,9 @@ function memoSiteInitEventListeners() {
   });
 }
 
+// ===== 既存のscript.jsの該当部分を以下に置き換え =====
+// 「// Geminiチャットにボタン追加」から「function initMemoSiteApp()」の前まで
+
 // Geminiチャットにボタン追加
 function memoSiteAddGeminiButtons() {
   const observer = new MutationObserver(() => {
@@ -2405,14 +2408,14 @@ function memoSiteAddGeminiButtons() {
           actions.className = 'gemini-memo-actions';
           actions.style.cssText = 'margin-top:8px;display:flex;gap:8px;';
           actions.innerHTML = `
-            <button class="btn" onclick="memoSiteCopyGeminiText(this)" style="padding:6px 12px;font-size:12px;background:rgba(255,255,255,0.15);border:none;border-radius:6px;color:white;cursor:pointer;display:flex;align-items:center;gap:4px;">
+            <button class="btn" onclick="window.memoSiteCopyGeminiText(this)" style="padding:6px 12px;font-size:12px;background:rgba(255,255,255,0.15);border:none;border-radius:6px;color:white;cursor:pointer;display:flex;align-items:center;gap:4px;">
               <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
               </svg>
               コピー
             </button>
-            <button class="btn" onclick="memoSiteAddGeminiToMemo(this)" style="padding:6px 12px;font-size:12px;background:rgba(255,255,255,0.15);border:none;border-radius:6px;color:white;cursor:pointer;display:flex;align-items:center;gap:4px;">
+            <button class="btn" onclick="window.memoSiteAddGeminiToMemo(this)" style="padding:6px 12px;font-size:12px;background:rgba(255,255,255,0.15);border:none;border-radius:6px;color:white;cursor:pointer;display:flex;align-items:center;gap:4px;">
               <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                 <polyline points="14 2 14 8 20 8"/>
@@ -2432,22 +2435,34 @@ function memoSiteAddGeminiButtons() {
   }
 }
 
-function memoSiteCopyGeminiText(btn) {
+// グローバルに公開（windowオブジェクトに追加）
+window.memoSiteCopyGeminiText = function(btn) {
   const msg = btn.closest('.gemini-message-assistant');
-  const content = msg.querySelector('.gemini-message-content').textContent;
+  const contentEl = msg.querySelector('.gemini-message-content');
+  
+  // innerTextを使って改行を保持
+  const content = contentEl.innerText || contentEl.textContent;
+  
   navigator.clipboard.writeText(content).then(() => {
     memoSiteShowToast('クリップボードにコピーしました');
+    if (typeof play === 'function') play('snd-click');
+  }).catch(err => {
+    console.error('コピー失敗:', err);
+    memoSiteShowToast('コピーに失敗しました');
   });
-}
+};
 
-function memoSiteAddGeminiToMemo(btn) {
+window.memoSiteAddGeminiToMemo = function(btn) {
   const msg = btn.closest('.gemini-message-assistant');
-  const content = msg.querySelector('.gemini-message-content').textContent;
+  const contentEl = msg.querySelector('.gemini-message-content');
+  
+  // innerTextを使って改行を保持（HTMLタグは除去され、改行は保持される）
+  const content = contentEl.innerText || contentEl.textContent;
   
   const newMemo = {
     id: memoSiteNextId++,
     title: 'Gemini - ' + new Date().toLocaleString('ja-JP'),
-    content: content,
+    content: content, // 改行がそのまま保持される
     tags: ['gemini'],
     favorite: false,
     pinned: false,
@@ -2460,7 +2475,17 @@ function memoSiteAddGeminiToMemo(btn) {
   memoSiteMemos.unshift(newMemo);
   memoSiteSaveToStorage();
   memoSiteShowToast('Geminiの回答をメモに追加しました');
-}
+  if (typeof play === 'function') play('snd-click');
+  
+  // メモタブに切り替えて表示
+  if (typeof switchSection === 'function') {
+    switchSection('memo');
+    setTimeout(() => {
+      memoSiteRenderMemoList();
+      memoSiteSelectMemo(newMemo.id);
+    }, 200);
+  }
+};
 
 // 初期化
 if (document.readyState === 'loading') {
