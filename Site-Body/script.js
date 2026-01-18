@@ -1899,6 +1899,7 @@ function memoSiteRenderEditor(memoId) {
             <option value="personal">personal</option>
             <option value="ideas">ideas</option>
             <option value="todo">todo</option>
+            <option value="information">information</option>
           </select>
           <div class="memo-site-memo-item-tags" id="memoCurrentTags">
             ${memo.tags.map(tag => `
