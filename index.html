@@ -636,49 +636,78 @@
         </div>
       </section>
 
-      <section class="section" id="section-memo">
-        <h1 class="section-title">Memo</h1>
-        <div class="cards1">
-          <div class="card wide tall">
-            <div class="card-header">
-              <div class="card-title">
-                <div class="card-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                  </svg>
-                </div>
-                Notes
-              </div>
-              <button class="card-action" onclick="clearMemo()">Clear</button>
-            </div>
-            <div class="card-content">
-              <div class="toolbar">
-                <button class="toolbar-btn" onclick="fmt('bold')" title="Bold (Ctrl+B)">B</button>
-                <button class="toolbar-btn" onclick="fmt('underline')" title="Underline (Ctrl+U)">U</button>
-                <button class="toolbar-btn" onclick="fmt('larger')" title="Larger">A+</button>
-                <button class="toolbar-btn" onclick="fmt('smaller')" title="Smaller">A-</button>
-                <label class="toolbar-btn" style="cursor:pointer;" title="Upload File">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="17 8 12 3 7 8"/>
-                    <line x1="12" y1="3" x2="12" y2="15"/>
-                  </svg>
-                  <input type="file" class="file-upload" id="memo-file" onchange="handleMemoFile(event)" multiple>
-                </label>
-                <button class="toolbar-btn" onclick="insertLink()" title="Insert Link">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                  </svg>
-                </button>
-              </div>
-              <div class="memo-files" id="memo-files"></div>
-              <div class="memo" id="memo" contenteditable="true" data-placeholder="Start typing..." onfocus="focused=this" oninput="saveMemo()"></div>
-            </div>
+      <!-- index.htmlの <section class="section" id="section-memo"> を以下に完全置き換え -->
+
+<section class="section" id="section-memo">
+  <h1 class="section-title">Memo</h1>
+  <div class="cards1" style="display:flex;gap:20px;height:85vh;">
+    
+    <!-- 左サイドバー -->
+    <div class="card" style="width:320px;max-width:320px;flex-shrink:0;display:flex;flex-direction:column;">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
           </div>
+          メモ一覧
         </div>
-      </section>
+        <button class="card-action" onclick="createNewWorkMemo()">+ 新規</button>
+      </div>
+      
+      <div class="card-content" style="padding:0;flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <!-- 検索 -->
+        <div style="padding:12px;border-bottom:1px solid var(--border);">
+          <input type="text" id="work-memo-search-input" placeholder="メモを検索..." 
+                 style="width:100%;padding:8px 12px;background:rgba(255,255,255,0.15);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;outline:none;"
+                 oninput="renderWorkMemoList(this.value)">
+        </div>
+        
+        <!-- フィルター -->
+        <div style="display:flex;gap:4px;padding:12px;border-bottom:1px solid var(--border);flex-wrap:wrap;">
+          <button class="work-filter-tab active" onclick="setWorkMemoFilter(this, 'all')">すべて</button>
+          <button class="work-filter-tab" onclick="setWorkMemoFilter(this, 'favorites')">お気に入り</button>
+          <button class="work-filter-tab" onclick="setWorkMemoFilter(this, 'pinned')">ピン留め</button>
+        </div>
+        
+        <!-- 表示切替 -->
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);">
+          <div style="display:flex;gap:4px;">
+            <button class="work-view-btn active" onclick="setWorkMemoView(this, 'list')" title="リスト">
+              <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+              </svg>
+            </button>
+            <button class="work-view-btn" onclick="setWorkMemoView(this, 'grid')" title="グリッド">
+              <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+              </svg>
+            </button>
+          </div>
+          <select id="work-memo-sort-select" onchange="setWorkMemoSort(this.value)" 
+                  style="font-size:12px;padding:4px 8px;background:rgba(255,255,255,0.15);border:1px solid var(--border);border-radius:4px;color:var(--text);">
+            <option value="updated">更新日</option>
+            <option value="created">作成日</option>
+            <option value="title">タイトル</option>
+          </select>
+        </div>
+        
+        <!-- メモリスト -->
+        <div id="work-memo-list-container" class="work-memo-list-normal" style="flex:1;overflow-y:auto;padding:8px;"></div>
+      </div>
+    </div>
+    
+    <!-- エディター -->
+    <div class="card wide tall" style="flex:1;display:flex;flex-direction:column;">
+      <div class="card-content" style="padding:0;flex:1;overflow:hidden;display:flex;flex-direction:column;">
+        <div id="work-memo-editor-container" style="flex:1;overflow:hidden;display:flex;flex-direction:column;"></div>
+      </div>
+    </div>
+    
+  </div>
+</section>
 
       <section class="section" id="section-notion">
         <h1 class="section-title">Notion Workspace</h1>
