@@ -8,6 +8,32 @@ const SUPABASE_ANON_KEY = 'sb_publishable_KXsg2JfUvG2YI5R5G7UjEg_FYJfFeoK';
 // Supabaseクライアント初期化
 let supabase = null;
 
+// ページ読み込み完了後にSupabaseを初期化
+function initializeSupabase() {
+  if (window.supabase && window.supabase.createClient) {
+    try {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      console.log('Supabase initialized successfully');
+      loadMemosFromSupabase();
+    } catch (error) {
+      console.error('Error initializing Supabase:', error);
+      initMemoSiteData();
+    }
+  } else {
+    console.warn('Supabase not available, using localStorage');
+    initMemoSiteData();
+  }
+}
+
+// DOMContentLoaded後に初期化
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initializeSupabase, 500);
+  });
+} else {
+  setTimeout(initializeSupabase, 500);
+}
+
 // Supabaseライブラリを動的に読み込み
 (function loadSupabase() {
   const script = document.createElement('script');
