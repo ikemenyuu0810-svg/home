@@ -1,3 +1,198 @@
+// ===== Supabase 統合コード =====
+// script.js の最初に追加
+
+// Supabase設定
+const SUPABASE_URL = 'https://lyupxfocvqqsmwagpicm.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_KXsg2JfUvG2YI5R5G7UjEg_FYJfFeoK';
+
+// Supabaseクライアント初期化
+let supabase = null;
+
+// Supabaseライブラリを動的に読み込み
+(function loadSupabase() {
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+  script.onload = () => {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log('Supabase initialized');
+    // 初回読み込み時にデータを取得
+    loadMemosFromSupabase();
+  };
+  script.onerror = () => {
+    console.error('Failed to load Supabase');
+    // Supabaseが利用できない場合はlocalStorageフォールバック
+    initMemoSiteData();
+  };
+  document.head.appendChild(script);
+})();
+
+// Supabaseからメモを読み込む
+async function loadMemosFromSupabase() {
+  if (!supabase) {
+    console.log('Supabase not available, using localStorage');
+    initMemoSiteData();
+    return;
+  }
+
+  try {
+    // ユーザーIDを取得（匿名ユーザーの場合はlocalStorageから取得）
+    let userId = localStorage.getItem('memo-user-id');
+    if (!userId) {
+      userId = 'user-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('memo-user-id', userId);
+    }
+
+    // Supabaseからメモを取得
+    const { data, error } = await supabase
+      .from('memos')
+      .select('*')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase fetch error:', error);
+      initMemoSiteData();
+      return;
+    }
+
+    if (data && data.length > 0) {
+      // Supabaseのデータを内部形式に変換
+      memoSiteMemos = data.map(memo => ({
+        id: memo.id,
+        title: memo.title,
+        content: memo.content,
+        tags: memo.tags || [],
+        favorite: memo.favorite || false,
+        pinned: memo.pinned || false,
+        archived: memo.archived || false,
+        color: memo.color || '',
+        createdAt: memo.created_at,
+        updatedAt: memo.updated_at
+      }));
+      
+      memoSiteNextId = Math.max(...memoSiteMemos.map(m => m.id), 0) + 1;
+      console.log('Loaded', memoSiteMemos.length, 'memos from Supabase');
+    } else {
+      // データがない場合は初期データを作成
+      initMemoSiteData();
+      // 初期データをSupabaseに保存
+      await saveMemosToSupabase();
+    }
+
+    // UIを更新
+    setTimeout(() => {
+      memoSiteRenderMemoList();
+    }, 100);
+
+  } catch (err) {
+    console.error('Error loading from Supabase:', err);
+    initMemoSiteData();
+  }
+}
+
+// Supabaseにメモを保存
+async function saveMemosToSupabase() {
+  if (!supabase) {
+    // Supabaseが利用できない場合はlocalStorageに保存
+    memoSiteSaveToStorage();
+    return;
+  }
+
+  try {
+    const userId = localStorage.getItem('memo-user-id');
+    if (!userId) return;
+
+    // 既存のメモを削除して新しいデータで置き換え
+    // （より効率的な方法はupsertを使うことですが、シンプルさのためこの方法を使用）
+    
+    // まず全削除
+    await supabase
+      .from('memos')
+      .delete()
+      .eq('user_id', userId);
+
+    // データを変換してSupabaseに保存
+    const memosToSave = memoSiteMemos.map(memo => ({
+      id: memo.id,
+      user_id: userId,
+      title: memo.title,
+      content: memo.content,
+      tags: memo.tags,
+      favorite: memo.favorite,
+      pinned: memo.pinned,
+      archived: memo.archived,
+      color: memo.color,
+      created_at: memo.createdAt,
+      updated_at: memo.updatedAt
+    }));
+
+    if (memosToSave.length > 0) {
+      const { error } = await supabase
+        .from('memos')
+        .insert(memosToSave);
+
+      if (error) {
+        console.error('Supabase save error:', error);
+        // エラー時はlocalStorageにフォールバック
+        memoSiteSaveToStorage();
+      } else {
+        console.log('Saved', memosToSave.length, 'memos to Supabase');
+      }
+    }
+
+  } catch (err) {
+    console.error('Error saving to Supabase:', err);
+    memoSiteSaveToStorage();
+  }
+}
+
+// 既存の memoSiteSaveToStorage 関数を修正
+// 元の関数を以下に置き換え
+const originalMemoSiteSaveToStorage = memoSiteSaveToStorage;
+function memoSiteSaveToStorage() {
+  // localStorageにも保存（バックアップ）
+  originalMemoSiteSaveToStorage();
+  
+  // Supabaseに保存
+  saveMemosToSupabase();
+}
+
+// リアルタイム同期（オプション）
+function setupRealtimeSync() {
+  if (!supabase) return;
+
+  const userId = localStorage.getItem('memo-user-id');
+  if (!userId) return;
+
+  // Supabaseのリアルタイムサブスクリプションを設定
+  const channel = supabase
+    .channel('memos-changes')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'memos',
+        filter: `user_id=eq.${userId}`
+      },
+      (payload) => {
+        console.log('Realtime change detected:', payload);
+        // 他のタブやデバイスからの変更を反映
+        loadMemosFromSupabase();
+      }
+    )
+    .subscribe();
+
+  console.log('Realtime sync enabled');
+}
+
+// ページ読み込み時にリアルタイム同期を有効化
+setTimeout(() => {
+  if (supabase) {
+    setupRealtimeSync();
+  }
+}, 2000);
+
 const $ = id => document.getElementById(id);
 const play = id => { const a = $(id); if(a) { a.currentTime = 0; a.play().catch(()=>{}); }};
 const pad = n => String(n).padStart(2, '0');
@@ -1599,12 +1794,11 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// ===== Memo-site 完全統合 (既存script.jsの最後に追加) =====
-
+// ===== Memo-site 完全統合 (既存script.jsの最後に追加) ====
 const memoSiteIcons = {
-  star: '<svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
-  pin: '<svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>',
-  trash: '<svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
+  star: '<svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  pin: '<svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>',
+  trash: '<svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
 };
 
 let memoSiteMemos = [];

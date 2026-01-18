@@ -1196,3 +1196,19 @@ body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); bac
     gap: 8px;
   }
 }
+
+.memo-site-memo-action-btn svg {
+  fill: none;
+  stroke: currentColor;
+  transition: all 0.2s;
+}
+
+.memo-site-memo-action-btn.favorite.active svg {
+  fill: #fab005;
+  stroke: #fab005;
+}
+
+.memo-site-memo-action-btn.pinned.active svg {
+  fill: white;
+  stroke: white;
+}
