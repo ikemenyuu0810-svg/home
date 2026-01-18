@@ -11,15 +11,21 @@ let supabase = null;
 // Supabaseライブラリを動的に読み込み
 (function loadSupabase() {
   const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+  script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js';
   script.onload = () => {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('Supabase initialized');
-    // 初回読み込み時にデータを取得
-    loadMemosFromSupabase();
+    // window.supabase が正しく読み込まれているか確認
+    if (window.supabase && window.supabase.createClient) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      console.log('Supabase initialized successfully');
+      // 初回読み込み時にデータを取得
+      loadMemosFromSupabase();
+    } else {
+      console.error('Supabase library loaded but createClient not found');
+      initMemoSiteData();
+    }
   };
   script.onerror = () => {
-    console.error('Failed to load Supabase');
+    console.error('Failed to load Supabase library');
     // Supabaseが利用できない場合はlocalStorageフォールバック
     initMemoSiteData();
   };
