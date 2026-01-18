@@ -647,116 +647,7 @@ function updateCalcHistory() {
   });
 }
 
-// Memo
-const memo = $('memo');
-const memoFiles = {};
-if (localStorage.memo) memo.innerHTML = localStorage.memo;
-if (localStorage.memoFiles) {
-  try {
-    Object.assign(memoFiles, JSON.parse(localStorage.memoFiles));
-  } catch(e) {}
-}
 
-function saveMemo() {
-  localStorage.memo = memo.innerHTML;
-}
-
-function clearMemo() {
-  if (confirm('Clear all notes?')) {
-    memo.innerHTML = '';
-    localStorage.removeItem('memo');
-    Object.keys(memoFiles).forEach(k => delete memoFiles[k]);
-    localStorage.removeItem('memoFiles');
-    renderMemoFiles();
-  }
-}
-
-function handleMemoFile(e) {
-  const files = e.target.files;
-  Array.from(files).forEach(file => {
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const id = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-      memoFiles[id] = {
-        name: file.name,
-        type: file.type,
-        data: ev.target.result
-      };
-      localStorage.memoFiles = JSON.stringify(memoFiles);
-      renderMemoFiles();
-      
-      if (file.type.startsWith('image/')) {
-        const img = document.createElement('img');
-        img.src = ev.target.result;
-        img.className = 'memo-image';
-        img.onclick = () => window.open(ev.target.result, '_blank');
-        memo.appendChild(img);
-        saveMemo();
-      } else if (file.type === 'text/plain') {
-        const reader2 = new FileReader();
-        reader2.onload = e2 => {
-          const div = document.createElement('div');
-          div.style.cssText = 'background:rgba(255,255,255,0.1);padding:10px;border-radius:6px;margin:8px 0;';
-          div.textContent = e2.target.result;
-          memo.appendChild(div);
-          saveMemo();
-        };
-        reader2.readAsText(file);
-      }
-    };
-    reader.readAsDataURL(file);
-  });
-  e.target.value = '';
-}
-
-function renderMemoFiles() {
-  const container = $('memo-files');
-  container.innerHTML = '';
-  Object.entries(memoFiles).forEach(([id, file]) => {
-    const div = document.createElement('div');
-    div.className = 'memo-file';
-    div.innerHTML = `
-      <span>${file.name}</span>
-      <button class="memo-file-remove" onclick="removeMemoFile('${id}')">×</button>
-    `;
-    div.onclick = e => {
-      if (e.target.tagName !== 'BUTTON') {
-        if (file.type.startsWith('image/')) {
-          window.open(file.data, '_blank');
-        } else {
-          const a = document.createElement('a');
-          a.href = file.data;
-          a.download = file.name;
-          a.click();
-        }
-      }
-    };
-    container.appendChild(div);
-  });
-}
-
-function removeMemoFile(id) {
-  delete memoFiles[id];
-  localStorage.memoFiles = JSON.stringify(memoFiles);
-  renderMemoFiles();
-}
-
-function insertLink() {
-  const url = prompt('Enter URL:');
-  if (url) {
-    const name = prompt('Enter link name:') || url;
-    const a = document.createElement('a');
-    a.href = url;
-    a.target = '_blank';
-    a.textContent = name;
-    a.style.cssText = 'color:#2bac76;text-decoration:underline;';
-    memo.appendChild(a);
-    memo.appendChild(document.createTextNode(' '));
-    saveMemo();
-  }
-}
-
-renderMemoFiles();
 
 // Clock
 function updateClocks() {
@@ -1707,3 +1598,889 @@ window.addEventListener('DOMContentLoaded', () => {
     switchSection(lastSection);
   }
 });
+
+// ===== Memo-site 完全統合 (既存script.jsの最後に追加) =====
+
+const memoSiteIcons = {
+  star: '<svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  pin: '<svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>',
+  trash: '<svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
+};
+
+let memoSiteMemos = [];
+let memoSiteCurrentMemoId = null;
+let memoSiteNextId = 1;
+let memoSiteCurrentFilter = 'all';
+let memoSiteCurrentView = 'list';
+let memoSiteCurrentSort = 'updated';
+let memoSiteCurrentEditorMode = 'edit';
+let memoSiteContextMenuMemoId = null;
+let memoSiteCurrentColorFilter = '';
+let memoSiteCurrentTagFilter = '';
+
+function memoSiteEscapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function initMemoSiteData() {
+  try {
+    const storedData = localStorage.getItem('work-hub-memos-data');
+    if (storedData) {
+      memoSiteMemos = JSON.parse(storedData);
+      memoSiteNextId = Math.max(...memoSiteMemos.map(m => m.id), 0) + 1;
+      return;
+    }
+  } catch (e) {
+    console.log('メモデータ読み込みエラー:', e);
+  }
+  
+  memoSiteMemos = [{
+    id: memoSiteNextId++,
+    title: 'ようこそ！',
+    content: '# Work Hub メモへようこそ！\n\n## 主な機能\n\n- リッチテキスト編集\n- ピン留め機能\n- お気に入り\n- 色分け\n- 右クリックメニュー\n- タグ削除機能\n- localStorageでデータ永続化\n\n**右クリック**でメモの操作メニューを表示！',
+    tags: ['ideas'],
+    favorite: false,
+    pinned: true,
+    archived: false,
+    color: 'blue',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }];
+  memoSiteSaveToStorage();
+}
+
+function memoSiteSaveToStorage() {
+  try {
+    localStorage.setItem('work-hub-memos-data', JSON.stringify(memoSiteMemos));
+  } catch (e) {
+    console.error('メモ保存エラー:', e);
+  }
+}
+
+function memoSiteShowToast(message) {
+  const toast = document.getElementById('memoToast');
+  if (toast) {
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+}
+
+function memoSiteGetFilteredMemos(filter = '') {
+  let filtered = memoSiteMemos.filter(memo => {
+    const matchesSearch = memo.title.toLowerCase().includes(filter.toLowerCase()) ||
+                          memo.content.toLowerCase().includes(filter.toLowerCase());
+    const matchesFilter = 
+      (memoSiteCurrentFilter === 'all' && !memo.archived) ||
+      (memoSiteCurrentFilter === 'favorites' && memo.favorite && !memo.archived) ||
+      (memoSiteCurrentFilter === 'pinned' && memo.pinned && !memo.archived) ||
+      (memoSiteCurrentFilter === 'archived' && memo.archived);
+    const matchesColor = !memoSiteCurrentColorFilter || memo.color === memoSiteCurrentColorFilter;
+    const matchesTag = !memoSiteCurrentTagFilter || memo.tags.includes(memoSiteCurrentTagFilter);
+    return matchesSearch && matchesFilter && matchesColor && matchesTag;
+  });
+
+  filtered.sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    
+    if (memoSiteCurrentSort === 'updated') {
+      return new Date(b.updatedAt) - new Date(a.updatedAt);
+    } else if (memoSiteCurrentSort === 'created') {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    } else if (memoSiteCurrentSort === 'title') {
+      return a.title.localeCompare(b.title);
+    }
+  });
+
+  return filtered;
+}
+
+function memoSiteRenderMemoList(filter = '') {
+  const filteredMemos = memoSiteGetFilteredMemos(filter);
+  const memoList = document.getElementById('memoList');
+  if (!memoList) return;
+  
+  memoList.className = memoSiteCurrentView === 'grid' ? 'memo-site-memo-list grid-view' : 'memo-site-memo-list';
+
+  memoList.innerHTML = filteredMemos.map(memo => {
+    const date = new Date(memo.updatedAt);
+    const dateStr = date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+    const safeTitle = memoSiteEscapeHtml(memo.title || '無題のメモ');
+    const safeContent = memoSiteEscapeHtml(memo.content.substring(0, 100) || 'メモを書く...');
+    
+    return `
+      <div class="memo-site-memo-item ${memoSiteCurrentMemoId === memo.id ? 'active' : ''} ${memo.pinned ? 'pinned' : ''}" 
+           data-id="${memo.id}" data-color="${memo.color || ''}">
+        <div class="memo-site-memo-item-header">
+          <div class="memo-site-memo-item-title">${safeTitle}</div>
+          <div class="memo-site-memo-item-actions">
+            <button class="memo-site-memo-action-btn pinned ${memo.pinned ? 'active' : ''}" data-id="${memo.id}" title="ピン留め">${memoSiteIcons.pin}</button>
+            <button class="memo-site-memo-action-btn favorite ${memo.favorite ? 'active' : ''}" data-id="${memo.id}" title="お気に入り">${memoSiteIcons.star}</button>
+            <button class="memo-site-memo-action-btn delete" data-id="${memo.id}" title="削除">${memoSiteIcons.trash}</button>
+          </div>
+        </div>
+        <div class="memo-site-memo-item-meta">
+          <span>${dateStr}</span>
+          <span>${memo.content.length}文字</span>
+        </div>
+        <div class="memo-site-memo-item-preview">${safeContent}</div>
+        <div class="memo-site-memo-item-tags">
+          ${memo.tags.map(tag => `<span class="memo-site-tag memo-site-tag-${tag}">${tag}</span>`).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  memoSiteAttachMemoListeners();
+}
+
+function memoSiteAttachMemoListeners() {
+  document.querySelectorAll('.memo-site-memo-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      if (!e.target.closest('.memo-site-memo-action-btn')) {
+        memoSiteSelectMemo(parseInt(item.dataset.id));
+      }
+    });
+
+    item.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      memoSiteContextMenuMemoId = parseInt(item.dataset.id);
+      memoSiteShowContextMenu(e.clientX, e.clientY);
+    });
+  });
+
+  document.querySelectorAll('.pinned').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      memoSiteTogglePin(parseInt(btn.dataset.id));
+    });
+  });
+
+  document.querySelectorAll('.favorite').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      memoSiteToggleFavorite(parseInt(btn.dataset.id));
+    });
+  });
+
+  document.querySelectorAll('.delete').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      memoSiteDeleteMemo(parseInt(btn.dataset.id));
+    });
+  });
+}
+
+function memoSiteShowContextMenu(x, y) {
+  const contextMenu = document.getElementById('memoContextMenu');
+  if (!contextMenu) return;
+  
+  contextMenu.style.left = x + 'px';
+  contextMenu.style.top = y + 'px';
+  contextMenu.classList.add('show');
+
+  setTimeout(() => {
+    const rect = contextMenu.getBoundingClientRect();
+    if (rect.right > window.innerWidth) {
+      contextMenu.style.left = (x - rect.width) + 'px';
+    }
+    if (rect.bottom > window.innerHeight) {
+      contextMenu.style.top = (y - rect.height) + 'px';
+    }
+  }, 0);
+}
+
+function memoSiteHideContextMenu() {
+  const contextMenu = document.getElementById('memoContextMenu');
+  if (contextMenu) {
+    contextMenu.classList.remove('show');
+  }
+  memoSiteContextMenuMemoId = null;
+}
+
+function memoSiteParseMarkdown(text) {
+  let html = text
+    .replace(/!\[([^\]]*)\]\(data:image\/[^;]+;base64,[^\)]+\)/g, (match) => {
+      return `<img src="${match.match(/\((data:image[^\)]+)\)/)[1]}" alt="uploaded image">`;
+    })
+    .replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`(.*?)`/g, '<code>$1</code>')
+    .replace(/^---$/gm, '<hr>')
+    .replace(/^- (.*$)/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(?!<[hul])/gm, '<p>')
+    .replace(/(?<![>])$/gm, '</p>');
+  
+  return html;
+}
+
+function memoSiteRenderEditor(memoId) {
+  const mainEditor = document.getElementById('memoMainEditor');
+  if (!mainEditor) return;
+  
+  const memo = memoSiteMemos.find(m => m.id === memoId);
+  if (!memo) {
+    mainEditor.innerHTML = `
+      <div class="memo-site-empty-state">
+        <div class="memo-site-empty-state-text">メモを選択するか、新しいメモを作成してください</div>
+        <div class="memo-site-empty-state-hint">ショートカット: Ctrl+N で新規メモ</div>
+      </div>
+    `;
+    return;
+  }
+
+  const stats = {
+    chars: memo.content.length,
+    words: memo.content.split(/\s+/).filter(w => w).length,
+    lines: memo.content.split('\n').length
+  };
+
+  const safeTitle = memoSiteEscapeHtml(memo.title);
+  const safeContent = memoSiteEscapeHtml(memo.content);
+
+  mainEditor.innerHTML = `
+    <div class="memo-site-editor-header">
+      <input type="text" class="memo-site-editor-title" id="memoEditorTitle" placeholder="タイトルを入力..." value="${safeTitle}">
+      <div class="memo-site-editor-tabs">
+        <button class="memo-site-editor-tab active" data-mode="edit">
+          <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          編集
+        </button>
+        <button class="memo-site-editor-tab" data-mode="preview">
+          <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          プレビュー
+        </button>
+      </div>
+      <div class="memo-site-editor-toolbar">
+        <div class="memo-site-toolbar-group">
+          <button class="memo-site-icon-btn" id="memoUploadBtn" title="画像をアップロード">
+            <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </button>
+          <input type="file" id="memoFileInput" style="display:none;" accept="image/*">
+          <button class="memo-site-icon-btn" id="memoLinkBtn" title="リンクを挿入">
+            <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+          </button>
+          <button class="memo-site-icon-btn" id="memoDateBtn" title="日付を挿入">
+            <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </button>
+        </div>
+        <div class="memo-site-toolbar-divider"></div>
+        <div class="memo-site-toolbar-group">
+          <select class="memo-site-tag-select" id="memoTagSelect">
+            <option value="">タグを追加...</option>
+            <option value="work">work</option>
+            <option value="personal">personal</option>
+            <option value="ideas">ideas</option>
+            <option value="todo">todo</option>
+          </select>
+          <div class="memo-site-memo-item-tags" id="memoCurrentTags">
+            ${memo.tags.map(tag => `
+              <span class="memo-site-tag memo-site-tag-${tag}">
+                ${tag}
+                <span class="memo-site-tag-remove" data-tag="${tag}">×</span>
+              </span>
+            `).join('')}
+          </div>
+        </div>
+        <div class="memo-site-toolbar-divider"></div>
+        <div class="memo-site-toolbar-group">
+          <select class="memo-site-color-select" id="memoColorSelect">
+            <option value="">色を選択...</option>
+            <option value="red">赤</option>
+            <option value="orange">オレンジ</option>
+            <option value="yellow">黄色</option>
+            <option value="green">緑</option>
+            <option value="blue">青</option>
+            <option value="purple">紫</option>
+            <option value="pink">ピンク</option>
+          </select>
+        </div>
+        <div class="memo-site-toolbar-divider"></div>
+        <div class="memo-site-toolbar-group">
+          <button class="memo-site-icon-btn" id="memoDuplicateBtn" title="複製">
+            <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </button>
+          <button class="memo-site-icon-btn" id="memoExportBtn" title="エクスポート">
+            <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+          </button>
+          <button class="memo-site-icon-btn" id="memoArchiveBtn" title="${memo.archived ? 'アーカイブ解除' : 'アーカイブ'}">
+            <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="memo-site-editor-stats">
+        <span>${stats.chars} 文字</span>
+        <span>${stats.words} 単語</span>
+        <span>${stats.lines} 行</span>
+      </div>
+    </div>
+    <div class="memo-site-editor-content" id="memoEditorContent">
+      <textarea class="memo-site-editor-textarea" id="memoEditorTextarea" placeholder="ここにメモを書く...">${safeContent}</textarea>
+    </div>
+  `;
+
+  memoSiteAttachEditorListeners(memo);
+}
+
+function memoSiteAttachEditorListeners(memo) {
+  const titleInput = document.getElementById('memoEditorTitle');
+  const contentInput = document.getElementById('memoEditorTextarea');
+  const tagSelect = document.getElementById('memoTagSelect');
+  const colorSelect = document.getElementById('memoColorSelect');
+  const duplicateBtn = document.getElementById('memoDuplicateBtn');
+  const exportBtn = document.getElementById('memoExportBtn');
+  const archiveBtn = document.getElementById('memoArchiveBtn');
+  const editorTabs = document.querySelectorAll('.memo-site-editor-tab');
+  const uploadBtn = document.getElementById('memoUploadBtn');
+  const fileInput = document.getElementById('memoFileInput');
+  const linkBtn = document.getElementById('memoLinkBtn');
+  const dateBtn = document.getElementById('memoDateBtn');
+
+  if (!titleInput || !contentInput) return;
+
+  if (memo.color) colorSelect.value = memo.color;
+
+  titleInput.addEventListener('input', (e) => {
+    memo.title = e.target.value;
+    memo.updatedAt = new Date().toISOString();
+    memoSiteSaveToStorage();
+    memoSiteRenderMemoList(document.getElementById('memoSearchBox')?.value || '');
+  });
+
+  contentInput.addEventListener('input', (e) => {
+    memo.content = e.target.value;
+    memo.updatedAt = new Date().toISOString();
+    memoSiteSaveToStorage();
+    memoSiteRenderMemoList(document.getElementById('memoSearchBox')?.value || '');
+    memoSiteUpdateStats();
+  });
+
+  if (uploadBtn && fileInput) {
+    uploadBtn.addEventListener('click', () => fileInput.click());
+    
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const base64 = event.target.result;
+          const cursorPos = contentInput.selectionStart;
+          const textBefore = contentInput.value.substring(0, cursorPos);
+          const textAfter = contentInput.value.substring(cursorPos);
+          contentInput.value = textBefore + `![uploaded image](${base64})` + textAfter;
+          memo.content = contentInput.value;
+          memo.updatedAt = new Date().toISOString();
+          memoSiteSaveToStorage();
+          memoSiteRenderMemoList(document.getElementById('memoSearchBox')?.value || '');
+          memoSiteShowToast('画像を挿入しました');
+        };
+        reader.readAsDataURL(file);
+      }
+      fileInput.value = '';
+    });
+  }
+
+  if (linkBtn) {
+    linkBtn.addEventListener('click', () => {
+      const url = prompt('リンクのURLを入力してください:');
+      if (url) {
+        const text = prompt('リンクのテキストを入力してください:', url);
+        if (text !== null) {
+          const cursorPos = contentInput.selectionStart;
+          const textBefore = contentInput.value.substring(0, cursorPos);
+          const textAfter = contentInput.value.substring(cursorPos);
+          contentInput.value = textBefore + `[${text}](${url})` + textAfter;
+          memo.content = contentInput.value;
+          memo.updatedAt = new Date().toISOString();
+          memoSiteSaveToStorage();
+          memoSiteShowToast('リンクを挿入しました');
+        }
+      }
+    });
+  }
+
+  if (dateBtn) {
+    dateBtn.addEventListener('click', () => {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+      const cursorPos = contentInput.selectionStart;
+      const textBefore = contentInput.value.substring(0, cursorPos);
+      const textAfter = contentInput.value.substring(cursorPos);
+      contentInput.value = textBefore + dateStr + textAfter;
+      memo.content = contentInput.value;
+      memo.updatedAt = new Date().toISOString();
+      memoSiteSaveToStorage();
+      memoSiteShowToast('日付を挿入しました');
+    });
+  }
+
+  if (tagSelect) {
+    tagSelect.addEventListener('change', (e) => {
+      if (e.target.value && !memo.tags.includes(e.target.value)) {
+        memo.tags.push(e.target.value);
+        memo.updatedAt = new Date().toISOString();
+        memoSiteSaveToStorage();
+        memoSiteRenderEditor(memo.id);
+        memoSiteRenderMemoList(document.getElementById('memoSearchBox')?.value || '');
+      }
+      e.target.value = '';
+    });
+  }
+
+  document.querySelectorAll('.memo-site-tag-remove').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const tagToRemove = btn.dataset.tag;
+      memo.tags = memo.tags.filter(tag => tag !== tagToRemove);
+      memo.updatedAt = new Date().toISOString();
+      memoSiteSaveToStorage();
+      memoSiteRenderEditor(memo.id);
+      memoSiteRenderMemoList(document.getElementById('memoSearchBox')?.value || '');
+      memoSiteShowToast('タグを削除しました');
+    });
+  });
+
+  if (colorSelect) {
+    colorSelect.addEventListener('change', (e) => {
+      memo.color = e.target.value;
+      memo.updatedAt = new Date().toISOString();
+      memoSiteSaveToStorage();
+      memoSiteRenderMemoList(document.getElementById('memoSearchBox')?.value || '');
+      memoSiteShowToast('色を変更しました');
+    });
+  }
+
+  if (duplicateBtn) duplicateBtn.addEventListener('click', () => memoSiteDuplicateMemo(memo.id));
+  if (exportBtn) exportBtn.addEventListener('click', () => memoSiteExportMemo(memo.id));
+  if (archiveBtn) archiveBtn.addEventListener('click', () => memoSiteToggleArchive(memo.id));
+
+  editorTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      editorTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      memoSiteToggleEditorMode(tab.dataset.mode);
+    });
+  });
+
+  function memoSiteUpdateStats() {
+    const stats = {
+      chars: memo.content.length,
+      words: memo.content.split(/\s+/).filter(w => w).length,
+      lines: memo.content.split('\n').length
+    };
+    const statsEl = document.querySelector('.memo-site-editor-stats');
+    if (statsEl) {
+      statsEl.innerHTML = `
+        <span>${stats.chars} 文字</span>
+        <span>${stats.words} 単語</span>
+        <span>${stats.lines} 行</span>
+      `;
+    }
+  }
+}
+
+function memoSiteToggleEditorMode(mode) {
+  memoSiteCurrentEditorMode = mode;
+  const content = document.getElementById('memoEditorContent');
+  const textarea = document.getElementById('memoEditorTextarea');
+  
+  if (mode === 'preview') {
+    const currentContent = memoSiteMemos.find(m => m.id === memoSiteCurrentMemoId)?.content || '';
+    content.innerHTML = `<div class="memo-site-markdown-preview">${memoSiteParseMarkdown(currentContent)}</div>`;
+  } else {
+    const currentContent = memoSiteMemos.find(m => m.id === memoSiteCurrentMemoId)?.content || '';
+    const safeContent = memoSiteEscapeHtml(currentContent);
+    content.innerHTML = `<textarea class="memo-site-editor-textarea" id="memoEditorTextarea" placeholder="ここにメモを書く...">${safeContent}</textarea>`;
+    memoSiteAttachEditorListeners(memoSiteMemos.find(m => m.id === memoSiteCurrentMemoId));
+  }
+}
+
+function memoSiteSelectMemo(id) {
+  memoSiteCurrentMemoId = id;
+  memoSiteRenderEditor(id);
+  memoSiteRenderMemoList(document.getElementById('memoSearchBox')?.value || '');
+}
+
+function memoSiteCreateNewMemo() {
+  const newMemo = {
+    id: memoSiteNextId++,
+    title: '',
+    content: '',
+    tags: [],
+    favorite: false,
+    pinned: false,
+    archived: false,
+    color: '',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  memoSiteMemos.unshift(newMemo);
+  memoSiteSaveToStorage();
+  memoSiteSelectMemo(newMemo.id);
+  memoSiteShowToast('新しいメモを作成しました');
+}
+
+function memoSiteTogglePin(id) {
+  const memo = memoSiteMemos.find(m => m.id === id);
+  if (memo) {
+    memo.pinned = !memo.pinned;
+    memo.updatedAt = new Date().toISOString();
+    memoSiteSaveToStorage();
+    memoSiteRenderMemoList(document.getElementById('memoSearchBox')?.value || '');
+    memoSiteShowToast(memo.pinned ? 'ピン留めしました' : 'ピン留めを解除しました');
+  }
+}
+
+function memoSiteToggleFavorite(id) {
+  const memo = memoSiteMemos.find(m => m.id === id);
+  if (memo) {
+    memo.favorite = !memo.favorite;
+    memo.updatedAt = new Date().toISOString();
+    memoSiteSaveToStorage();
+    memoSiteRenderMemoList(document.getElementById('memoSearchBox')?.value || '');
+    memoSiteShowToast(memo.favorite ? 'お気に入りに追加しました' : 'お気に入りから削除しました');
+  }
+}
+
+function memoSiteToggleArchive(id) {
+  const memo = memoSiteMemos.find(m => m.id === id);
+  if (memo) {
+    memo.archived = !memo.archived;
+    memo.updatedAt = new Date().toISOString();
+    memoSiteSaveToStorage();
+    if (memo.archived) {
+      memoSiteCurrentMemoId = null;
+      memoSiteRenderEditor(null);
+    }
+    memoSiteRenderMemoList(document.getElementById('memoSearchBox')?.value || '');
+    memoSiteShowToast(memo.archived ? 'アーカイブしました' : 'アーカイブを解除しました');
+  }
+}
+
+function memoSiteChangeColor(id, color) {
+  const memo = memoSiteMemos.find(m => m.id === id);
+  if (memo) {
+    memo.color = color;
+    memo.updatedAt = new Date().toISOString();
+    memoSiteSaveToStorage();
+    memoSiteRenderMemoList(document.getElementById('memoSearchBox')?.value || '');
+    if (memoSiteCurrentMemoId === id) {
+      memoSiteRenderEditor(id);
+    }
+    memoSiteShowToast('色を変更しました');
+  }
+}
+
+function memoSiteDeleteMemo(id) {
+  if (confirm('このメモを削除しますか？')) {
+    memoSiteMemos = memoSiteMemos.filter(m => m.id !== id);
+    memoSiteSaveToStorage();
+    if (memoSiteCurrentMemoId === id) {
+      memoSiteCurrentMemoId = null;
+      memoSiteRenderEditor(null);
+    }
+    memoSiteRenderMemoList(document.getElementById('memoSearchBox')?.value || '');
+    memoSiteShowToast('メモを削除しました');
+  }
+}
+
+function memoSiteDuplicateMemo(id) {
+  const memo = memoSiteMemos.find(m => m.id === id);
+  if (memo) {
+    const newMemo = {
+      ...memo,
+      id: memoSiteNextId++,
+      title: memo.title + ' (コピー)',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    memoSiteMemos.unshift(newMemo);
+    memoSiteSaveToStorage();
+    memoSiteSelectMemo(newMemo.id);
+    memoSiteShowToast('メモを複製しました');
+  }
+}
+
+function memoSiteExportMemo(id) {
+  const memo = memoSiteMemos.find(m => m.id === id);
+  if (memo) {
+    const content = `# ${memo.title}\n\n${memo.content}`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${memo.title || 'memo'}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    memoSiteShowToast('メモをエクスポートしました');
+  }
+}
+
+// イベントリスナー設定
+function memoSiteInitEventListeners() {
+  const searchBox = document.getElementById('memoSearchBox');
+  const newMemoBtn = document.getElementById('memoNewMemoBtn');
+  const helpBtn = document.getElementById('memoHelpBtn');
+  const helpModal = document.getElementById('memoHelpModal');
+  const closeHelpBtn = document.getElementById('memoCloseHelpBtn');
+  const sortSelect = document.getElementById('memoSortSelect');
+  const contextMenu = document.getElementById('memoContextMenu');
+  const colorFilter = document.getElementById('memoColorFilter');
+  const tagFilter = document.getElementById('memoTagFilter');
+
+  if (searchBox) {
+    searchBox.addEventListener('input', (e) => {
+      memoSiteRenderMemoList(e.target.value);
+    });
+  }
+
+  if (colorFilter) {
+    colorFilter.addEventListener('change', (e) => {
+      memoSiteCurrentColorFilter = e.target.value;
+      memoSiteRenderMemoList(searchBox?.value || '');
+    });
+  }
+
+  if (tagFilter) {
+    tagFilter.addEventListener('change', (e) => {
+      memoSiteCurrentTagFilter = e.target.value;
+      memoSiteRenderMemoList(searchBox?.value || '');
+    });
+  }
+
+  if (newMemoBtn) {
+    newMemoBtn.addEventListener('click', memoSiteCreateNewMemo);
+  }
+
+  if (helpBtn && helpModal && closeHelpBtn) {
+    helpBtn.addEventListener('click', () => helpModal.classList.add('show'));
+    closeHelpBtn.addEventListener('click', () => helpModal.classList.remove('show'));
+    helpModal.addEventListener('click', (e) => {
+      if (e.target === helpModal) helpModal.classList.remove('show');
+    });
+  }
+
+  document.querySelectorAll('.memo-site-filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.memo-site-filter-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      memoSiteCurrentFilter = tab.dataset.filter;
+      memoSiteRenderMemoList(searchBox?.value || '');
+    });
+  });
+
+  document.querySelectorAll('.memo-site-control-btn[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.memo-site-control-btn[data-view]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      memoSiteCurrentView = btn.dataset.view;
+      memoSiteRenderMemoList(searchBox?.value || '');
+    });
+  });
+
+  if (sortSelect) {
+    sortSelect.addEventListener('change', (e) => {
+      memoSiteCurrentSort = e.target.value;
+      memoSiteRenderMemoList(searchBox?.value || '');
+    });
+  }
+
+  // コンテキストメニュー
+  document.addEventListener('click', memoSiteHideContextMenu);
+  if (contextMenu) {
+    contextMenu.addEventListener('click', (e) => e.stopPropagation());
+  }
+
+  document.querySelectorAll('.memo-site-context-menu-item[data-action]').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const action = item.dataset.action;
+      const color = item.dataset.color;
+
+      if (!memoSiteContextMenuMemoId) return;
+
+      switch(action) {
+        case 'edit':
+          memoSiteSelectMemo(memoSiteContextMenuMemoId);
+          break;
+        case 'duplicate':
+          memoSiteDuplicateMemo(memoSiteContextMenuMemoId);
+          break;
+        case 'favorite':
+          memoSiteToggleFavorite(memoSiteContextMenuMemoId);
+          break;
+        case 'pin':
+          memoSiteTogglePin(memoSiteContextMenuMemoId);
+          break;
+        case 'color':
+          memoSiteChangeColor(memoSiteContextMenuMemoId, color);
+          break;
+        case 'archive':
+          memoSiteToggleArchive(memoSiteContextMenuMemoId);
+          break;
+        case 'export':
+          memoSiteExportMemo(memoSiteContextMenuMemoId);
+          break;
+        case 'delete':
+          memoSiteDeleteMemo(memoSiteContextMenuMemoId);
+          break;
+      }
+
+      memoSiteHideContextMenu();
+    });
+  });
+
+  // キーボードショートカット
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === 'n') {
+        e.preventDefault();
+        memoSiteCreateNewMemo();
+      } else if (e.key === 's') {
+        e.preventDefault();
+        memoSiteSaveToStorage();
+        memoSiteShowToast('保存しました');
+      } else if (e.key === 'f') {
+        e.preventDefault();
+        searchBox?.focus();
+      } else if (e.key === 'd') {
+        e.preventDefault();
+        if (memoSiteCurrentMemoId) {
+          memoSiteDeleteMemo(memoSiteCurrentMemoId);
+        }
+      } else if (e.key === 'b') {
+        e.preventDefault();
+        if (memoSiteCurrentMemoId) {
+          memoSiteToggleFavorite(memoSiteCurrentMemoId);
+        }
+      }
+    }
+  });
+}
+
+// Geminiチャットにボタン追加
+function memoSiteAddGeminiButtons() {
+  const observer = new MutationObserver(() => {
+    document.querySelectorAll('.gemini-message-assistant').forEach(msg => {
+      if (!msg.querySelector('.gemini-memo-actions')) {
+        const content = msg.querySelector('.gemini-message-content');
+        if (content) {
+          const actions = document.createElement('div');
+          actions.className = 'gemini-memo-actions';
+          actions.style.cssText = 'margin-top:8px;display:flex;gap:8px;';
+          actions.innerHTML = `
+            <button class="btn" onclick="memoSiteCopyGeminiText(this)" style="padding:6px 12px;font-size:12px;background:rgba(255,255,255,0.15);border:none;border-radius:6px;color:white;cursor:pointer;display:flex;align-items:center;gap:4px;">
+              <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+              コピー
+            </button>
+            <button class="btn" onclick="memoSiteAddGeminiToMemo(this)" style="padding:6px 12px;font-size:12px;background:rgba(255,255,255,0.15);border:none;border-radius:6px;color:white;cursor:pointer;display:flex;align-items:center;gap:4px;">
+              <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+              メモに追加
+            </button>
+          `;
+          msg.appendChild(actions);
+        }
+      }
+    });
+  });
+  
+  const geminiSection = document.getElementById('section-gemini');
+  if (geminiSection) {
+    observer.observe(geminiSection, { childList: true, subtree: true });
+  }
+}
+
+function memoSiteCopyGeminiText(btn) {
+  const msg = btn.closest('.gemini-message-assistant');
+  const content = msg.querySelector('.gemini-message-content').textContent;
+  navigator.clipboard.writeText(content).then(() => {
+    memoSiteShowToast('クリップボードにコピーしました');
+  });
+}
+
+function memoSiteAddGeminiToMemo(btn) {
+  const msg = btn.closest('.gemini-message-assistant');
+  const content = msg.querySelector('.gemini-message-content').textContent;
+  
+  const newMemo = {
+    id: memoSiteNextId++,
+    title: 'Gemini - ' + new Date().toLocaleString('ja-JP'),
+    content: content,
+    tags: ['gemini'],
+    favorite: false,
+    pinned: false,
+    archived: false,
+    color: 'purple',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  
+  memoSiteMemos.unshift(newMemo);
+  memoSiteSaveToStorage();
+  memoSiteShowToast('Geminiの回答をメモに追加しました');
+}
+
+// 初期化
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initMemoSiteApp);
+} else {
+  initMemoSiteApp();
+}
+
+function initMemoSiteApp() {
+  setTimeout(() => {
+    initMemoSiteData();
+    memoSiteInitEventListeners();
+    memoSiteAddGeminiButtons();
+    memoSiteRenderMemoList();
+    
+    // 自動保存（5秒ごと）
+    setInterval(() => {
+      if (memoSiteMemos.length > 0) {
+        memoSiteSaveToStorage();
+      }
+    }, 5000);
+  }, 500);
+}
