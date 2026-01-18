@@ -650,7 +650,7 @@ function updateCalcHistory() {
 // Memo
 const memo = $('memo');
 const memoFiles = {};
-if (localStorage.memo) memo.innerHTML = localStorage.memo;
+if (memo && localStorage.memo) memo.innerHTML = localStorage.memo;
 if (localStorage.memoFiles) {
   try {
     Object.assign(memoFiles, JSON.parse(localStorage.memoFiles));
