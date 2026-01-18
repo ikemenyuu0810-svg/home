@@ -1,38 +1,9 @@
-// ===== Supabase 統合コード =====
-// script.js の最初に追加
-
 // Supabase設定
 const SUPABASE_URL = 'https://lyupxfocvqqsmwagpicm.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_KXsg2JfUvG2YI5R5G7UjEg_FYJfFeoK';
 
 // Supabaseクライアント初期化
 let supabase = null;
-
-// ページ読み込み完了後にSupabaseを初期化
-function initializeSupabase() {
-  if (window.supabase && window.supabase.createClient) {
-    try {
-      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      console.log('Supabase initialized successfully');
-      loadMemosFromSupabase();
-    } catch (error) {
-      console.error('Error initializing Supabase:', error);
-      initMemoSiteData();
-    }
-  } else {
-    console.warn('Supabase not available, using localStorage');
-    initMemoSiteData();
-  }
-}
-
-// DOMContentLoaded後に初期化
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(initializeSupabase, 500);
-  });
-} else {
-  setTimeout(initializeSupabase, 500);
-}
 
 // Supabaseライブラリを動的に読み込み
 (function loadSupabase() {
@@ -58,6 +29,26 @@ if (document.readyState === 'loading') {
   document.head.appendChild(script);
 })();
 
+// グローバル共有ユーザーID（全デバイスで同じデータを共有）
+const SHARED_USER_ID = 'shared-workspace';
+
+// ユーザーIDモード管理
+let userIdMode = localStorage.getItem('memo-user-mode') || 'shared'; // 'shared' or 'personal'
+
+// ユーザーIDを取得
+function getUserId() {
+  if (userIdMode === 'shared') {
+    return SHARED_USER_ID;
+  } else {
+    let userId = localStorage.getItem('memo-user-id');
+    if (!userId) {
+      userId = 'user-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('memo-user-id', userId);
+    }
+    return userId;
+  }
+}
+
 // Supabaseからメモを読み込む
 async function loadMemosFromSupabase() {
   if (!supabase) {
@@ -67,12 +58,8 @@ async function loadMemosFromSupabase() {
   }
 
   try {
-    // ユーザーIDを取得（匿名ユーザーの場合はlocalStorageから取得）
-    let userId = localStorage.getItem('memo-user-id');
-    if (!userId) {
-      userId = 'user-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem('memo-user-id', userId);
-    }
+    const userId = getUserId();
+    console.log('Loading memos for user:', userId);
 
     // Supabaseからメモを取得
     const { data, error } = await supabase
@@ -131,8 +118,8 @@ async function saveMemosToSupabase() {
   }
 
   try {
-    const userId = localStorage.getItem('memo-user-id');
-    if (!userId) return;
+    const userId = getUserId();
+    console.log('Saving memos for user:', userId);
 
     // 既存のメモを削除して新しいデータで置き換え
     // （より効率的な方法はupsertを使うことですが、シンプルさのためこの方法を使用）
@@ -193,8 +180,8 @@ function memoSiteSaveToStorage() {
 function setupRealtimeSync() {
   if (!supabase) return;
 
-  const userId = localStorage.getItem('memo-user-id');
-  if (!userId) return;
+  const userId = getUserId();
+  console.log('Setting up realtime sync for user:', userId);
 
   // Supabaseのリアルタイムサブスクリプションを設定
   const channel = supabase
@@ -218,10 +205,95 @@ function setupRealtimeSync() {
   console.log('Realtime sync enabled');
 }
 
+// ユーザーモード切り替え機能
+function toggleUserMode() {
+  userIdMode = userIdMode === 'shared' ? 'personal' : 'shared';
+  localStorage.setItem('memo-user-mode', userIdMode);
+  
+  const mode = userIdMode === 'shared' ? '共有モード（全デバイスで同期）' : '個人モード（このデバイスのみ）';
+  alert(`切り替えました: ${mode}\n\nページを再読み込みしてください。`);
+  
+  // ページをリロード
+  setTimeout(() => window.location.reload(), 1000);
+}
+
+// モード切り替えボタンをUIに追加（オプション）
+function addUserModeToggle() {
+  // メモセクションのタイトルの横にボタンを追加
+  const memoTitle = document.querySelector('#section-memo .section-title');
+  if (memoTitle && !document.getElementById('user-mode-toggle')) {
+    const toggleBtn = document.createElement('button');
+    toggleBtn.id = 'user-mode-toggle';
+    toggleBtn.className = 'btn';
+    toggleBtn.style.cssText = 'margin-left:16px;padding:8px 16px;font-size:13px;';
+    toggleBtn.textContent = userIdMode === 'shared' ? '🌐 共有モード' : '👤 個人モード';
+    toggleBtn.title = 'クリックしてモードを切り替え';
+    toggleBtn.onclick = toggleUserMode;
+    memoTitle.appendChild(toggleBtn);
+  }
+}
+
 // ページ読み込み時にリアルタイム同期を有効化
 setTimeout(() => {
   if (supabase) {
     setupRealtimeSync();
+    addUserModeToggle(); // モード切り替えボタンを追加
+  }
+}, 2000);
+
+// ===== 既存のコードに統合 =====
+// initMemoSiteData() は既に定義されているのでそのまま使用
+// loadMemosFromSupabase() が呼ばれた時に上書きされます
+
+// 手動同期ボタンを追加（デバッグ用）
+function addSyncButton() {
+  const memoHeader = document.querySelector('#section-memo .memo-site-app-title');
+  if (memoHeader && !document.getElementById('manual-sync-btn')) {
+    const syncBtn = document.createElement('button');
+    syncBtn.id = 'manual-sync-btn';
+    syncBtn.className = 'memo-site-icon-btn';
+    syncBtn.title = '手動同期';
+    syncBtn.innerHTML = `
+      <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="23 4 23 10 17 10"/>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      </svg>
+    `;
+    syncBtn.onclick = async () => {
+      syncBtn.disabled = true;
+      syncBtn.style.opacity = '0.5';
+      try {
+        await loadMemosFromSupabase();
+        memoSiteShowToast('同期完了！');
+      } catch (error) {
+        console.error('Sync error:', error);
+        memoSiteShowToast('同期エラー');
+      } finally {
+        syncBtn.disabled = false;
+        syncBtn.style.opacity = '1';
+      }
+    };
+    
+    const settingsBtns = memoHeader.querySelector('.memo-site-settings-btns');
+    if (settingsBtns) {
+      settingsBtns.insertBefore(syncBtn, settingsBtns.firstChild);
+    }
+  }
+}
+
+// メモセクションがアクティブになったときにボタンを追加
+setTimeout(() => {
+  addSyncButton();
+  
+  // セクション切り替え時にもボタンを追加
+  const originalSwitchSection = window.switchSection;
+  if (originalSwitchSection) {
+    window.switchSection = function(section) {
+      originalSwitchSection(section);
+      if (section === 'memo') {
+        setTimeout(addSyncButton, 100);
+      }
+    };
   }
 }, 2000);
 
