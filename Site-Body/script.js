@@ -77,12 +77,22 @@ async function saveToSupabase() {
       pinned: m.pinned || false,
       archived: m.archived || false,
       color: m.color || '',
-      created_at: m.createdAt,
+      created_at: m.createdAt
+        ? new Date(m.createdAt).toISOString()
+        : null,
       updated_at: m.updatedAt
+        ? new Date(m.updatedAt).toISOString()
+        : null,
     }));
 
     // 既存データを削除
-    await supabase.from('memos').delete().eq('user_id', SHARED_USER_ID);
+    const { error: deleteError } = await supabase
+          .from('memos')
+          .delete()
+          .eq('user_id', SHARED_USER_ID);
+
+        if (deleteError) throw deleteError;
+
     
     // 新しいデータを挿入
     const { data, error } = await supabase.from('memos').insert(memos).select();
