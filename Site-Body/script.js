@@ -77,12 +77,9 @@ async function saveToSupabase() {
       pinned: m.pinned || false,
       archived: m.archived || false,
       color: m.color || '',
-      created_at: m.createdAt
-        ? new Date(m.createdAt).toISOString()
-        : null,
-      updated_at: m.updatedAt
-        ? new Date(m.updatedAt).toISOString()
-        : null,
+      created_at: m.createdAt ? new Date(m.createdAt).toISOString() : null,
+      updated_at: m.updatedAt ? new Date(m.updatedAt).toISOString() : null,
+
     }));
 
     // 既存データを削除
