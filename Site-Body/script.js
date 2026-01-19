@@ -1,39 +1,21 @@
+// ===== Supabase完全統合コード =====
+// script.jsの最初（const icons = {...} の前）に追加してください
+
 // Supabase設定
 const SUPABASE_URL = 'https://lyupxfocvqqsmwagpicm.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_KXsg2JfUvG2YI5R5G7UjEg_FYJfFeoK';
 
-// Supabaseクライアント初期化
-let supabase = null;
-
-// Supabaseライブラリを動的に読み込み
-(function loadSupabase() {
-  const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js';
-  script.onload = () => {
-    // window.supabase が正しく読み込まれているか確認
-    if (window.supabase && window.supabase.createClient) {
-      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      console.log('Supabase initialized successfully');
-      // 初回読み込み時にデータを取得
-      loadMemosFromSupabase();
-    } else {
-      console.error('Supabase library loaded but createClient not found');
-      initMemoSiteData();
-    }
-  };
-  script.onerror = () => {
-    console.error('Failed to load Supabase library');
-    // Supabaseが利用できない場合はlocalStorageフォールバック
-    initMemoSiteData();
-  };
-  document.head.appendChild(script);
-})();
-
 // グローバル共有ユーザーID（全デバイスで同じデータを共有）
 const SHARED_USER_ID = 'shared-workspace';
 
+// Supabaseクライアント
+let supabase = null;
+
 // ユーザーIDモード管理
-let userIdMode = localStorage.getItem('memo-user-mode') || 'shared'; // 'shared' or 'personal'
+let userIdMode = localStorage.getItem('memo-user-mode') || 'shared';
+
+// 保存処理のデバウンス用
+let saveTimeout = null;
 
 // ユーザーIDを取得
 function getUserId() {
@@ -49,19 +31,39 @@ function getUserId() {
   }
 }
 
+// Supabaseライブラリを動的に読み込み
+(function loadSupabase() {
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js';
+  script.onload = () => {
+    if (window.supabase && window.supabase.createClient) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      console.log('✅ Supabase initialized successfully');
+      setTimeout(() => {
+        loadMemosFromSupabase();
+        setupRealtimeSync();
+      }, 1000);
+    } else {
+      console.error('❌ Supabase library loaded but createClient not found');
+    }
+  };
+  script.onerror = () => {
+    console.error('❌ Failed to load Supabase library');
+  };
+  document.head.appendChild(script);
+})();
+
 // Supabaseからメモを読み込む
 async function loadMemosFromSupabase() {
   if (!supabase) {
-    console.log('Supabase not available, using localStorage');
-    initMemoSiteData();
+    console.log('⚠️ Supabase not available, using localStorage');
     return;
   }
 
   try {
     const userId = getUserId();
-    console.log('Loading memos for user:', userId);
+    console.log('📥 Loading memos for user:', userId);
 
-    // Supabaseからメモを取得
     const { data, error } = await supabase
       .from('memos')
       .select('*')
@@ -69,17 +71,16 @@ async function loadMemosFromSupabase() {
       .order('updated_at', { ascending: false });
 
     if (error) {
-      console.error('Supabase fetch error:', error);
-      initMemoSiteData();
+      console.error('❌ Supabase fetch error:', error);
       return;
     }
 
     if (data && data.length > 0) {
       // Supabaseのデータを内部形式に変換
-      memoSiteMemos = data.map(memo => ({
+      window.memoSiteMemos = data.map(memo => ({
         id: memo.id,
-        title: memo.title,
-        content: memo.content,
+        title: memo.title || '',
+        content: memo.content || '',
         tags: memo.tags || [],
         favorite: memo.favorite || false,
         pinned: memo.pinned || false,
@@ -89,102 +90,97 @@ async function loadMemosFromSupabase() {
         updatedAt: memo.updated_at
       }));
       
-      memoSiteNextId = Math.max(...memoSiteMemos.map(m => m.id), 0) + 1;
-      console.log('Loaded', memoSiteMemos.length, 'memos from Supabase');
+      window.memoSiteNextId = Math.max(...window.memoSiteMemos.map(m => m.id), 0) + 1;
+      console.log('✅ Loaded', window.memoSiteMemos.length, 'memos from Supabase');
+      
+      // UIを更新
+      if (typeof window.memoSiteRenderMemoList === 'function') {
+        window.memoSiteRenderMemoList();
+      }
     } else {
-      // データがない場合は初期データを作成
-      initMemoSiteData();
-      // 初期データをSupabaseに保存
-      await saveMemosToSupabase();
+      console.log('📝 No memos found in Supabase');
     }
 
-    // UIを更新
-    setTimeout(() => {
-      memoSiteRenderMemoList();
-    }, 100);
-
   } catch (err) {
-    console.error('Error loading from Supabase:', err);
-    initMemoSiteData();
+    console.error('❌ Error loading from Supabase:', err);
   }
 }
 
 // Supabaseにメモを保存
 async function saveMemosToSupabase() {
   if (!supabase) {
-    // Supabaseが利用できない場合はlocalStorageに保存
-    memoSiteSaveToStorage();
+    console.log('⚠️ Supabase not available');
+    return;
+  }
+
+  if (!window.memoSiteMemos || window.memoSiteMemos.length === 0) {
+    console.log('📝 No memos to save');
     return;
   }
 
   try {
     const userId = getUserId();
-    console.log('Saving memos for user:', userId);
+    console.log('💾 Saving', window.memoSiteMemos.length, 'memos to Supabase...');
 
-    // 既存のメモを削除して新しいデータで置き換え
-    // （より効率的な方法はupsertを使うことですが、シンプルさのためこの方法を使用）
-    
-    // まず全削除
-    await supabase
-      .from('memos')
-      .delete()
-      .eq('user_id', userId);
-
-    // データを変換してSupabaseに保存
-    const memosToSave = memoSiteMemos.map(memo => ({
+    // データを変換
+    const memosToSave = window.memoSiteMemos.map(memo => ({
       id: memo.id,
       user_id: userId,
-      title: memo.title,
-      content: memo.content,
-      tags: memo.tags,
-      favorite: memo.favorite,
-      pinned: memo.pinned,
-      archived: memo.archived,
-      color: memo.color,
+      title: memo.title || '',
+      content: memo.content || '',
+      tags: memo.tags || [],
+      favorite: memo.favorite || false,
+      pinned: memo.pinned || false,
+      archived: memo.archived || false,
+      color: memo.color || '',
       created_at: memo.createdAt,
       updated_at: memo.updatedAt
     }));
 
-    if (memosToSave.length > 0) {
-      const { error } = await supabase
-        .from('memos')
-        .insert(memosToSave);
+    // 既存データを削除
+    const { error: deleteError } = await supabase
+      .from('memos')
+      .delete()
+      .eq('user_id', userId);
 
-      if (error) {
-        console.error('Supabase save error:', error);
-        // エラー時はlocalStorageにフォールバック
-        memoSiteSaveToStorage();
-      } else {
-        console.log('Saved', memosToSave.length, 'memos to Supabase');
+    if (deleteError) {
+      console.error('❌ Delete error:', deleteError);
+    }
+
+    // 新しいデータを挿入
+    const { data: insertedData, error: insertError } = await supabase
+      .from('memos')
+      .insert(memosToSave)
+      .select();
+
+    if (insertError) {
+      console.error('❌ Insert error:', insertError);
+      console.error('Error details:', JSON.stringify(insertError, null, 2));
+      
+      if (typeof window.memoSiteShowToast === 'function') {
+        window.memoSiteShowToast('❌ 保存エラー: ' + insertError.message);
+      }
+    } else {
+      console.log('✅ Successfully saved', insertedData?.length || 0, 'memos');
+      
+      if (typeof window.memoSiteShowToast === 'function') {
+        window.memoSiteShowToast(`✅ ${insertedData?.length || 0}件保存完了`);
       }
     }
 
   } catch (err) {
-    console.error('Error saving to Supabase:', err);
-    memoSiteSaveToStorage();
+    console.error('❌ Exception while saving:', err);
   }
 }
 
-// 既存の memoSiteSaveToStorage 関数を修正
-// 元の関数を以下に置き換え
-const originalMemoSiteSaveToStorage = memoSiteSaveToStorage;
-function memoSiteSaveToStorage() {
-  // localStorageにも保存（バックアップ）
-  originalMemoSiteSaveToStorage();
-  
-  // Supabaseに保存
-  saveMemosToSupabase();
-}
-
-// リアルタイム同期（オプション）
+// リアルタイム同期
 function setupRealtimeSync() {
   if (!supabase) return;
 
   const userId = getUserId();
-  console.log('Setting up realtime sync for user:', userId);
+  console.log('🔄 Setting up realtime sync for:', userId);
 
-  // Supabaseのリアルタイムサブスクリプションを設定
-  const channel = supabase
+  supabase
     .channel('memos-changes')
     .on(
       'postgres_changes',
@@ -195,107 +191,129 @@ function setupRealtimeSync() {
         filter: `user_id=eq.${userId}`
       },
       (payload) => {
-        console.log('Realtime change detected:', payload);
-        // 他のタブやデバイスからの変更を反映
-        loadMemosFromSupabase();
+        console.log('🔔 Realtime change detected:', payload.eventType);
+        setTimeout(() => loadMemosFromSupabase(), 500);
       }
     )
-    .subscribe();
-
-  console.log('Realtime sync enabled');
+    .subscribe((status) => {
+      console.log('📡 Realtime subscription status:', status);
+    });
 }
 
-// ユーザーモード切り替え機能
+// 手動保存（即座に実行）
+async function forceSaveToSupabase() {
+  if (saveTimeout) {
+    clearTimeout(saveTimeout);
+  }
+  console.log('🚀 Force saving to Supabase...');
+  await saveMemosToSupabase();
+}
+
+// モード切り替え
 function toggleUserMode() {
   userIdMode = userIdMode === 'shared' ? 'personal' : 'shared';
   localStorage.setItem('memo-user-mode', userIdMode);
   
-  const mode = userIdMode === 'shared' ? '共有モード（全デバイスで同期）' : '個人モード（このデバイスのみ）';
-  alert(`切り替えました: ${mode}\n\nページを再読み込みしてください。`);
+  const mode = userIdMode === 'shared' ? '共有モード' : '個人モード';
+  alert(`切り替えました: ${mode}\n\nページを再読み込みします...`);
   
-  // ページをリロード
   setTimeout(() => window.location.reload(), 1000);
 }
 
-// モード切り替えボタンをUIに追加（オプション）
-function addUserModeToggle() {
-  // メモセクションのタイトルの横にボタンを追加
+// UIボタンを追加
+function addSupabaseButtons() {
+  const memoHeader = document.querySelector('#section-memo .memo-site-app-title');
+  if (!memoHeader || document.getElementById('manual-sync-btn')) return;
+  
+  const settingsBtns = memoHeader.querySelector('.memo-site-settings-btns');
+  if (!settingsBtns) return;
+
+  // 保存ボタン
+  const saveBtn = document.createElement('button');
+  saveBtn.id = 'manual-save-btn';
+  saveBtn.className = 'memo-site-icon-btn';
+  saveBtn.title = '手動保存';
+  saveBtn.innerHTML = `
+    <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+      <polyline points="17 21 17 13 7 13 7 21"/>
+      <polyline points="7 3 7 8 15 8"/>
+    </svg>
+  `;
+  saveBtn.onclick = forceSaveToSupabase;
+
+  // 同期ボタン
+  const syncBtn = document.createElement('button');
+  syncBtn.id = 'manual-sync-btn';
+  syncBtn.className = 'memo-site-icon-btn';
+  syncBtn.title = '手動同期';
+  syncBtn.innerHTML = `
+    <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="23 4 23 10 17 10"/>
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+    </svg>
+  `;
+  syncBtn.onclick = loadMemosFromSupabase;
+
+  // モード切り替えボタン
   const memoTitle = document.querySelector('#section-memo .section-title');
   if (memoTitle && !document.getElementById('user-mode-toggle')) {
-    const toggleBtn = document.createElement('button');
-    toggleBtn.id = 'user-mode-toggle';
-    toggleBtn.className = 'btn';
-    toggleBtn.style.cssText = 'margin-left:16px;padding:8px 16px;font-size:13px;';
-    toggleBtn.textContent = userIdMode === 'shared' ? '🌐 共有モード' : '👤 個人モード';
-    toggleBtn.title = 'クリックしてモードを切り替え';
-    toggleBtn.onclick = toggleUserMode;
-    memoTitle.appendChild(toggleBtn);
+    const modeBtn = document.createElement('button');
+    modeBtn.id = 'user-mode-toggle';
+    modeBtn.className = 'btn';
+    modeBtn.style.cssText = 'margin-left:16px;padding:8px 16px;font-size:13px;';
+    modeBtn.textContent = userIdMode === 'shared' ? '🌐 共有' : '👤 個人';
+    modeBtn.onclick = toggleUserMode;
+    memoTitle.appendChild(modeBtn);
   }
+
+  settingsBtns.insertBefore(saveBtn, settingsBtns.firstChild);
+  settingsBtns.insertBefore(syncBtn, settingsBtns.firstChild);
 }
 
-// ページ読み込み時にリアルタイム同期を有効化
+// ページ読み込み時にボタンを追加
 setTimeout(() => {
-  if (supabase) {
-    setupRealtimeSync();
-    addUserModeToggle(); // モード切り替えボタンを追加
-  }
-}, 2000);
-
-// ===== 既存のコードに統合 =====
-// initMemoSiteData() は既に定義されているのでそのまま使用
-// loadMemosFromSupabase() が呼ばれた時に上書きされます
-
-// 手動同期ボタンを追加（デバッグ用）
-function addSyncButton() {
-  const memoHeader = document.querySelector('#section-memo .memo-site-app-title');
-  if (memoHeader && !document.getElementById('manual-sync-btn')) {
-    const syncBtn = document.createElement('button');
-    syncBtn.id = 'manual-sync-btn';
-    syncBtn.className = 'memo-site-icon-btn';
-    syncBtn.title = '手動同期';
-    syncBtn.innerHTML = `
-      <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="23 4 23 10 17 10"/>
-        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-      </svg>
-    `;
-    syncBtn.onclick = async () => {
-      syncBtn.disabled = true;
-      syncBtn.style.opacity = '0.5';
-      try {
-        await loadMemosFromSupabase();
-        memoSiteShowToast('同期完了！');
-      } catch (error) {
-        console.error('Sync error:', error);
-        memoSiteShowToast('同期エラー');
-      } finally {
-        syncBtn.disabled = false;
-        syncBtn.style.opacity = '1';
-      }
-    };
-    
-    const settingsBtns = memoHeader.querySelector('.memo-site-settings-btns');
-    if (settingsBtns) {
-      settingsBtns.insertBefore(syncBtn, settingsBtns.firstChild);
-    }
-  }
-}
-
-// メモセクションがアクティブになったときにボタンを追加
-setTimeout(() => {
-  addSyncButton();
+  addSupabaseButtons();
   
   // セクション切り替え時にもボタンを追加
-  const originalSwitchSection = window.switchSection;
-  if (originalSwitchSection) {
+  const originalSwitch = window.switchSection;
+  if (originalSwitch) {
     window.switchSection = function(section) {
-      originalSwitchSection(section);
+      originalSwitch(section);
       if (section === 'memo') {
-        setTimeout(addSyncButton, 100);
+        setTimeout(addSupabaseButtons, 100);
       }
     };
   }
-}, 2000);
+}, 3000);
+
+// ===== 既存のmemoSiteSaveToStorage関数を上書き =====
+// この部分は script.js の initMemoSiteApp() 関数の中、
+// またはinitMemoSiteData()関数の後に配置してください
+
+// メモが変更されたときに自動保存（デバウンス付き）
+function autoSaveToSupabase() {
+  // localStorageには即座に保存
+  try {
+    localStorage.setItem('work-hub-memos-data', JSON.stringify(window.memoSiteMemos));
+  } catch (e) {
+    console.error('localStorage保存エラー:', e);
+  }
+  
+  // Supabaseへは2秒後に保存（連続した保存を防ぐ）
+  if (saveTimeout) {
+    clearTimeout(saveTimeout);
+  }
+  
+  saveTimeout = setTimeout(() => {
+    saveMemosToSupabase();
+  }, 2000);
+}
+
+// グローバルに公開
+window.autoSaveToSupabase = autoSaveToSupabase;
+window.forceSaveToSupabase = forceSaveToSupabase;
+window.loadMemosFromSupabase = loadMemosFromSupabase;
 
 const $ = id => document.getElementById(id);
 const play = id => { const a = $(id); if(a) { a.currentTime = 0; a.play().catch(()=>{}); }};
@@ -1948,12 +1966,18 @@ function initMemoSiteData() {
   }];
   memoSiteSaveToStorage();
 }
-
 function memoSiteSaveToStorage() {
+  // localStorageに即座に保存
   try {
     localStorage.setItem('work-hub-memos-data', JSON.stringify(memoSiteMemos));
+    console.log('💾 Saved to localStorage');
   } catch (e) {
-    console.error('メモ保存エラー:', e);
+    console.error('❌ localStorage保存エラー:', e);
+  }
+  
+  // Supabaseへは自動保存関数を呼ぶ
+  if (typeof autoSaveToSupabase === 'function') {
+    autoSaveToSupabase();
   }
 }
 
