@@ -1,10 +1,9 @@
 // ========================================
 // Supabase統合コード - script.jsの最初に追加
-// ========================================
 
 // 1. 設定（ここを変更してください）
-const SUPABASE_URL = 'https://lyupxfocvqqsmwagpicm.supabase.co';  // 例: 'https://xxxxx.supabase.co'
-const SUPABASE_ANON_KEY = 'sb_publishable_KXsg2JfUvG2YI5R5G7UjEg_FYJfFeoK'; // 例: 'eyJhbGc...'
+const SUPABASE_URL = 'https://lyupxfocvqqsmwagpicm.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_KXsg2JfUvG2YI5R5G7UjEg_FYJfFeoK';
 
 // 2. グローバル変数
 let supabase = null;
@@ -153,7 +152,7 @@ setTimeout(() => {
     
   console.log('📡 リアルタイム同期ON');
 }, 2000);
-
+// ========================================
 
 const $ = id => document.getElementById(id);
 const play = id => { const a = $(id); if(a) { a.currentTime = 0; a.play().catch(()=>{}); }};
