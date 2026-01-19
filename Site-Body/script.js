@@ -1,7 +1,4 @@
 // ========================================
-// Supabase統合コード - script.jsの最初に追加
-// ========================================
-
 // 1. 設定（ここを変更してください）
 const SUPABASE_URL = 'https://lyupxfocvqqsmwagpicm.supabase.co';  // 例: 'https://xxxxx.supabase.co'
 const SUPABASE_ANON_KEY = 'sb_publishable_KXsg2JfUvG2YI5R5G7UjEg_FYJfFeoK'; // 例: 'eyJhbGc...'
