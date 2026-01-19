@@ -1,4 +1,4 @@
-// ===== Supabase完全統合コード =====
+// ===== Supabase
 // script.jsの最初（const icons = {...} の前）に追加してください
 
 // Supabase設定
