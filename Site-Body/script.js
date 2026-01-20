@@ -2155,27 +2155,44 @@ function memoSiteAttachEditorListeners(memo) {
     memoSiteRenderMemoList(document.getElementById('memoSearchBox')?.value || '');
     memoSiteUpdateStats();
   });
-
-  if (uploadBtn && fileInput) {
+if (uploadBtn && fileInput) {
     uploadBtn.addEventListener('click', () => fileInput.click());
     
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file && file.type.startsWith('image/')) {
+        // 画像名を取得（拡張子を除く）
+        const fileName = file.name.replace(/\.[^/.]+$/, '');
+        
         const reader = new FileReader();
         reader.onload = (event) => {
           const base64 = event.target.result;
+          
+          // メモに画像データを保存する独自のフォーマット
+          // [画像名]と[base64データ]を分けて管理
+          if (!memo.images) memo.images = [];
+          const imageId = 'img_' + Date.now();
+          memo.images.push({
+            id: imageId,
+            name: fileName,
+            data: base64
+          });
+          
+          // エディタには短い参照を挿入
           const cursorPos = contentInput.selectionStart;
           const textBefore = contentInput.value.substring(0, cursorPos);
           const textAfter = contentInput.value.substring(cursorPos);
-          contentInput.value = textBefore + `![uploaded image](${base64})` + textAfter;
+          contentInput.value = textBefore + `![${fileName}](${imageId})` + textAfter;
+          
           memo.content = contentInput.value;
           memo.updatedAt = new Date().toISOString();
           memoSiteSaveToStorage();
           memoSiteRenderMemoList(document.getElementById('memoSearchBox')?.value || '');
-          memoSiteShowToast('画像を挿入しました');
+          memoSiteShowToast(`画像「${fileName}」を挿入しました`);
         };
         reader.readAsDataURL(file);
+      } else if (file) {
+        memoSiteShowToast('画像ファイルを選択してください');
       }
       fileInput.value = '';
     });

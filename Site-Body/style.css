@@ -1211,3 +1211,16 @@ body.home-active .search-suggestions { background: rgba(255, 255, 255, 0.2); bac
   fill: white;
   stroke: white;
 }
+.memo-site-markdown-preview img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1em 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.memo-site-markdown-preview img:hover {
+  transform: scale(1.02);
+}
