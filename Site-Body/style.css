@@ -314,7 +314,7 @@ body.home-active .search-wrap {
     outline: none;
     background: rgba(255, 255, 255, 0.25);
     border-color: rgba(255, 255, 255, 0.4);
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.1);
 }
 .search-icon {
     position: absolute;
@@ -677,7 +677,7 @@ body.home-active .search-suggestions {
     transform: scale(1.005);
     box-shadow: 0 6px 25px rgba(255, 255, 255, 0.0075);
     background: var(--card-hover);
-    backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px) saturate(140%);
 }
 .card-header {
     display: flex;
